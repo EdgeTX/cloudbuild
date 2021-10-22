@@ -1,0 +1,61 @@
+linters-settings:
+  gocritic:
+    disabled-checks:
+      - exitAfterDefer
+  gofumpt:
+      lang-version: "1.17"
+
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+
+linters:
+  disable-all: true
+  enable:
+    - asciicheck
+    - bodyclose
+    - deadcode
+    - dupl
+    - cyclop
+    - dogsled
+    - durationcheck
+    - exportloopref
+    - exhaustive
+    - forbidigo
+    - errname
+    - errcheck
+    - errorlint
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    - goerr113
+    - godox
+    - noctx
+    - nolintlint
+    - misspell
+    - forcetypeassert
+    - gocognit
+    - gofumpt
+    - goimports
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - lll
+    - misspell
+    - nakedret
+    - prealloc
+    - staticcheck
+    - exportloopref
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - goprintffuncname
+    - varcheck
+    - whitespace
+    - thelper

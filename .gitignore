@@ -1,0 +1,5 @@
+.idea
+/temp
+test.env
+api.env
+bin
