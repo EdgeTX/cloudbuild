@@ -31,7 +31,7 @@ type PodmanBuilder struct {
 	PodmanExecutor PodmanExecutor
 	CPULimit       int // logical cores
 	MemoryLimit    int // bytes
-	recorder *buildlogs.Recorder
+	recorder       *buildlogs.Recorder
 }
 
 func NewPodmanBuilder(workingDir string, recorder *buildlogs.Recorder, cpuLimit int, memoryLimit int) *PodmanBuilder {
