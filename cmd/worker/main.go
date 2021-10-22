@@ -31,13 +31,23 @@ func init() {
 }
 
 func main() {
-	cfg, err := config.LoadDefaultConfig(context.Background())
-	if err != nil {
-		log.Fatalf("failed to load s3 config: %s", err)
+	var artifactStorage storage.Handler
+	artifactStorageType := os.Getenv("ARTIFACT_STORAGE_TYPE")
+	if artifactStorageType == "S3" {
+		cfg, err := config.LoadDefaultConfig(context.Background())
+		if err != nil {
+			log.Fatalf("failed to load s3 config: %s", err)
+		}
+		s3Client := s3.NewFromConfig(cfg)
+		bucket := os.Getenv("ARTIFACT_STORAGE_S3_BUCKET")
+		artifactStorage = storage.NewS3ArtifactStorage(bucket, s3Client)
 	}
-	s3Client := s3.NewFromConfig(cfg)
-	bucket := os.Getenv("ARTIFACT_STORAGE_S3_BUCKET")
-	artifactStorage := storage.NewS3ArtifactStorage(bucket, s3Client)
+
+	if artifactStorageType == "FILE_SYSTEM_STORAGE" {
+		storagePath := os.Getenv("FILE_SYSTEM_STORAGE_PATH")
+		localStorageDownloadURL := os.Getenv("FILE_SYSTEM_STORAGE_DOWNLOAD_URL")
+		artifactStorage = storage.NewLocalStorage(storagePath, localStorageDownloadURL)
+	}
 
 	db, err := gorm.Open(postgres.Open(os.Getenv("DATABASE_URL")), &gorm.Config{})
 	if err != nil {

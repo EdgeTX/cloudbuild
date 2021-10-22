@@ -30,7 +30,7 @@ func NewGitDownloader(workingDir string, stdOutput *buildlogs.Recorder) *GitDown
 
 func DefaultGitExecutor(workingDir string) types.Executor {
 	return func(ctx context.Context, name string, debug bool, args ...string) (string, error) {
-		log.Debugf("git cmd: %s %s", name, args)
+		log.Tracef("git cmd: %s %s", name, args)
 		cmd := exec.CommandContext(ctx, name, args...)
 		cmd.Dir = workingDir
 		if len(args) > 0 && args[0] != "clone" {
