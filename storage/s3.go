@@ -10,12 +10,16 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-type S3ArtifactStorage struct {
-	bucket string
-	s3     *s3.Client
+type PutObjectToS3 interface {
+	PutObject(ctx context.Context, params *s3.PutObjectInput, optFns ...func(*s3.Options)) (*s3.PutObjectOutput, error)
 }
 
-func NewS3ArtifactStorage(bucket string, s3 *s3.Client) *S3ArtifactStorage {
+type S3ArtifactStorage struct {
+	bucket string
+	s3     PutObjectToS3
+}
+
+func NewS3ArtifactStorage(bucket string, s3 PutObjectToS3) *S3ArtifactStorage {
 	return &S3ArtifactStorage{
 		bucket: bucket,
 		s3:     s3,
