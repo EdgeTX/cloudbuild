@@ -1,0 +1,56 @@
+name: Run tests
+
+on:
+    push:
+        branches: [ master ]
+    pull_request:
+        branches: [ master ]
+
+jobs:
+    test:
+        name: Test
+        runs-on: ubuntu-20.04
+        env:
+            LOG_LEVEL: "debug"
+            PORT: 3000
+            DATABASE_URL: "host=localhost user=edgetx password=psw dbname=cloudbuild port=5432 sslmode=disable"
+            ARTIFACT_STORAGE_TYPE: "FILE_SYSTEM_STORAGE"
+            FILE_SYSTEM_STORAGE_PATH: "/tmp"
+            FILE_SYSTEM_STORAGE_DOWNLOAD_URL: "http://localhost:3000"
+            ARTIFACT_STORAGE_S3_BUCKET: "edgetx-staging"
+            AWS_ACCESS_KEY_ID: ""
+            AWS_SECRET_ACCESS_KEY: ""
+            AWS_DEFAULT_REGION: "eu-central-1"
+            BUILD_IMAGE: "ghcr.io/edgetx/edgetx-builder:2.5.1"
+            SOURCE_REPOSITORY: "https://github.com/EdgeTX/edgetx.git"
+
+        services:
+            postgres:
+                image: postgres:13.3
+                env:
+                    POSTGRES_USER: edgetx
+                    POSTGRES_DB: cloudbuild
+                    POSTGRES_PASSWORD: psw
+                ports:
+                    - 5432:5432
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+
+        steps:
+            -   name: Set up Go
+                uses: actions/setup-go@v2
+                with:
+                    go-version: ^1.17.2
+                id: go
+
+            -   name: Check out code into the Go module directory
+                uses: actions/checkout@v2
+
+            -   name: Lint
+                run: make lint
+
+            -   name: Test
+                run: make test
