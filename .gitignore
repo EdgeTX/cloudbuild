@@ -3,3 +3,6 @@
 test.env
 api.env
 bin
+
+data/*
+!data/.gitkeep
