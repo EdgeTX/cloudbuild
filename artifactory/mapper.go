@@ -2,11 +2,15 @@ package artifactory
 
 import (
 	"encoding/json"
+	"github.com/pkg/errors"
 
 	"github.com/edgetx/cloudbuild/firmware"
 )
 
 func BuildJobDtoFromModel(model *BuildJobModel) (*BuildJobDto, error) {
+	if model.BuildFlags == nil {
+		return nil, errors.New("build flags are empty")
+	}
 	var buildFlags []firmware.BuildFlag
 	err := json.Unmarshal([]byte(model.BuildFlags.String()), &buildFlags)
 	if err != nil {

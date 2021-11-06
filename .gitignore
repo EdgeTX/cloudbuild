@@ -1,5 +1,7 @@
 .idea
 /temp
+test
+test2
 test.env
 api.env
 bin
