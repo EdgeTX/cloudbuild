@@ -3,7 +3,7 @@ linters-settings:
     disabled-checks:
       - exitAfterDefer
   gofumpt:
-      lang-version: "1.17"
+    lang-version: "1.17"
 
 output:
   format: colored-line-number

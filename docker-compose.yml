@@ -69,7 +69,6 @@ services:
       - db
     volumes:
       - ./:/home/rootless/src:cached
-      - ./data:/home/rootless/.local/share/containers/storage
     command: bash -c "make build-worker && ./bin/worker"
 
 networks:

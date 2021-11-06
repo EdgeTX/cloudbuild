@@ -2,6 +2,7 @@ package artifactory
 
 import (
 	"encoding/json"
+
 	"github.com/pkg/errors"
 
 	"github.com/edgetx/cloudbuild/firmware"

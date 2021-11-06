@@ -11,7 +11,6 @@ RUN apt-get update \
 RUN useradd --create-home --shell /bin/bash rootless
 RUN mkdir -p /home/rootless/src
 WORKDIR /home/rootless/src
-
 USER rootless
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
