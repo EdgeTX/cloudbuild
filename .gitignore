@@ -9,3 +9,4 @@ bin
 data/*
 !data/.gitkeep
 firmware.bin
+tx16s-internal-elrs.json

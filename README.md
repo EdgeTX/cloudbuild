@@ -33,7 +33,7 @@ make edgetx-build-install
 go run cmd/cli/main.go -commit 55b3f91d0cf1d0130371343aef458bee1bfccbdf -build-flags ./tx16s-internal-elrs.json
 ```
 
-Where `./tx16s-internal-elhrs.json` is in this format:
+Where `./tx16s-internal-elrs.json` is in this format:
 
 ```
 [
