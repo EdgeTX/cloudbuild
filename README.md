@@ -8,14 +8,24 @@ It is possible to use this tool from command line as well.
 
 ### Prerequisites
 
-Unix based operating system, git & podman installed.
+Unix based operating system, git & podman installed:
 
-Install git: https://git-scm.com/download/linux
-Install podman: https://podman.io/getting-started/installation.html
+* Install git: https://git-scm.com/download/linux
+* Install podman: https://podman.io/getting-started/installation.html
 
 ### Setup
 
+To use binary from `edgetx-cloudbuild/bin` directory run this command:
 
+```
+make edgetx-build
+```
+
+To have cli tool `edgetx-build` available on your $PATH run this:
+
+```
+make edgetx-build-install
+```
 
 ### Example
 
