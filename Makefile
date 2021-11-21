@@ -1,4 +1,4 @@
-.PHONY: test lint lint-fix build-server build-worker
+.PHONY: test lint lint-fix build-server build-worker edgetx-build edgetx-build-install
 
 test:
 	go test -v ./...
@@ -22,3 +22,10 @@ build-server:
 build-worker:
 	rm -rf ./bin/worker
 	go build -o ./bin/worker -trimpath ./cmd/worker/main.go
+
+edgetx-build:
+	rm -rf ./bin/edgetx-build
+	go build -o ./bin/edgetx-build -trimpath ./cmd/edgetx-build/main.go
+
+edgetx-build-install:
+	go install -trimpath ./cmd/edgetx-build/main.go
