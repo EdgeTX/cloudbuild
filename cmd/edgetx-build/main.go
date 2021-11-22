@@ -74,7 +74,12 @@ func main() {
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	go func(ctx context.Context) {
-		firmwareBin, err := cli.Build(ctx, buildImage, sourceRepository, commitHash, buildFlagsFile)
+		buildFlags, err := cli.ParseBuildFlagsFile(buildFlagsFile)
+		if err != nil {
+			log.Fatalf("failed to parse build flags file: %s", err)
+		}
+
+		firmwareBin, err := cli.Build(ctx, buildImage, sourceRepository, commitHash, buildFlags)
 		if err != nil {
 			log.Fatalf("failed to build firmware: %s", err)
 		}

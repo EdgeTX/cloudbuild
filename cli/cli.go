@@ -39,13 +39,8 @@ func Build(
 	buildImage string,
 	sourceRepository string,
 	commitHash string,
-	buildFlagsFile string,
+	buildFlags []firmware.BuildFlag,
 ) ([]byte, error) {
-	buildFlags, err := ParseBuildFlagsFile(buildFlagsFile)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse build flags file")
-	}
-
 	sourceDir, err := ioutil.TempDir("/tmp", "edgetxsource")
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create tmp dir")
