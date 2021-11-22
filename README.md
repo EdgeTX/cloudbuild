@@ -63,7 +63,7 @@ Where `./tx16s-internal-elrs.json` is in this format:
     },
     {
         "key": "PCBREV",
-        "value": "T16"
+        "value": "TX16S"
     },
     {
         "key": "INTERNAL_MODULE_MULTI",
