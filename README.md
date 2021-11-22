@@ -29,8 +29,10 @@ make edgetx-build-install
 
 ### Example
 
+#### Using build flags json file
+
 ```
-go run cmd/cli/main.go -commit 55b3f91d0cf1d0130371343aef458bee1bfccbdf -build-flags ./tx16s-internal-elrs.json
+go run cmd/edgetx-build/main.go -commit 55b3f91d0cf1d0130371343aef458bee1bfccbdf -build-flags-file ./tx16s-internal-elrs.json
 ```
 
 Where `./tx16s-internal-elrs.json` is in this format:
@@ -70,4 +72,10 @@ Where `./tx16s-internal-elrs.json` is in this format:
         "value": "ON"
     }
 ]
+```
+
+#### Using inline build flags
+
+```
+go run cmd/edgetx-build/main.go -commit 55b3f91d0cf1d0130371343aef458bee1bfccbdf -build-flags -build-flags "-DDISABLE_COMPANION=YES -DCMAKE_BUILD_TYPE=Release -DTRACE_SIMPGMSPACE=NO -DVERBOSE_CMAKELISTS=YES -DCMAKE_RULE_MESSAGES=OFF -DPCB=X10 -DPCBREV=TX16S -DINTERNAL_MODULE_MULTI=ON"
 ```
