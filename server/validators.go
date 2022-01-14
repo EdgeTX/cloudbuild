@@ -43,6 +43,7 @@ func isFlagKeyValid(key string) bool {
 		"IMU_LSM6DS33",
 		"INTERNAL_GPS",
 		"INTERNAL_MODULE_MULTI",
+		"INTERNAL_MODULE_CRSF",
 		"LOG_BLUETOOTH",
 		"LOG_TELEMETRY",
 		"LUA",
