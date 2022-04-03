@@ -32,7 +32,7 @@ make edgetx-build-install
 #### Using build flags json file
 
 ```
-go run cmd/edgetx-build/main.go -commit 55b3f91d0cf1d0130371343aef458bee1bfccbdf -build-flags-file ./tx16s-internal-elrs.json
+go run cmd/edgetx-build/main.go -commit fac0eed66c2e7c4eb3d4602dd52b30564c4a4a16 -build-flags-file ./tx16s-internal-elrs.json
 ```
 
 Where `./tx16s-internal-elrs.json` is in this format:

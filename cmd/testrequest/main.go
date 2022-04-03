@@ -20,7 +20,7 @@ func init() {
 
 func main() {
 	data := server.CreateBuildJobRequest{
-		CommitHash: "3e8faa381b0a7bcebacdd6bd4c2aa4c17fb3b08b",
+		CommitHash: "fac0eed66c2e7c4eb3d4602dd52b30564c4a4a16",
 		Flags: []firmware.BuildFlag{
 			firmware.NewFlag("DISABLE_COMPANION", "YES"),
 			firmware.NewFlag("CMAKE_BUILD_TYPE", "Release"),
@@ -28,8 +28,9 @@ func main() {
 			firmware.NewFlag("VERBOSE_CMAKELISTS", "YES"),
 			firmware.NewFlag("CMAKE_RULE_MESSAGES", "OFF"),
 			firmware.NewFlag("PCB", "X10"),
-			firmware.NewFlag("PCBREV", "T16"),
-			firmware.NewFlag("INTERNAL_MODULE_MULTI", "ON"),
+			firmware.NewFlag("PCBREV", "TX16S"),
+			firmware.NewFlag("INTERNAL_MODULE_CRSF", "ON"),
+			firmware.NewFlag("ENABLE_SERIAL_PASSTHROUGH", "YES"),
 		},
 	}
 
