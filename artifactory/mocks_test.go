@@ -35,7 +35,11 @@ func (downloader *MockFirmwareBuilder) Build(
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).([]byte), args.Error(1)
+	out, ok := args.Get(0).([]byte)
+	if !ok {
+		return nil, args.Error(1)
+	}
+	return out, args.Error(1)
 }
 
 type MockStorage struct {
@@ -47,5 +51,9 @@ func (storage *MockStorage) Upload(ctx context.Context, data []byte, fileName st
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*url.URL), args.Error(1)
+	url, ok := args.Get(0).(*url.URL)
+	if !ok {
+		return nil, args.Error(1)
+	}
+	return url, args.Error(1)
 }

@@ -3,7 +3,7 @@ linters-settings:
     disabled-checks:
       - exitAfterDefer
   gofumpt:
-    lang-version: "1.17"
+    lang-version: "1.18"
 
 output:
   format: colored-line-number
@@ -15,7 +15,6 @@ linters:
   enable:
     - asciicheck
     - bodyclose
-    - deadcode
     - dupl
     - cyclop
     - dogsled
@@ -49,13 +48,11 @@ linters:
     - prealloc
     - staticcheck
     - exportloopref
-    - structcheck
     - stylecheck
     - typecheck
     - unconvert
     - unparam
     - unused
     - goprintffuncname
-    - varcheck
     - whitespace
     - thelper

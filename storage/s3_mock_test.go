@@ -17,5 +17,9 @@ func (s3MockClient *S3MockClient) PutObject(
 	optFns ...func(*s3.Options),
 ) (*s3.PutObjectOutput, error) {
 	args := s3MockClient.Called(ctx, params, optFns)
-	return args.Get(0).(*s3.PutObjectOutput), args.Error(1)
+	out, ok := args.Get(0).(*s3.PutObjectOutput)
+	if !ok {
+		return nil, args.Error(1)
+	}
+	return out, args.Error(1)
 }
