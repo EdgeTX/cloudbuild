@@ -16,7 +16,7 @@ func (a byBuildFlag) Less(i, j int) bool { return a[i].Key < a[j].Key }
 func (a byBuildFlag) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 
 /*
-	Build flags SHA256 hash is created by sorting and joining build flags array.
+Build flags SHA256 hash is created by sorting and joining build flags array.
 */
 func HashBuildFlags(buildFlags []firmware.BuildFlag) string {
 	flags := make([]firmware.BuildFlag, len(buildFlags))

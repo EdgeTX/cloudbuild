@@ -130,8 +130,9 @@ func (application *Application) Start(port int) error {
 	router.POST("/status", application.buildJobStatus)
 
 	server := &http.Server{
-		Addr:    fmt.Sprintf("0.0.0.0:%d", port),
-		Handler: router,
+		Addr:              fmt.Sprintf("0.0.0.0:%d", port),
+		Handler:           router,
+		ReadHeaderTimeout: 30,
 	}
 	application.server = server
 	return application.server.ListenAndServe()
