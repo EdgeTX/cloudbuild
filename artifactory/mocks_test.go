@@ -2,7 +2,6 @@ package artifactory_test
 
 import (
 	"context"
-	"net/url"
 
 	"github.com/edgetx/cloudbuild/firmware"
 	"github.com/stretchr/testify/mock"
@@ -46,14 +45,7 @@ type MockStorage struct {
 	mock.Mock
 }
 
-func (storage *MockStorage) Upload(ctx context.Context, data []byte, fileName string) (*url.URL, error) {
+func (storage *MockStorage) Upload(ctx context.Context, data []byte, fileName string) error {
 	args := storage.Called(ctx, data, fileName)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	url, ok := args.Get(0).(*url.URL)
-	if !ok {
-		return nil, args.Error(1)
-	}
-	return url, args.Error(1)
+	return args.Error(0)
 }

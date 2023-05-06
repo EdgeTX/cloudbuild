@@ -3,14 +3,21 @@ package artifactory
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/edgetx/cloudbuild/buildlogs"
+	"github.com/edgetx/cloudbuild/config"
 	"github.com/edgetx/cloudbuild/firmware"
 	"github.com/edgetx/cloudbuild/source"
 	"github.com/edgetx/cloudbuild/storage"
-	"github.com/pkg/errors"
+)
+
+var (
+	ErrNoArtifactStorage = errors.New("missing artifact storage")
+	ErrBuildNotFound     = errors.New("build not found")
 )
 
 type Artifactory struct {
@@ -18,6 +25,7 @@ type Artifactory struct {
 	ArtifactStorage     storage.Handler
 	SourceRepository    string
 	BuildContainerImage string
+	PrefixURL           *url.URL
 }
 
 func New(
@@ -25,13 +33,55 @@ func New(
 	artifactStorage storage.Handler,
 	buildContainerImage string,
 	sourceRepository string,
+	prefixURL *url.URL,
 ) *Artifactory {
 	return &Artifactory{
 		BuildJobsRepository: buildJobsRepository,
 		ArtifactStorage:     artifactStorage,
 		BuildContainerImage: buildContainerImage,
 		SourceRepository:    sourceRepository,
+		PrefixURL:           prefixURL,
 	}
+}
+
+func NewFromConfig(ctx context.Context, c *config.CloudbuildOpts) (*Artifactory, error) {
+	buildJobsRepository, err := NewBuildJobsDBRepositoryFromConfig(c)
+	if err != nil {
+		return nil, err
+	}
+	artifactStorage := storage.NewFromConfig(ctx, c)
+	if artifactStorage == nil {
+		return nil, ErrNoArtifactStorage
+	}
+	prefixURL, err := url.Parse(c.DownloadURL)
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse PREFIX_URL: %w", err)
+	}
+	return New(
+		buildJobsRepository,
+		artifactStorage,
+		c.BuildImage,
+		c.SourceRepository,
+		prefixURL,
+	), nil
+}
+
+func (artifactory *Artifactory) ListJobs() (*[]BuildJobDto, error) {
+	jobs, err := artifactory.BuildJobsRepository.List()
+	if err != nil {
+		return nil, err
+	}
+
+	resJobs := make([]BuildJobDto, len(*jobs))
+	for i := range *jobs {
+		j, err := BuildJobDtoFromModel(&(*jobs)[i], artifactory.PrefixURL)
+		if err != nil {
+			return nil, err
+		}
+		resJobs[i] = *j
+	}
+
+	return &resJobs, nil
 }
 
 func (artifactory *Artifactory) GetBuild(commitHash string, flags []firmware.BuildFlag) (*BuildJobDto, error) {
@@ -40,10 +90,10 @@ func (artifactory *Artifactory) GetBuild(commitHash string, flags []firmware.Bui
 		return nil, err
 	}
 	if err == nil && buildJob == nil {
-		return nil, errors.New("not found")
+		return nil, ErrBuildNotFound
 	}
 
-	return BuildJobDtoFromModel(buildJob)
+	return BuildJobDtoFromModel(buildJob, artifactory.PrefixURL)
 }
 
 func (artifactory *Artifactory) CreateBuildJob(
@@ -53,7 +103,7 @@ func (artifactory *Artifactory) CreateBuildJob(
 ) (*BuildJobDto, error) {
 	artifactModel, err := artifactory.BuildJobsRepository.Get(commitHash, flags)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to check for existing build")
+		return nil, fmt.Errorf("failed to check for existing build: %w", err)
 	}
 
 	if err == nil && artifactModel != nil {
@@ -76,14 +126,14 @@ func (artifactory *Artifactory) CreateBuildJob(
 			if err != nil {
 				return nil, err
 			}
-			return BuildJobDtoFromModel(artifactModel)
+			return BuildJobDtoFromModel(artifactModel, artifactory.PrefixURL)
 		}
-		return BuildJobDtoFromModel(artifactModel)
+		return BuildJobDtoFromModel(artifactModel, artifactory.PrefixURL)
 	}
 
 	buildFlagsJSON, err := json.Marshal(flags)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal build flags")
+		return nil, fmt.Errorf("failed to marshal build flags: %w", err)
 	}
 
 	newArtifactModel, err := artifactory.BuildJobsRepository.Create(BuildJobModel{
@@ -104,7 +154,7 @@ func (artifactory *Artifactory) CreateBuildJob(
 		return nil, err
 	}
 
-	return BuildJobDtoFromModel(newArtifactModel)
+	return BuildJobDtoFromModel(newArtifactModel, artifactory.PrefixURL)
 }
 
 func (artifactory *Artifactory) Build(
@@ -139,7 +189,9 @@ func (artifactory *Artifactory) Build(
 
 		revertErr := artifactory.BuildJobsRepository.Save(build)
 		if revertErr != nil {
-			return build, errors.Errorf("failed to process build: %s and failed to update job: %s", err, revertErr)
+			return build, fmt.Errorf(
+				"failed to process build: %w and failed to update job: %w",
+				err, revertErr)
 		}
 		return build, err
 	}
@@ -161,15 +213,15 @@ func (artifactory *Artifactory) Build(
 	}
 
 	fileName := fmt.Sprintf("%s-%s.bin", build.CommitHash, build.BuildFlagsHash)
-	firmwareURL, err := artifactory.ArtifactStorage.Upload(ctx, firmwareBin, fileName)
+	err = artifactory.ArtifactStorage.Upload(ctx, firmwareBin, fileName)
 	if err != nil {
 		return onBuildFailure(err, build)
 	}
 
 	build.Status = BuildSuccess
 	build.Artifacts = append(build.Artifacts, ArtifactModel{
-		Slug:        "firmware",
-		DownloadURL: firmwareURL.String(),
+		Slug:     "firmware",
+		Filename: fileName,
 	})
 	build.AuditLogs = append(build.AuditLogs, AuditLogModel{
 		From:      BuildInProgress,
@@ -186,25 +238,6 @@ func (artifactory *Artifactory) Build(
 	return build, nil
 }
 
-func (artifactory *Artifactory) ProcessNextBuildJob(
-	ctx context.Context,
-	recorder *buildlogs.Recorder,
-	sources source.Downloader,
-	builder firmware.Builder,
-) (*BuildJobModel, error) {
-	err := artifactory.BuildJobsRepository.TimeoutBuilds(time.Minute * 15)
-	if err != nil {
-		return nil, err
-	}
-
-	build, err := artifactory.BuildJobsRepository.ReservePendingBuild()
-	if err != nil {
-		return nil, err
-	}
-
-	if err == nil && build == nil {
-		return nil, nil
-	}
-
-	return artifactory.Build(ctx, build, recorder, sources, builder)
+func (artifactory *Artifactory) ReservePendingBuild() (*BuildJobModel, error) {
+	return artifactory.BuildJobsRepository.ReservePendingBuild()
 }

@@ -1,0 +1,17 @@
+log-level: info
+listen-ip: 0.0.0.0
+port: 3000
+database-dsn: "host=db user=edgetx password=psw dbname=cloudbuild port=5432 sslmode=disable"
+#
+# S3 configuration
+#
+# storage-type: S3
+# s3-access-key: myAccessKey
+# s3-secret-key: super-secret-key
+#
+# These settings depend on the provider:
+# s3-url: https://s3.super-provider.com
+# s3-url-immutable: true
+
+# Public download URL prefix (object key is appended to create download link)
+# download-url: https://bucket.s3.super-provider.com

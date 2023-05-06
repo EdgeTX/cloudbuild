@@ -27,29 +27,64 @@ func New(artifactory *artifactory.Artifactory) *Worker {
 	}
 }
 
+func (worker *Worker) build(
+	ctx context.Context,
+	job *artifactory.BuildJobModel,
+) (*artifactory.BuildJobModel, error) {
+	sourceDir, err := os.MkdirTemp("/tmp", "source")
+	if err != nil {
+		log.Fatalf("failed to create tmp dir: %s", err)
+	}
+	defer os.RemoveAll(sourceDir)
+
+	recorder := buildlogs.NewRecorder()
+	gitDownloader := source.NewGitDownloader(sourceDir, recorder)
+	firmwareBuilder := firmware.NewPodmanBuilder(sourceDir, recorder, 2, 1024*1024*1024)
+
+	return worker.artifactory.Build(
+		ctx, job, recorder, gitDownloader, firmwareBuilder,
+	)
+}
+
+func (worker *Worker) executeJob(job *artifactory.BuildJobModel) {
+	log.Debugf("starting %s job, result: %s", job.ID, job.Status)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*15)
+	defer cancel()
+
+	waitCh := make(chan struct{})
+	go func() {
+		if _, err := worker.build(ctx, job); err != nil {
+			log.Errorf("failed to process next build job: %s", err)
+		}
+		close(waitCh)
+	}()
+
+	select {
+	case <-ctx.Done(): // timeout
+		log.Errorf("job %s timed out! (status: %s)", job.ID, job.Status)
+
+	case <-waitCh: // finished normally
+		log.Infof("processed %s job, result: %s", job.ID, job.Status)
+	}
+}
+
 func (worker *Worker) Run() {
 	worker.running = true
 	for worker.running {
 		worker.inProgress = true
-		ctx, cancel := context.WithTimeout(context.Background(), time.Minute*15)
-		sourceDir, err := os.MkdirTemp("/tmp", "source")
+		job, err := worker.artifactory.ReservePendingBuild()
 		if err != nil {
-			log.Fatalf("failed to create tmp dir: %s", err)
-		}
-		defer os.RemoveAll(sourceDir)
-		recorder := buildlogs.NewRecorder()
-		gitDownloader := source.NewGitDownloader(sourceDir, recorder)
-		firmwareBuilder := firmware.NewPodmanBuilder(sourceDir, recorder, 2, 1024*1024*1024)
-		job, err := worker.artifactory.ProcessNextBuildJob(ctx, recorder, gitDownloader, firmwareBuilder)
-		if err != nil {
-			log.Errorf("failed to process next build job: %s", err)
-		}
-		if job != nil {
-			log.Infof("processed %s job, result: %s", job.ID, job.Status)
+			log.Errorf("failed to reserve next build job: %s", err)
+			time.Sleep(time.Second * 1)
+			continue
 		}
 
-		cancel()
-		time.Sleep(time.Second * 2)
+		if job != nil {
+			worker.executeJob(job)
+		} else {
+			time.Sleep(time.Second * 1)
+		}
+
 		worker.inProgress = false
 	}
 }

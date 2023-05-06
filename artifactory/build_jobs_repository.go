@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/edgetx/cloudbuild/config"
+	"github.com/edgetx/cloudbuild/database"
 	"github.com/edgetx/cloudbuild/firmware"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
@@ -12,6 +14,7 @@ import (
 
 type BuildJobsRepository interface {
 	Get(commitHash string, flags []firmware.BuildFlag) (*BuildJobModel, error)
+	List() (*[]BuildJobModel, error)
 	FindByID(ID uuid.UUID) (*BuildJobModel, error)
 	Create(model BuildJobModel) (*BuildJobModel, error)
 	ReservePendingBuild() (*BuildJobModel, error)
@@ -27,6 +30,14 @@ func NewBuildJobsDBRepository(db *gorm.DB) *BuildJobsDBRepository {
 	return &BuildJobsDBRepository{
 		db: db,
 	}
+}
+
+func NewBuildJobsDBRepositoryFromConfig(c *config.CloudbuildOpts) (*BuildJobsDBRepository, error) {
+	db, err := database.New(c.DatabaseDSN)
+	if err != nil {
+		return nil, err
+	}
+	return NewBuildJobsDBRepository(db), nil
 }
 
 func (repository *BuildJobsDBRepository) Get(commitHash string, flags []firmware.BuildFlag) (*BuildJobModel, error) {
@@ -62,6 +73,12 @@ func (repository *BuildJobsDBRepository) FindByID(id uuid.UUID) (*BuildJobModel,
 	}
 
 	return &buildJob, nil
+}
+
+func (repository *BuildJobsDBRepository) List() (*[]BuildJobModel, error) {
+	var jobs []BuildJobModel
+	err := repository.db.Preload("Artifacts").Find(&jobs).Error
+	return &jobs, err
 }
 
 func (repository *BuildJobsDBRepository) Create(model BuildJobModel) (*BuildJobModel, error) {
