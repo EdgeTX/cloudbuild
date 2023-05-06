@@ -2,7 +2,6 @@ package source_test
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -14,7 +13,7 @@ import (
 
 func TestFirmwareDownload(t *testing.T) {
 	t.Skip()
-	sourceDir, err := ioutil.TempDir("/tmp", "source")
+	sourceDir, err := os.MkdirTemp("/tmp", "source")
 	assert.Nil(t, err, "failed to create temp dir for firmware download")
 	defer os.RemoveAll(sourceDir)
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
-	"io/ioutil"
+	"io"
 	"os"
 	"path"
 	"runtime"
@@ -24,7 +24,7 @@ func ParseBuildFlagsFile(buildFlagsFile string) ([]firmware.BuildFlag, error) {
 	}
 	defer dataFile.Close()
 
-	byteValue, err := ioutil.ReadAll(dataFile)
+	byteValue, err := io.ReadAll(dataFile)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ func Build(
 	commitHash string,
 	buildFlags []firmware.BuildFlag,
 ) ([]byte, error) {
-	sourceDir, err := ioutil.TempDir("/tmp", "edgetxsource")
+	sourceDir, err := os.MkdirTemp("/tmp", "edgetxsource")
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create tmp dir")
 	}

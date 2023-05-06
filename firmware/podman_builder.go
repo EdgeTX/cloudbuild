@@ -3,7 +3,6 @@ package firmware
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -95,7 +94,7 @@ func (builder *PodmanBuilder) Build(ctx context.Context, buildContainer string, 
 		return nil, fmt.Errorf("firmware.bin does not exist: %w", err)
 	}
 
-	firmwareData, err := ioutil.ReadFile(firmwarePath)
+	firmwareData, err := os.ReadFile(firmwarePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read firmware binary data: %w", err)
 	}
