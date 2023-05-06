@@ -1,4 +1,4 @@
-FROM golang:1.18.0-bullseye
+FROM golang:1.20-bullseye
 
 ENV VERSION_ID Debian_11
 RUN apt-get update \

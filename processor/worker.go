@@ -2,7 +2,6 @@ package processor
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"time"
 
@@ -33,7 +32,7 @@ func (worker *Worker) Run() {
 	for worker.running {
 		worker.inProgress = true
 		ctx, cancel := context.WithTimeout(context.Background(), time.Minute*15)
-		sourceDir, err := ioutil.TempDir("/tmp", "source")
+		sourceDir, err := os.MkdirTemp("/tmp", "source")
 		if err != nil {
 			log.Fatalf("failed to create tmp dir: %s", err)
 		}
