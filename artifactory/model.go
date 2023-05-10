@@ -3,6 +3,7 @@ package artifactory
 import (
 	"time"
 
+	"github.com/edgetx/cloudbuild/database"
 	uuid "github.com/satori/go.uuid"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -51,13 +52,13 @@ func (base *BuildJobModel) BeforeCreate(db *gorm.DB) error {
 }
 
 type ArtifactModel struct {
-	ID          uuid.UUID `gorm:"type:uuid;primary_key;"`
-	Slug        string
-	BuildJobID  string
-	BuildJob    BuildJobModel `gorm:"foreignKey:BuildJobID"`
-	DownloadURL string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID         uuid.UUID `gorm:"type:uuid;primary_key;"`
+	Slug       string
+	BuildJobID string
+	BuildJob   BuildJobModel `gorm:"foreignKey:BuildJobID"`
+	Filename   string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }
 
 func (ArtifactModel) TableName() string {
@@ -88,4 +89,12 @@ func (AuditLogModel) TableName() string {
 func (base *AuditLogModel) BeforeCreate(db *gorm.DB) error {
 	base.ID = uuid.NewV4()
 	return nil
+}
+
+func init() {
+	database.RegisterModels(
+		&BuildJobModel{},
+		&ArtifactModel{},
+		&AuditLogModel{},
+	)
 }

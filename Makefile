@@ -15,13 +15,9 @@ lint-fix:
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.52.2
 	golangci-lint run --fix ./...
 
-build-server:
-	rm -rf ./bin/server
-	go build -o ./bin/server -trimpath ./cmd/server/main.go
-
-build-worker:
-	rm -rf ./bin/worker
-	go build -o ./bin/worker -trimpath ./cmd/worker/main.go
+build:
+	rm -rf ./bin/ebuild
+	go build -o ./bin/ebuild -trimpath ./cmd/ebuild
 
 edgetx-build:
 	rm -rf ./bin/edgetx-build

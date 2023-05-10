@@ -41,7 +41,6 @@ services:
     command: [ "bash" ]
 
   api:
-    dns_search: ''
     build:
       context: .
     privileged: true

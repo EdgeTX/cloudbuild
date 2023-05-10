@@ -3,22 +3,25 @@ package artifactory_test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/edgetx/cloudbuild/artifactory"
 	"github.com/edgetx/cloudbuild/buildlogs"
+	"github.com/edgetx/cloudbuild/config"
 	"github.com/edgetx/cloudbuild/database"
 	"github.com/edgetx/cloudbuild/firmware"
 	"github.com/edgetx/cloudbuild/storage"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -39,24 +42,22 @@ var (
 		firmware.NewFlag("PCBREV", "T16"),
 		firmware.NewFlag("INTERNAL_MODULE_MULTI", "ON"),
 	}
+	testCfg *config.CloudbuildOpts
+	testDB  *gorm.DB
 )
 
-func getDB() (*gorm.DB, error) {
-	db, err := gorm.Open(postgres.Open(os.Getenv("DATABASE_URL")), &gorm.Config{})
-	if err != nil {
-		return nil, err
+func resetDB(dsn string) error {
+	if err := database.DropSchema(dsn); err != nil {
+		return err
 	}
+	if err := database.Migrate(dsn); err != nil {
+		return err
+	}
+	return nil
+}
 
-	err = database.DropSchema(db)
-	if err != nil {
-		return nil, err
-	}
-
-	err = database.Migrate(db)
-	if err != nil {
-		return nil, err
-	}
-	return db, nil
+func setupTestDB(c *config.CloudbuildOpts) (*gorm.DB, error) {
+	return database.New(c.DatabaseDSN)
 }
 
 func newArtifactory(db *gorm.DB, handler storage.Handler) *artifactory.Artifactory {
@@ -64,22 +65,22 @@ func newArtifactory(db *gorm.DB, handler storage.Handler) *artifactory.Artifacto
 		mck := &MockStorage{}
 		mck.
 			On("Upload", mock.Anything, mock.Anything, mock.Anything).
-			Return(url.Parse("http://localhost:3000/firmware.bin"))
+			Return(nil)
 		handler = mck
 	}
 
 	repo := artifactory.NewBuildJobsDBRepository(db)
-	buildImage := os.Getenv("BUILD_IMAGE")
+	buildImage := testCfg.BuildImage
 	if len(buildImage) == 0 {
-		log.Fatal("BUILD_IMAG env variable is not specified")
+		log.Fatal("BUILD_IMAGE env variable is not specified")
 	}
 
-	sourceRepository := os.Getenv("SOURCE_REPOSITORY")
+	sourceRepository := testCfg.SourceRepository
 	if len(sourceRepository) == 0 {
 		log.Fatal("sourceRepository env variable is not specified")
 	}
 
-	return artifactory.New(repo, handler, buildImage, sourceRepository)
+	return artifactory.New(repo, handler, buildImage, sourceRepository, &url.URL{})
 }
 
 func createBuildModel(
@@ -102,8 +103,8 @@ func createBuildModel(
 	}
 	if status == artifactory.BuildSuccess {
 		build.Artifacts = append(build.Artifacts, artifactory.ArtifactModel{
-			Slug:        "firmware",
-			DownloadURL: "http://localhost:3000/firmware.bin",
+			Slug:     "firmware",
+			Filename: "firmware.bin",
 		})
 	}
 	buildModel, err := repository.Create(build)
@@ -114,9 +115,8 @@ func createBuildModel(
 }
 
 func TestCreateBuildJob(t *testing.T) {
-	db, err := getDB()
-	assert.Nil(t, err)
-	art := newArtifactory(db, nil)
+	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
+	art := newArtifactory(testDB, nil)
 
 	job, err := art.CreateBuildJob("127.0.0.1", commitHash, flags)
 	t.Logf("job: %+v err: %s", job, err)
@@ -130,13 +130,12 @@ func TestCreateBuildJob(t *testing.T) {
 }
 
 func TestCreatesBuildJobWhenBuildExistsInErrorState(t *testing.T) {
-	db, err := getDB()
-	assert.Nil(t, err)
-	art := newArtifactory(db, nil)
+	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
+	art := newArtifactory(testDB, nil)
 
 	job, err := art.CreateBuildJob("127.0.0.1", commitHash, flags)
 	assert.Nil(t, err)
-	repository := artifactory.NewBuildJobsDBRepository(db)
+	repository := artifactory.NewBuildJobsDBRepository(testDB)
 	err = repository.Save(&artifactory.BuildJobModel{
 		ID:     uuid.Must(uuid.FromString(job.ID)),
 		Status: artifactory.BuildError,
@@ -149,34 +148,34 @@ func TestCreatesBuildJobWhenBuildExistsInErrorState(t *testing.T) {
 }
 
 func TestGetBuildWhenBuildDoesNotExist(t *testing.T) {
-	db, err := getDB()
-	assert.Nil(t, err)
-	art := newArtifactory(db, nil)
+	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
+	art := newArtifactory(testDB, nil)
 	job, err := art.GetBuild(commitHash, flags)
 	assert.Nil(t, job)
 	assert.NotNil(t, err)
 }
 
 func TestGetBuildWhenBuildExists(t *testing.T) {
-	db, err := getDB()
-	assert.Nil(t, err)
-	art := newArtifactory(db, nil)
-
-	model, err := createBuildModel(db, artifactory.BuildSuccess, commitHash, flags)
+	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
+	art := newArtifactory(testDB, nil)
+	model, err := createBuildModel(testDB, artifactory.BuildSuccess, commitHash, flags)
 	assert.Nil(t, err)
 	dto, err := art.GetBuild(commitHash, flags)
 	assert.Nil(t, err)
 	assert.Equal(t, model.ID.String(), dto.ID)
 	assert.True(t, len(dto.Artifacts[0].DownloadURL) > 0)
-	assert.Equal(t, model.Artifacts[0].DownloadURL, dto.Artifacts[0].DownloadURL)
+	assert.True(t,
+		strings.Contains(
+			dto.Artifacts[0].DownloadURL,
+			model.Artifacts[0].Filename,
+		),
+	)
 }
 
 func TestGetBuildWhenInProgress(t *testing.T) {
-	db, err := getDB()
-	assert.Nil(t, err)
-	art := newArtifactory(db, nil)
-
-	model, err := createBuildModel(db, artifactory.BuildInProgress, commitHash, flags)
+	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
+	art := newArtifactory(testDB, nil)
+	model, err := createBuildModel(testDB, artifactory.BuildInProgress, commitHash, flags)
 	assert.Nil(t, err)
 	dto, err := art.GetBuild(commitHash, flags)
 	assert.Nil(t, err)
@@ -184,11 +183,9 @@ func TestGetBuildWhenInProgress(t *testing.T) {
 }
 
 func TestGetBuildWhenWaitingForBuild(t *testing.T) {
-	db, err := getDB()
-	assert.Nil(t, err)
-	art := newArtifactory(db, nil)
-
-	model, err := createBuildModel(db, artifactory.WaitingForBuild, commitHash, flags)
+	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
+	art := newArtifactory(testDB, nil)
+	model, err := createBuildModel(testDB, artifactory.WaitingForBuild, commitHash, flags)
 	assert.Nil(t, err)
 	dto, err := art.GetBuild(commitHash, flags)
 	assert.Nil(t, err)
@@ -196,37 +193,27 @@ func TestGetBuildWhenWaitingForBuild(t *testing.T) {
 }
 
 func TestGetBuildWhenBuildIsInError(t *testing.T) {
-	db, err := getDB()
-	assert.Nil(t, err)
-	art := newArtifactory(db, nil)
-
-	model, err := createBuildModel(db, artifactory.BuildError, commitHash, flags)
+	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
+	art := newArtifactory(testDB, nil)
+	model, err := createBuildModel(testDB, artifactory.BuildError, commitHash, flags)
 	assert.Nil(t, err)
 	dto, err := art.GetBuild(commitHash, flags)
 	assert.Nil(t, err)
 	assert.Equal(t, model.ID.String(), dto.ID)
 }
 
-func TestProcessNextBuildJobWhenNoneAvailable(t *testing.T) {
-	db, err := getDB()
-	assert.Nil(t, err)
-	art := newArtifactory(db, nil)
-
-	ctx := context.Background()
-	recorder := buildlogs.NewRecorder()
-	downloader := &MockDownloader{}
-	builder := &MockFirmwareBuilder{}
-	model, err := art.ProcessNextBuildJob(ctx, recorder, downloader, builder)
+func TestReservePendingBuildWhenNoneAvailable(t *testing.T) {
+	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
+	art := newArtifactory(testDB, nil)
+	model, err := art.ReservePendingBuild()
 	assert.Nil(t, err)
 	assert.Nil(t, model)
 }
 
-func TestProcessNextBuildJobWhenFailingToDownload(t *testing.T) {
-	db, err := getDB()
-	assert.Nil(t, err)
-	art := newArtifactory(db, nil)
-
-	model1, err := createBuildModel(db, artifactory.WaitingForBuild, commitHash, flags)
+func TestBuildWhenFailingToDownload(t *testing.T) {
+	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
+	art := newArtifactory(testDB, nil)
+	model1, err := createBuildModel(testDB, artifactory.WaitingForBuild, commitHash, flags)
 	assert.Nil(t, err)
 
 	ctx := context.Background()
@@ -237,7 +224,7 @@ func TestProcessNextBuildJobWhenFailingToDownload(t *testing.T) {
 		Return(errors.New("failed to download"))
 	builder := &MockFirmwareBuilder{}
 
-	model2, err := art.ProcessNextBuildJob(ctx, recorder, downloader, builder)
+	model2, err := art.Build(ctx, model1, recorder, downloader, builder)
 	assert.Error(t, err, "failed to download")
 	downloader.AssertNumberOfCalls(t, "Download", 1)
 	assert.Equal(t, model1.ID.String(), model2.ID.String())
@@ -245,12 +232,10 @@ func TestProcessNextBuildJobWhenFailingToDownload(t *testing.T) {
 	assert.Equal(t, int64(1), model2.BuildAttempts)
 }
 
-func TestProcessNextBuildJobWhenFailingToBuild(t *testing.T) {
-	db, err := getDB()
-	assert.Nil(t, err)
-	art := newArtifactory(db, nil)
-
-	model1, err := createBuildModel(db, artifactory.WaitingForBuild, commitHash, flags)
+func TestBuildWhenFailingToBuild(t *testing.T) {
+	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
+	art := newArtifactory(testDB, nil)
+	model1, err := createBuildModel(testDB, artifactory.WaitingForBuild, commitHash, flags)
 	assert.Nil(t, err)
 
 	ctx := context.Background()
@@ -263,7 +248,7 @@ func TestProcessNextBuildJobWhenFailingToBuild(t *testing.T) {
 	builder.
 		On("Build", mock.Anything, mock.Anything, mock.Anything).
 		Return(nil, errors.New("failed to build"))
-	model2, err := art.ProcessNextBuildJob(ctx, recorder, downloader, builder)
+	model2, err := art.Build(ctx, model1, recorder, downloader, builder)
 	assert.Error(t, err, "failed to build")
 	downloader.AssertNumberOfCalls(t, "Download", 1)
 	builder.AssertNumberOfCalls(t, "Build", 1)
@@ -272,16 +257,15 @@ func TestProcessNextBuildJobWhenFailingToBuild(t *testing.T) {
 	assert.Equal(t, int64(1), model2.BuildAttempts)
 }
 
-func TestProcessNextBuildJobWhenFailingToUpload(t *testing.T) {
-	db, err := getDB()
-	assert.Nil(t, err)
+func TestBuildWhenFailingToUpload(t *testing.T) {
 	uploader := &MockStorage{}
 	uploader.
 		On("Upload", mock.Anything, mock.Anything, mock.Anything).
-		Return(nil, errors.New("failed to upload"))
-	art := newArtifactory(db, uploader)
+		Return(errors.New("failed to upload"))
 
-	model1, err := createBuildModel(db, artifactory.WaitingForBuild, commitHash, flags)
+	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
+	art := newArtifactory(testDB, uploader)
+	model1, err := createBuildModel(testDB, artifactory.WaitingForBuild, commitHash, flags)
 	assert.Nil(t, err)
 
 	ctx := context.Background()
@@ -294,7 +278,7 @@ func TestProcessNextBuildJobWhenFailingToUpload(t *testing.T) {
 	builder.
 		On("Build", mock.Anything, mock.Anything, mock.Anything).
 		Return([]byte("test"), nil)
-	model2, err := art.ProcessNextBuildJob(ctx, recorder, downloader, builder)
+	model2, err := art.Build(ctx, model1, recorder, downloader, builder)
 	assert.Error(t, err, "failed to upload")
 
 	assert.Equal(t, model1.ID.String(), model2.ID.String())
@@ -303,11 +287,9 @@ func TestProcessNextBuildJobWhenFailingToUpload(t *testing.T) {
 }
 
 func TestSuccessfulBuildJobFlow(t *testing.T) {
-	db, err := getDB()
-	assert.Nil(t, err)
-	art := newArtifactory(db, nil)
-
-	model1, err := createBuildModel(db, artifactory.WaitingForBuild, commitHash, flags)
+	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
+	art := newArtifactory(testDB, nil)
+	model1, err := createBuildModel(testDB, artifactory.WaitingForBuild, commitHash, flags)
 	assert.Nil(t, err)
 
 	ctx := context.Background()
@@ -320,26 +302,27 @@ func TestSuccessfulBuildJobFlow(t *testing.T) {
 	builder.
 		On("Build", mock.Anything, mock.Anything, mock.Anything).
 		Return([]byte("edgetx"), nil)
-	model2, err := art.ProcessNextBuildJob(ctx, recorder, downloader, builder)
+	model2, err := art.Build(ctx, model1, recorder, downloader, builder)
 	assert.Nil(t, err)
 
 	assert.Equal(t, model1.ID.String(), model2.ID.String())
 	assert.Equal(t, artifactory.BuildSuccess, model2.Status)
 	assert.Equal(t, int64(1), model2.BuildAttempts)
-	assert.Equal(t, model2.Artifacts[0].DownloadURL, "http://localhost:3000/firmware.bin")
+	assert.Equal(t,
+		fmt.Sprintf("%s-%s.bin", model2.CommitHash, model2.BuildFlagsHash),
+		model2.Artifacts[0].Filename,
+	)
 }
 
 func TestJobGoesToErrorAfterTooManyFailures(t *testing.T) {
-	db, err := getDB()
-	assert.Nil(t, err)
-	art := newArtifactory(db, nil)
-
-	model1, err := createBuildModel(db, artifactory.WaitingForBuild, commitHash, flags)
+	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
+	art := newArtifactory(testDB, nil)
+	model1, err := createBuildModel(testDB, artifactory.WaitingForBuild, commitHash, flags)
 	assert.Nil(t, err)
 
 	model1.BuildAttempts = 10
 
-	repository := artifactory.NewBuildJobsDBRepository(db)
+	repository := artifactory.NewBuildJobsDBRepository(testDB)
 	err = repository.Save(model1)
 	assert.Nil(t, err)
 
@@ -350,39 +333,57 @@ func TestJobGoesToErrorAfterTooManyFailures(t *testing.T) {
 		On("Download", mock.Anything, mock.Anything, mock.Anything).
 		Return(errors.New("download error"))
 	builder := &MockFirmwareBuilder{}
-	model2, err := art.ProcessNextBuildJob(ctx, recorder, downloader, builder)
+
+	model2, err := art.Build(ctx, model1, recorder, downloader, builder)
 	assert.Error(t, err, "download error")
 
 	assert.Equal(t, model1.ID.String(), model2.ID.String())
 	assert.Equal(t, artifactory.BuildError, model2.Status)
-	assert.Equal(t, model1.BuildAttempts+1, model2.BuildAttempts)
+	assert.Equal(t, int64(11), model2.BuildAttempts)
 }
 
 func TestBackoffDurationForFailedBuild(t *testing.T) {
-	db, err := getDB()
-	assert.Nil(t, err)
-	art := newArtifactory(db, nil)
-
-	model1, err := createBuildModel(db, artifactory.WaitingForBuild, commitHash, flags)
+	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
+	art := newArtifactory(testDB, nil)
+	model1, err := createBuildModel(testDB, artifactory.WaitingForBuild, commitHash, flags)
 	assert.Nil(t, err)
 
 	model1.BuildAttempts = 1
 	model1.BuildEndedAt = time.Now()
 
-	repository := artifactory.NewBuildJobsDBRepository(db)
+	repository := artifactory.NewBuildJobsDBRepository(testDB)
 	err = repository.Save(model1)
 	assert.Nil(t, err)
 
-	ctx := context.Background()
-	recorder := buildlogs.NewRecorder()
-	downloader := &MockDownloader{}
-	builder := &MockFirmwareBuilder{}
-
-	model2, err := art.ProcessNextBuildJob(ctx, recorder, downloader, builder)
+	model2, err := art.ReservePendingBuild()
 	assert.Nil(t, model2)
 	assert.Nil(t, err)
 
 	model3, err := repository.FindByID(model1.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, model1.BuildAttempts, model3.BuildAttempts)
+}
+
+func TestMain(m *testing.M) {
+	v := viper.New()
+	v.Set("config-path", "./../test_config.yaml")
+	config.InitConfig(v)()
+
+	testCfg = config.NewOpts(v)
+	if err := testCfg.Unmarshal(); err != nil {
+		fmt.Println("failed to unmarshal config:", err)
+		os.Exit(1)
+	}
+
+	log.Debugf("Config: %+v", v.AllSettings())
+	log.Debugf("Opts: %+v", testCfg)
+
+	if db, err := setupTestDB(testCfg); err != nil {
+		fmt.Println("failed to setup test DB:", err)
+		os.Exit(1)
+	} else {
+		testDB = db
+	}
+
+	os.Exit(m.Run())
 }

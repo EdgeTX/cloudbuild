@@ -21,7 +21,6 @@ linters:
     - durationcheck
     - exportloopref
     - exhaustive
-    - forbidigo
     - errname
     - errcheck
     - errorlint
@@ -36,7 +35,6 @@ linters:
     - misspell
     - forcetypeassert
     - gocognit
-    - gofumpt
     - goimports
     - gosec
     - gosimple

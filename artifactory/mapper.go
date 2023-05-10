@@ -2,13 +2,14 @@ package artifactory
 
 import (
 	"encoding/json"
+	"net/url"
 
 	"github.com/pkg/errors"
 
 	"github.com/edgetx/cloudbuild/firmware"
 )
 
-func BuildJobDtoFromModel(model *BuildJobModel) (*BuildJobDto, error) {
+func BuildJobDtoFromModel(model *BuildJobModel, prefixURL *url.URL) (*BuildJobDto, error) {
 	if model.BuildFlags == nil {
 		return nil, errors.New("build flags are empty")
 	}
@@ -19,7 +20,9 @@ func BuildJobDtoFromModel(model *BuildJobModel) (*BuildJobDto, error) {
 	}
 	artifacts := make([]ArtifactDto, 0)
 	for i := range model.Artifacts {
-		artifacts = append(artifacts, ArtifactDtoFromModel(&model.Artifacts[i]))
+		art := &model.Artifacts[i]
+		downloadURL := prefixURL.JoinPath(art.Filename).String()
+		artifacts = append(artifacts, ArtifactDtoFromModel(art, downloadURL))
 	}
 	auditLogs := make([]AuditLogDto, 0)
 	for i := range model.AuditLogs {
@@ -42,11 +45,11 @@ func BuildJobDtoFromModel(model *BuildJobModel) (*BuildJobDto, error) {
 	}, nil
 }
 
-func ArtifactDtoFromModel(model *ArtifactModel) ArtifactDto {
+func ArtifactDtoFromModel(model *ArtifactModel, downloadURL string) ArtifactDto {
 	return ArtifactDto{
 		ID:          model.ID.String(),
 		Slug:        model.Slug,
-		DownloadURL: model.DownloadURL,
+		DownloadURL: downloadURL,
 		CreatedAt:   model.CreatedAt,
 		UpdatedAt:   model.UpdatedAt,
 	}

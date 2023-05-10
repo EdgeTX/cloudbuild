@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -9,35 +8,48 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/edgetx/cloudbuild/artifactory"
+	"github.com/edgetx/cloudbuild/auth"
 	"github.com/gin-gonic/gin"
 	ginlogrus "github.com/toorop/gin-logrus"
 )
 
 type Application struct {
 	artifactory *artifactory.Artifactory
-	server      *http.Server
+	auth        *auth.AuthTokenDB
 }
 
-func New(artifactory *artifactory.Artifactory) *Application {
+func New(artifactory *artifactory.Artifactory, auth *auth.AuthTokenDB) *Application {
 	return &Application{
 		artifactory: artifactory,
-		server:      nil,
+		auth:        auth,
 	}
 }
 
-func (application *Application) healthz(c *gin.Context) {
+func (app *Application) metrics(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Healthy",
+		"status": "healthy",
 	})
 }
 
-func (application *Application) root(c *gin.Context) {
+func (app *Application) root(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "/",
 	})
 }
 
-func (application *Application) createBuildJob(c *gin.Context) {
+func (app *Application) listBuildJobs(c *gin.Context) {
+	jobs, err := app.artifactory.ListJobs()
+	if err != nil {
+		c.AbortWithStatusJSON(
+			http.StatusServiceUnavailable,
+			NewErrorResponse(fmt.Sprintf("Failed to list job: %s", err)),
+		)
+		return
+	}
+	c.JSON(http.StatusOK, jobs)
+}
+
+func (app *Application) createBuildJob(c *gin.Context) {
 	decoder := json.NewDecoder(c.Request.Body)
 	var req CreateBuildJobRequest
 	err := decoder.Decode(&req)
@@ -58,7 +70,7 @@ func (application *Application) createBuildJob(c *gin.Context) {
 		return
 	}
 
-	job, err := application.artifactory.CreateBuildJob(c.ClientIP(), req.CommitHash, req.Flags)
+	job, err := app.artifactory.CreateBuildJob(c.ClientIP(), req.CommitHash, req.Flags)
 	if err != nil {
 		c.AbortWithStatusJSON(
 			http.StatusServiceUnavailable,
@@ -70,7 +82,7 @@ func (application *Application) createBuildJob(c *gin.Context) {
 	c.JSON(http.StatusCreated, job)
 }
 
-func (application *Application) buildJobStatus(c *gin.Context) {
+func (app *Application) buildJobStatus(c *gin.Context) {
 	decoder := json.NewDecoder(c.Request.Body)
 	var req GetBuildStatusRequest
 	err := decoder.Decode(&req)
@@ -91,7 +103,7 @@ func (application *Application) buildJobStatus(c *gin.Context) {
 		return
 	}
 
-	job, err := application.artifactory.GetBuild(req.CommitHash, req.Flags)
+	job, err := app.artifactory.GetBuild(req.CommitHash, req.Flags)
 	if err != nil {
 		c.AbortWithStatusJSON(
 			http.StatusServiceUnavailable,
@@ -111,36 +123,40 @@ func (application *Application) buildJobStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, job)
 }
 
-func (application *Application) Start(port int) error {
-	gin.DebugPrintRouteFunc = func(httpMethod, absolutePath, handlerName string, nuHandlers int) {
-		entry := log.WithFields(log.Fields{
-			"method":      httpMethod,
-			"path":        absolutePath,
-			"handlerName": handlerName,
-			"nuHandlers":  nuHandlers,
-		})
-		entry.Debugf("endpoint")
-	}
+func (app *Application) authenticated(handler gin.HandlerFunc) gin.HandlerFunc {
+	return BearerAuth(app.auth, handler)
+}
+
+func (app *Application) addAPIRoutes(rg *gin.RouterGroup) {
+	// authenticated
+	rg.GET("/metrics", app.authenticated(app.metrics))
+	rg.GET("/jobs", app.authenticated(app.listBuildJobs))
+	// public
+	rg.POST("/jobs", app.createBuildJob)
+	rg.POST("/status", app.buildJobStatus)
+}
+
+func debugRoutes(method, path, _ string, _ int) {
+	log.WithFields(log.Fields{
+		"method": method,
+		"path":   path,
+	}).Debugf("endpoint")
+}
+
+func (app *Application) Start(listen string) error {
+	gin.DebugPrintRouteFunc = debugRoutes
 	router := gin.New()
 	router.Use(ginlogrus.Logger(log.New()))
 	router.Use(gin.Recovery())
-	router.GET("/", application.root)
-	router.GET("/healthz", application.healthz)
-	router.POST("/jobs", application.createBuildJob)
-	router.POST("/status", application.buildJobStatus)
 
-	server := &http.Server{
-		Addr:              fmt.Sprintf("0.0.0.0:%d", port),
-		Handler:           router,
-		ReadHeaderTimeout: 30,
-	}
-	application.server = server
-	return application.server.ListenAndServe()
-}
+	// this should be a config parameter (in case behind CF)
+	router.SetTrustedProxies(nil) //nolint:errcheck
 
-func (application *Application) Stop(ctx context.Context) error {
-	if application.server == nil {
-		return nil
-	}
-	return application.server.Shutdown(ctx)
+	// later this should server static content (dashboard app?)
+	router.GET("/", app.root)
+
+	api := router.Group("/api")
+	app.addAPIRoutes(api)
+
+	return router.Run(listen)
 }

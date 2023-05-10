@@ -1,0 +1,2 @@
+log-level: debug
+database-dsn: host=localhost user=edgetx password=psw dbname=cloudbuild port=5432 sslmode=disable

@@ -89,7 +89,7 @@ func (builder *PodmanBuilder) Build(ctx context.Context, buildContainer string, 
 		return nil, fmt.Errorf("failed to build: %w", err)
 	}
 
-	firmwarePath := path.Join(builder.workingDir, "build", "firmware.bin")
+	firmwarePath := path.Join(builder.workingDir, "build", "arm-none-eabi", "firmware.bin")
 	if _, err := os.Stat(firmwarePath); os.IsNotExist(err) {
 		return nil, fmt.Errorf("firmware.bin does not exist: %w", err)
 	}

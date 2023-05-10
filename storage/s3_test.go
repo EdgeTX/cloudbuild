@@ -2,8 +2,6 @@ package storage_test
 
 import (
 	"context"
-	"fmt"
-	"os"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -17,11 +15,9 @@ func TestS3Upload(t *testing.T) {
 	s3Mock.On("PutObject", mock.Anything, mock.Anything, mock.Anything).
 		Return(&s3.PutObjectOutput{}, nil)
 
-	bucket := os.Getenv("ARTIFACT_STORAGE_S3_BUCKET")
-	artifactStorage := storage.NewS3ArtifactStorage(bucket, s3Mock)
-
+	artifactStorage := storage.NewS3ArtifactStorage("test-bucket", s3Mock)
 	fileName := "f79982d9968ef7fe4c5c23d9b9e9b200f30e38c28f68601973b98cf702c952e9.bin"
-	url, err := artifactStorage.Upload(context.Background(), []byte("bob"), fileName)
+
+	err := artifactStorage.Upload(context.Background(), []byte("bob"), fileName)
 	assert.Nil(t, err)
-	assert.Equal(t, fmt.Sprintf("https://%s.s3.amazonaws.com/%s", bucket, fileName), url.String())
 }
