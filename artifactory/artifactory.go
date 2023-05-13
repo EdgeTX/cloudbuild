@@ -241,3 +241,11 @@ func (artifactory *Artifactory) Build(
 func (artifactory *Artifactory) ReservePendingBuild() (*BuildJobModel, error) {
 	return artifactory.BuildJobsRepository.ReservePendingBuild()
 }
+
+func (artifactory *Artifactory) RunGarbageCollector() {
+	jobsRepo := artifactory.BuildJobsRepository
+	for {
+		jobsRepo.TimeoutBuilds(MaxBuildDuration)
+		time.Sleep(time.Second * 1)
+	}
+}
