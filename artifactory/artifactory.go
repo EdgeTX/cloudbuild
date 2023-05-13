@@ -229,6 +229,7 @@ func (artifactory *Artifactory) Build(
 		CreatedAt: time.Now(),
 		StdOut:    recorder.Logs(),
 	})
+	build.BuildEndedAt = time.Now()
 
 	err = artifactory.BuildJobsRepository.Save(build)
 	if err != nil {
