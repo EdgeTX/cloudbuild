@@ -13,37 +13,12 @@ services:
       POSTGRES_DB: cloudbuild
       POSTGRES_PASSWORD: psw
 
-  db-test:
-    image: postgres:13.3
-    dns_search: ''
-    networks:
-      - net
-    ports:
-      - "5433:5432"
-    environment:
-      POSTGRES_USER: edgetx
-      POSTGRES_DB: cloudbuild
-      POSTGRES_PASSWORD: psw
-
-  ci:
-    build:
-      context: .
-    privileged: true
-    env_file:
-      - ./test.env
-    networks:
-      - net
-    depends_on:
-      - db-test
-      - db
-    volumes:
-      - ./:/home/rootless/src:cached
-    command: [ "bash" ]
-
   api:
+    image: cloudbuild
+    command: ./ebuild run api
     build:
       context: .
-    privileged: true
+      dockerfile: Dockerfile.production
     env_file:
       - ./api.env
     networks:
@@ -52,13 +27,10 @@ services:
       - db
     ports:
       - "3000:3000"
-    volumes:
-      - ./:/home/rootless/src:cached
-    command: bash -c "make build-server && ./bin/server"
 
   worker:
-    build:
-      context: .
+    image: cloudbuild
+    command: ./ebuild run worker
     privileged: true
     env_file:
       - ./api.env
@@ -66,9 +38,6 @@ services:
       - net
     depends_on:
       - db
-    volumes:
-      - ./:/home/rootless/src:cached
-    command: bash -c "make build-worker && ./bin/worker"
 
 networks:
   net:
