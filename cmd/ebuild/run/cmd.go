@@ -75,6 +75,7 @@ func (s *serverRunner) runWorker(cmd *cobra.Command, args []string) {
 		log.Infof("Image downloaded successfully")
 	}
 
+	go processor.Heartbeat(s.opts)
 	go worker.Run()
 
 	// Wait for interrupt signal to gracefully shutdown the server with
