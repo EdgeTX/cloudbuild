@@ -9,6 +9,7 @@ import (
 
 	"github.com/edgetx/cloudbuild/artifactory"
 	"github.com/edgetx/cloudbuild/auth"
+	"github.com/edgetx/cloudbuild/processor"
 	"github.com/gin-gonic/gin"
 	ginlogrus "github.com/toorop/gin-logrus"
 )
@@ -16,12 +17,17 @@ import (
 type Application struct {
 	artifactory *artifactory.Artifactory
 	auth        *auth.AuthTokenDB
+	workers     *processor.WorkerDB
 }
 
-func New(artifactory *artifactory.Artifactory, auth *auth.AuthTokenDB) *Application {
+func New(art *artifactory.Artifactory,
+	auth *auth.AuthTokenDB,
+	workers *processor.WorkerDB,
+) *Application {
 	return &Application{
-		artifactory: artifactory,
+		artifactory: art,
 		auth:        auth,
+		workers:     workers,
 	}
 }
 
@@ -42,11 +48,23 @@ func (app *Application) listBuildJobs(c *gin.Context) {
 	if err != nil {
 		c.AbortWithStatusJSON(
 			http.StatusServiceUnavailable,
-			NewErrorResponse(fmt.Sprintf("Failed to list job: %s", err)),
+			NewErrorResponse(fmt.Sprintf("Failed to list jobs: %s", err)),
 		)
 		return
 	}
 	c.JSON(http.StatusOK, jobs)
+}
+
+func (app *Application) listWorkers(c *gin.Context) {
+	workers, err := app.workers.List()
+	if err != nil {
+		c.AbortWithStatusJSON(
+			http.StatusServiceUnavailable,
+			NewErrorResponse(fmt.Sprintf("Failed to list workers: %s", err)),
+		)
+		return
+	}
+	c.JSON(http.StatusOK, processor.WorkersDtoFromModels(workers))
 }
 
 func (app *Application) createBuildJob(c *gin.Context) {
@@ -131,6 +149,7 @@ func (app *Application) addAPIRoutes(rg *gin.RouterGroup) {
 	// authenticated
 	rg.GET("/metrics", app.authenticated(app.metrics))
 	rg.GET("/jobs", app.authenticated(app.listBuildJobs))
+	rg.GET("/workers", app.authenticated(app.listWorkers))
 	// public
 	rg.POST("/jobs", app.createBuildJob)
 	rg.POST("/status", app.buildJobStatus)

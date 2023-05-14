@@ -33,17 +33,36 @@ func (base *WorkerModel) BeforeCreate(db *gorm.DB) error {
 	return nil
 }
 
-func Heartbeat(c *config.CloudbuildOpts) {
+type WorkerDB struct {
+	db *gorm.DB
+}
+
+func NewWorkerDB(c *config.CloudbuildOpts) *WorkerDB {
+	return &WorkerDB{db: newDB(c)}
+}
+
+func (w *WorkerDB) List() (*[]WorkerModel, error) {
+	var workers []WorkerModel
+	err := w.db.Find(&workers).Error
+	return &workers, err
+}
+
+func newDB(c *config.CloudbuildOpts) *gorm.DB {
 	db, err := database.New(c.DatabaseDSN)
 	if err != nil {
 		panic(err)
 	}
+	return db
+}
+
+func Heartbeat(c *config.CloudbuildOpts) {
 	var workerModel WorkerModel
 	hostname, err := os.Hostname()
 	if err != nil {
 		panic(err)
 	}
 
+	db := newDB(c)
 	err = db.Where(&WorkerModel{
 		Hostname: hostname,
 	}).First(&workerModel).Error
@@ -62,11 +81,7 @@ func Heartbeat(c *config.CloudbuildOpts) {
 }
 
 func GarbageCollector(c *config.CloudbuildOpts) {
-	db, err := database.New(c.DatabaseDSN)
-	if err != nil {
-		panic(err)
-	}
-
+	db := newDB(c)
 	for {
 		db.Where(
 			"updated_at < @updatedAt",

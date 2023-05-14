@@ -46,7 +46,7 @@ func (s *serverRunner) runAPI(cmd *cobra.Command, args []string) {
 	}
 	go processor.GarbageCollector(s.opts)
 	go art.RunGarbageCollector()
-	app := server.New(art, auth)
+	app := server.New(art, auth, processor.NewWorkerDB(s.opts))
 	err = app.Start(
 		fmt.Sprintf("%s:%d",
 			s.opts.HTTPBindAddress,
