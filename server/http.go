@@ -38,7 +38,7 @@ func (app *Application) root(c *gin.Context) {
 }
 
 func (app *Application) listBuildJobs(c *gin.Context) {
-	jobs, err := app.artifactory.ListJobs()
+	jobs, err := app.artifactory.ListJobs(c.Query("status"))
 	if err != nil {
 		c.AbortWithStatusJSON(
 			http.StatusServiceUnavailable,

@@ -66,8 +66,8 @@ func NewFromConfig(ctx context.Context, c *config.CloudbuildOpts) (*Artifactory,
 	), nil
 }
 
-func (artifactory *Artifactory) ListJobs() (*[]BuildJobDto, error) {
-	jobs, err := artifactory.BuildJobsRepository.List()
+func (artifactory *Artifactory) ListJobs(status string) (*[]BuildJobDto, error) {
+	jobs, err := artifactory.BuildJobsRepository.List(status)
 	if err != nil {
 		return nil, err
 	}

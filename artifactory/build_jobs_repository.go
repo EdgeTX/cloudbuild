@@ -14,7 +14,7 @@ import (
 
 type BuildJobsRepository interface {
 	Get(commitHash string, flags []firmware.BuildFlag) (*BuildJobModel, error)
-	List() (*[]BuildJobModel, error)
+	List(status string) (*[]BuildJobModel, error)
 	FindByID(ID uuid.UUID) (*BuildJobModel, error)
 	Create(model BuildJobModel) (*BuildJobModel, error)
 	ReservePendingBuild() (*BuildJobModel, error)
@@ -75,9 +75,15 @@ func (repository *BuildJobsDBRepository) FindByID(id uuid.UUID) (*BuildJobModel,
 	return &buildJob, nil
 }
 
-func (repository *BuildJobsDBRepository) List() (*[]BuildJobModel, error) {
+func (repository *BuildJobsDBRepository) List(status string) (*[]BuildJobModel, error) {
+
+	tx := repository.db.Preload("Artifacts")
+	if status != "" {
+		tx = tx.Where("status = ?", status)
+	}
+	
 	var jobs []BuildJobModel
-	err := repository.db.Preload("Artifacts").Find(&jobs).Error
+	err := tx.Find(&jobs).Error
 	return &jobs, err
 }
 
