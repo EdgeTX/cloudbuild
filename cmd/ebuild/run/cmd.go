@@ -44,6 +44,7 @@ func (s *serverRunner) runAPI(cmd *cobra.Command, args []string) {
 		fmt.Printf("failed to create authenticator: %s", err)
 		os.Exit(1)
 	}
+	go processor.GarbageCollector(s.opts)
 	go art.RunGarbageCollector()
 	app := server.New(art, auth)
 	err = app.Start(

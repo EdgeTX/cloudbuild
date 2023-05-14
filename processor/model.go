@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"database/sql"
 	"errors"
 	"os"
 	"time"
@@ -56,6 +57,21 @@ func Heartbeat(c *config.CloudbuildOpts) {
 
 	for {
 		db.Save(&workerModel)
+		time.Sleep(HeartbeatInterval)
+	}
+}
+
+func GarbageCollector(c *config.CloudbuildOpts) {
+	db, err := database.New(c.DatabaseDSN)
+	if err != nil {
+		panic(err)
+	}
+
+	for {
+		db.Where(
+			"updated_at < @updatedAt",
+			sql.Named("updatedAt", time.Now().Add(-Timeout)),
+		).Delete(&WorkerModel{})
 		time.Sleep(HeartbeatInterval)
 	}
 }
