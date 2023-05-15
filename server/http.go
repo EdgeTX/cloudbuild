@@ -44,11 +44,30 @@ func (app *Application) root(c *gin.Context) {
 }
 
 func (app *Application) listBuildJobs(c *gin.Context) {
-	jobs, err := app.artifactory.ListJobs(c.Query("status"))
+	var query artifactory.JobQuery
+
+	if err := c.ShouldBindQuery(&query); err != nil {
+		c.AbortWithStatusJSON(
+			http.StatusBadRequest,
+			NewErrorResponse(err.Error()),
+		)
+		return		
+	}
+
+	if err := query.Validate(); err != nil {
+		c.AbortWithStatusJSON(
+			http.StatusBadRequest,
+			NewErrorResponse(err.Error()),
+		)
+		return		
+	}
+
+	log.Debugln(query)
+	jobs, err := app.artifactory.ListJobs(&query)
 	if err != nil {
 		c.AbortWithStatusJSON(
 			http.StatusServiceUnavailable,
-			NewErrorResponse(fmt.Sprintf("Failed to list jobs: %s", err)),
+			NewErrorResponse(err.Error()),
 		)
 		return
 	}

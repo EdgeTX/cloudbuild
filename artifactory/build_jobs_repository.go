@@ -9,12 +9,27 @@ import (
 	"github.com/edgetx/cloudbuild/firmware"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
+	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
+type JobQuery struct {
+	database.Pagination
+	Status string `form:"status"`
+}
+
+func (q *JobQuery) Validate() error {
+	switch q.Sort {
+	case "", "created_at", "updated_at", "build_started_at", "build_ended_at":
+		return nil
+	default:
+		return database.ErrBadSortAttribute
+	}
+}
+
 type BuildJobsRepository interface {
 	Get(commitHash string, flags []firmware.BuildFlag) (*BuildJobModel, error)
-	List(status string) (*[]BuildJobModel, error)
+	List(query *JobQuery) (*database.Pagination, error)
 	FindByID(ID uuid.UUID) (*BuildJobModel, error)
 	Create(model BuildJobModel) (*BuildJobModel, error)
 	ReservePendingBuild() (*BuildJobModel, error)
@@ -75,20 +90,32 @@ func (repository *BuildJobsDBRepository) FindByID(id uuid.UUID) (*BuildJobModel,
 	return &buildJob, nil
 }
 
-func (repository *BuildJobsDBRepository) List(status string) (*[]BuildJobModel, error) {
+func (repository *BuildJobsDBRepository) List(query *JobQuery) (*database.Pagination, error) {
 
-	tx := repository.db.Preload("Artifacts")
-	if status != "" {
-		tx = tx.Where("status = ?", status)
+	if err := query.Validate(); err != nil {
+		return nil, err
 	}
 	
+	tx := repository.db.Preload("Artifacts")
+	if query.Status != "" {
+		tx = tx.Where("status = ?", query.Status)
+	}
+
 	var jobs []BuildJobModel
-	err := tx.Find(&jobs).Error
-	return &jobs, err
+	log.Debugln("Sort:", query.Pagination.Sort, "SoftDesc:", query.Pagination.SortDesc)
+	err := tx.Debug().Scopes(database.Paginate(
+		&BuildJobModel{}, &query.Pagination, tx),
+	).Find(&jobs).Error
+
+	res := query.Pagination
+	res.Rows = &jobs
+	return &res, err
 }
 
 func (repository *BuildJobsDBRepository) Create(model BuildJobModel) (*BuildJobModel, error) {
-	err := repository.db.Session(&gorm.Session{FullSaveAssociations: true}).Create(&model).Error
+	err := repository.db.Session(
+		&gorm.Session{FullSaveAssociations: true},
+	).Create(&model).Error
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create build job")
 	}
@@ -148,5 +175,7 @@ func (repository *BuildJobsDBRepository) ReservePendingBuild() (*BuildJobModel, 
 }
 
 func (repository *BuildJobsDBRepository) Save(model *BuildJobModel) error {
-	return repository.db.Session(&gorm.Session{FullSaveAssociations: true}).Save(model).Error
+	return repository.db.Session(
+		&gorm.Session{FullSaveAssociations: true},
+	).Save(model).Error
 }

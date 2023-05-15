@@ -12,8 +12,8 @@ type BuildJobDto struct {
 	BuildAttempts  int64                `json:"build_attempts"`
 	CommitHash     string               `json:"commit_hash"`
 	BuildFlags     []firmware.BuildFlag `json:"build_flags"`
-	Artifacts      []ArtifactDto        `json:"artifacts"`
-	AuditLogs      []AuditLogDto        `json:"build_logs"`
+	Artifacts      []ArtifactDto        `json:"artifacts,omitempty"`
+	AuditLogs      []AuditLogDto        `json:"build_logs,omitempty"`
 	ContainerImage string               `json:"container_image"`
 	BuildFlagsHash string               `json:"build_flags_hash"`
 	BuildStartedAt time.Time            `json:"build_started_at"`
@@ -26,6 +26,7 @@ type ArtifactDto struct {
 	ID          string    `json:"id"`
 	Slug        string    `json:"slug"`
 	DownloadURL string    `json:"download_url"`
+	Size        int64     `json:"size"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }

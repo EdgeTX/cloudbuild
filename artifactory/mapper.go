@@ -9,6 +9,10 @@ import (
 	"github.com/edgetx/cloudbuild/firmware"
 )
 
+var (
+	ErrTypeError         = errors.New("wrong type returned")
+)
+
 func BuildJobDtoFromModel(model *BuildJobModel, prefixURL *url.URL) (*BuildJobDto, error) {
 	if model.BuildFlags == nil {
 		return nil, errors.New("build flags are empty")
@@ -45,11 +49,29 @@ func BuildJobDtoFromModel(model *BuildJobModel, prefixURL *url.URL) (*BuildJobDt
 	}, nil
 }
 
+func BuildJobsDtoFromInterface(input interface{}, prefixURL *url.URL) (*[]BuildJobDto, error) {
+	jobs, ok := input.(*[]BuildJobModel)
+	if !ok {
+		return nil, ErrTypeError
+	}
+
+	resJobs := make([]BuildJobDto, len(*jobs))
+	for i := range *jobs {
+		j, err := BuildJobDtoFromModel(&(*jobs)[i], prefixURL)
+		if err != nil {
+			return nil, err
+		}
+		resJobs[i] = *j
+	}
+	return &resJobs, nil
+}
+
 func ArtifactDtoFromModel(model *ArtifactModel, downloadURL string) ArtifactDto {
 	return ArtifactDto{
 		ID:          model.ID.String(),
 		Slug:        model.Slug,
 		DownloadURL: downloadURL,
+		Size:        model.Size,
 		CreatedAt:   model.CreatedAt,
 		UpdatedAt:   model.UpdatedAt,
 	}
