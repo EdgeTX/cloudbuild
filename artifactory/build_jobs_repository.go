@@ -90,20 +90,41 @@ func (repository *BuildJobsDBRepository) FindByID(id uuid.UUID) (*BuildJobModel,
 	return &buildJob, nil
 }
 
+var statusLookup = map[string]interface{}{
+	"all":         "",
+	"success":     string(BuildSuccess),
+	"error":       string(BuildError),
+	"queued":      string(WaitingForBuild),
+	"building":    string(BuildInProgress),
+	"in-progress": []string{string(WaitingForBuild), string(BuildInProgress)},
+}
+
+func whereStatus(query *JobQuery) func(db *gorm.DB) *gorm.DB {
+	if query.Status != "" {
+		status, ok := statusLookup[query.Status]
+		if ok && status != "" {
+			return func(db *gorm.DB) *gorm.DB {
+				return db.Where("status IN (?)", status)
+			}
+		}
+	}
+	return func(db *gorm.DB) *gorm.DB { return db }
+}
+
 func (repository *BuildJobsDBRepository) List(query *JobQuery) (*database.Pagination, error) {
 	if err := query.Validate(); err != nil {
 		return nil, err
 	}
 
-	tx := repository.db.Preload("Artifacts")
-	if query.Status != "" {
-		tx = tx.Where("status = ?", query.Status)
-	}
-
 	var jobs []BuildJobModel
 	log.Debugln("Sort:", query.Pagination.Sort, "SoftDesc:", query.Pagination.SortDesc)
-	err := tx.Debug().Scopes(database.Paginate(
-		&BuildJobModel{}, &query.Pagination, tx),
+
+	tx := repository.db.Preload("Artifacts")
+	err := tx.Debug().Scopes(
+		database.Paginate(
+			&BuildJobModel{}, &query.Pagination, tx,
+		),
+		whereStatus(query),
 	).Find(&jobs).Error
 
 	res := query.Pagination
