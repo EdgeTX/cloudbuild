@@ -16,8 +16,6 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 RUN useradd --create-home --shell /bin/bash rootless
-VOLUME /home/rootless/.local/share/containers
-
 RUN mkdir -p /home/rootless/src
 WORKDIR /home/rootless/src
 

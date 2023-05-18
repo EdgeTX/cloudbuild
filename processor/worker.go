@@ -68,6 +68,23 @@ func (worker *Worker) executeJob(job *artifactory.BuildJobModel) {
 	}
 }
 
+func (worker *Worker) PullImage(ctx context.Context, buildImage string) error {
+	/*
+		We do this so actual build process is faster because of the cached build image
+	*/
+	recorder := buildlogs.NewRecorder()
+	firmwareBuilder := firmware.NewPodmanBuilder("/tmp", recorder, 2, 1024*1024*1024)
+	ctx, cancel := context.WithTimeout(ctx, artifactory.MaxBuildDuration)
+	defer cancel()
+
+	log.Infof("Will pull current build image for cache")
+	err := firmwareBuilder.PullImage(ctx, buildImage)
+	if err != nil {
+		log.Errorf("pull image logs: %s", recorder.Logs())
+	}
+	return err
+}
+
 func (worker *Worker) Run() {
 	worker.running = true
 	for worker.running {

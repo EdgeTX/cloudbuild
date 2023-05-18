@@ -10,6 +10,7 @@ import (
 
 	"github.com/edgetx/cloudbuild/buildlogs"
 	"github.com/edgetx/cloudbuild/config"
+	"github.com/edgetx/cloudbuild/database"
 	"github.com/edgetx/cloudbuild/firmware"
 	"github.com/edgetx/cloudbuild/source"
 	"github.com/edgetx/cloudbuild/storage"
@@ -66,22 +67,14 @@ func NewFromConfig(ctx context.Context, c *config.CloudbuildOpts) (*Artifactory,
 	), nil
 }
 
-func (artifactory *Artifactory) ListJobs() (*[]BuildJobDto, error) {
-	jobs, err := artifactory.BuildJobsRepository.List()
+func (artifactory *Artifactory) ListJobs(query *JobQuery) (*database.Pagination, error) {
+	res, err := artifactory.BuildJobsRepository.List(query)
 	if err != nil {
 		return nil, err
 	}
 
-	resJobs := make([]BuildJobDto, len(*jobs))
-	for i := range *jobs {
-		j, err := BuildJobDtoFromModel(&(*jobs)[i], artifactory.PrefixURL)
-		if err != nil {
-			return nil, err
-		}
-		resJobs[i] = *j
-	}
-
-	return &resJobs, nil
+	res.Rows, err = BuildJobsDtoFromInterface(res.Rows, artifactory.PrefixURL)
+	return res, err
 }
 
 func (artifactory *Artifactory) GetBuild(commitHash string, flags []firmware.BuildFlag) (*BuildJobDto, error) {
@@ -222,6 +215,7 @@ func (artifactory *Artifactory) Build(
 	build.Artifacts = append(build.Artifacts, ArtifactModel{
 		Slug:     "firmware",
 		Filename: fileName,
+		Size:     (int64)(len(firmwareBin)),
 	})
 	build.AuditLogs = append(build.AuditLogs, AuditLogModel{
 		From:      BuildInProgress,
@@ -229,6 +223,7 @@ func (artifactory *Artifactory) Build(
 		CreatedAt: time.Now(),
 		StdOut:    recorder.Logs(),
 	})
+	build.BuildEndedAt = time.Now()
 
 	err = artifactory.BuildJobsRepository.Save(build)
 	if err != nil {
@@ -240,4 +235,12 @@ func (artifactory *Artifactory) Build(
 
 func (artifactory *Artifactory) ReservePendingBuild() (*BuildJobModel, error) {
 	return artifactory.BuildJobsRepository.ReservePendingBuild()
+}
+
+func (artifactory *Artifactory) RunGarbageCollector() {
+	jobsRepo := artifactory.BuildJobsRepository
+	for {
+		_ = jobsRepo.TimeoutBuilds(MaxBuildDuration)
+		time.Sleep(time.Second * 1)
+	}
 }

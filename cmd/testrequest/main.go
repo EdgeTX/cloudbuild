@@ -19,7 +19,7 @@ func init() {
 }
 
 func main() {
-	data := server.CreateBuildJobRequest{
+	data := server.BuildRequest{
 		CommitHash: "fac0eed66c2e7c4eb3d4602dd52b30564c4a4a16",
 		Flags: []firmware.BuildFlag{
 			firmware.NewFlag("DISABLE_COMPANION", "YES"),

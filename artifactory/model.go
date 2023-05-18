@@ -57,6 +57,7 @@ type ArtifactModel struct {
 	BuildJobID string
 	BuildJob   BuildJobModel `gorm:"foreignKey:BuildJobID"`
 	Filename   string
+	Size       int64
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 }

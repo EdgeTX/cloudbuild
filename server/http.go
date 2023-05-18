@@ -1,28 +1,62 @@
 package server
 
 import (
-	"encoding/json"
-	"fmt"
+	"errors"
 	"net/http"
 
 	log "github.com/sirupsen/logrus"
 
 	"github.com/edgetx/cloudbuild/artifactory"
 	"github.com/edgetx/cloudbuild/auth"
+	"github.com/edgetx/cloudbuild/processor"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	ginlogrus "github.com/toorop/gin-logrus"
+)
+
+var (
+	ErrInvalidRequest = errors.New("invalid request")
 )
 
 type Application struct {
 	artifactory *artifactory.Artifactory
 	auth        *auth.AuthTokenDB
+	workers     *processor.WorkerDB
 }
 
-func New(artifactory *artifactory.Artifactory, auth *auth.AuthTokenDB) *Application {
+func New(art *artifactory.Artifactory,
+	auth *auth.AuthTokenDB,
+	workers *processor.WorkerDB,
+) *Application {
 	return &Application{
-		artifactory: artifactory,
+		artifactory: art,
 		auth:        auth,
+		workers:     workers,
 	}
+}
+
+func bindQuery(c *gin.Context, query interface{}) error {
+	if err := c.ShouldBindQuery(query); err != nil {
+		BadRequestResponse(c, err)
+		return err
+	}
+	return nil
+}
+
+func bindBuildRequest(c *gin.Context) (*BuildRequest, error) {
+	req := &BuildRequest{}
+	if err := c.ShouldBindBodyWith(req, binding.JSON); err != nil {
+		UnprocessableEntityResponse(c, err.Error())
+		return nil, err
+	}
+	if errs := req.Validate(); len(errs) > 0 {
+		c.AbortWithStatusJSON(
+			http.StatusUnprocessableEntity,
+			NewValidationErrorResponse("Request is not valid", errs),
+		)
+		return nil, ErrInvalidRequest
+	}
+	return req, nil
 }
 
 func (app *Application) metrics(c *gin.Context) {
@@ -38,80 +72,56 @@ func (app *Application) root(c *gin.Context) {
 }
 
 func (app *Application) listBuildJobs(c *gin.Context) {
-	jobs, err := app.artifactory.ListJobs()
+	var query artifactory.JobQuery
+	if bindQuery(c, &query) != nil {
+		return
+	}
+
+	if err := query.Validate(); err != nil {
+		BadRequestResponse(c, err)
+		return
+	}
+
+	jobs, err := app.artifactory.ListJobs(&query)
 	if err != nil {
-		c.AbortWithStatusJSON(
-			http.StatusServiceUnavailable,
-			NewErrorResponse(fmt.Sprintf("Failed to list job: %s", err)),
-		)
+		ServiceUnavailableResponse(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, jobs)
 }
 
-func (app *Application) createBuildJob(c *gin.Context) {
-	decoder := json.NewDecoder(c.Request.Body)
-	var req CreateBuildJobRequest
-	err := decoder.Decode(&req)
+func (app *Application) listWorkers(c *gin.Context) {
+	workers, err := app.workers.List()
 	if err != nil {
-		c.AbortWithStatusJSON(
-			http.StatusUnprocessableEntity,
-			NewErrorResponse("Failed to decode your request"),
-		)
+		ServiceUnavailableResponse(c, err)
 		return
 	}
+	c.JSON(http.StatusOK, processor.WorkersDtoFromModels(workers))
+}
 
-	errs := req.Validate()
-	if len(errs) > 0 {
-		c.AbortWithStatusJSON(
-			http.StatusUnprocessableEntity,
-			NewValidationErrorResponse("Request is not valid", errs),
-		)
+func (app *Application) createBuildJob(c *gin.Context) {
+	req, err := bindBuildRequest(c)
+	if err != nil {
 		return
 	}
-
 	job, err := app.artifactory.CreateBuildJob(c.ClientIP(), req.CommitHash, req.Flags)
 	if err != nil {
-		c.AbortWithStatusJSON(
-			http.StatusServiceUnavailable,
-			NewErrorResponse(fmt.Sprintf("Failed to create build job: %s", err)),
-		)
+		ServiceUnavailableResponse(c, err)
 		return
 	}
-
 	c.JSON(http.StatusCreated, job)
 }
 
 func (app *Application) buildJobStatus(c *gin.Context) {
-	decoder := json.NewDecoder(c.Request.Body)
-	var req GetBuildStatusRequest
-	err := decoder.Decode(&req)
+	req, err := bindBuildRequest(c)
 	if err != nil {
-		c.AbortWithStatusJSON(
-			http.StatusUnprocessableEntity,
-			NewErrorResponse("Failed to decode your request"),
-		)
 		return
 	}
-
-	errs := req.Validate()
-	if len(errs) > 0 {
-		c.AbortWithStatusJSON(
-			http.StatusUnprocessableEntity,
-			NewValidationErrorResponse("Request is not valid", errs),
-		)
-		return
-	}
-
 	job, err := app.artifactory.GetBuild(req.CommitHash, req.Flags)
 	if err != nil {
-		c.AbortWithStatusJSON(
-			http.StatusServiceUnavailable,
-			NewErrorResponse(fmt.Sprintf("Failed to check build job status: %s", err)),
-		)
+		ServiceUnavailableResponse(c, err)
 		return
 	}
-
 	if job == nil {
 		c.AbortWithStatusJSON(
 			http.StatusNotFound,
@@ -119,7 +129,6 @@ func (app *Application) buildJobStatus(c *gin.Context) {
 		)
 		return
 	}
-
 	c.JSON(http.StatusOK, job)
 }
 
@@ -131,6 +140,7 @@ func (app *Application) addAPIRoutes(rg *gin.RouterGroup) {
 	// authenticated
 	rg.GET("/metrics", app.authenticated(app.metrics))
 	rg.GET("/jobs", app.authenticated(app.listBuildJobs))
+	rg.GET("/workers", app.authenticated(app.listWorkers))
 	// public
 	rg.POST("/jobs", app.createBuildJob)
 	rg.POST("/status", app.buildJobStatus)

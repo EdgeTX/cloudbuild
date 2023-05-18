@@ -10,9 +10,7 @@ import (
 
 	"github.com/edgetx/cloudbuild/artifactory"
 	"github.com/edgetx/cloudbuild/auth"
-	"github.com/edgetx/cloudbuild/buildlogs"
 	"github.com/edgetx/cloudbuild/config"
-	"github.com/edgetx/cloudbuild/firmware"
 	"github.com/edgetx/cloudbuild/processor"
 	"github.com/edgetx/cloudbuild/server"
 	"github.com/gin-gonic/gin"
@@ -46,7 +44,9 @@ func (s *serverRunner) runAPI(cmd *cobra.Command, args []string) {
 		fmt.Printf("failed to create authenticator: %s", err)
 		os.Exit(1)
 	}
-	app := server.New(art, auth)
+	go processor.GarbageCollector(s.opts)
+	go art.RunGarbageCollector()
+	app := server.New(art, auth, processor.NewWorkerDB(s.opts))
 	err = app.Start(
 		fmt.Sprintf("%s:%d",
 			s.opts.HTTPBindAddress,
@@ -68,26 +68,16 @@ func (s *serverRunner) runWorker(cmd *cobra.Command, args []string) {
 	}
 
 	worker := processor.New(art)
-	/*
-		We do this so actual build process is faster because of the cached build image
-	*/
-	recorder := buildlogs.NewRecorder()
-	firmwareBuilder := firmware.NewPodmanBuilder("/tmp", recorder, 2, 1024*1024*1024)
-	ctx, cancel := context.WithTimeout(s.ctx, artifactory.MaxBuildDuration)
-	defer cancel()
-	log.Infof("Will pull current build image for cache")
-	err = firmwareBuilder.PullImage(ctx, s.opts.BuildImage)
+	err = worker.PullImage(s.ctx, s.opts.BuildImage)
 	if err != nil {
-		log.Errorf("pull image logs: %s", recorder.Logs())
-		log.Error("failed to pre-pull edgetx build image")
+		fmt.Printf("failed to pre-pull edgetx build image")
 		os.Exit(1)
 	} else {
 		log.Infof("Image downloaded successfully")
 	}
 
-	go func() {
-		worker.Run()
-	}()
+	go processor.Heartbeat(s.opts)
+	go worker.Run()
 
 	// Wait for interrupt signal to gracefully shutdown the server with
 	// a timeout of 4 minutes.
@@ -96,7 +86,7 @@ func (s *serverRunner) runWorker(cmd *cobra.Command, args []string) {
 	<-quit
 	log.Println("Shutting down server...")
 
-	ctx, cancel = context.WithTimeout(s.ctx, 4*time.Minute)
+	ctx, cancel := context.WithTimeout(s.ctx, 4*time.Minute)
 	defer cancel()
 
 	if err := worker.Stop(ctx); err != nil {
