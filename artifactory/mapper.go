@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	ErrTypeError         = errors.New("wrong type returned")
+	ErrTypeError = errors.New("wrong type returned")
 )
 
 func BuildJobDtoFromModel(model *BuildJobModel, prefixURL *url.URL) (*BuildJobDto, error) {

@@ -19,12 +19,12 @@ var (
 )
 
 type Pagination struct {
-	Limit      int         `json:"limit,omitempty" form:"limit"`
-	Offset     int         `json:"offset,omitempty" form:"offset"`
-	Sort       string      `json:"sort,omitempty" form:"sort"`
-	SortDesc   bool        `json:"sort_desc" form:"sort_desc"`
-	TotalRows  int64       `json:"total_rows"`
-	Rows       interface{} `json:"rows"`
+	Limit     int         `json:"limit,omitempty" form:"limit"`
+	Offset    int         `json:"offset,omitempty" form:"offset"`
+	Sort      string      `json:"sort,omitempty" form:"sort"`
+	SortDesc  bool        `json:"sort_desc" form:"sort_desc"`
+	TotalRows int64       `json:"total_rows"`
+	Rows      interface{} `json:"rows"`
 }
 
 func (p *Pagination) GetLimit() int {
@@ -42,7 +42,7 @@ func (p *Pagination) GetSort() interface{} {
 	}
 	return clause.OrderByColumn{
 		Column: clause.Column{Name: p.Sort},
-		Desc: p.SortDesc,
+		Desc:   p.SortDesc,
 	}
 }
 

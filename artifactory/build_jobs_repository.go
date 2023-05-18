@@ -91,11 +91,10 @@ func (repository *BuildJobsDBRepository) FindByID(id uuid.UUID) (*BuildJobModel,
 }
 
 func (repository *BuildJobsDBRepository) List(query *JobQuery) (*database.Pagination, error) {
-
 	if err := query.Validate(); err != nil {
 		return nil, err
 	}
-	
+
 	tx := repository.db.Preload("Artifacts")
 	if query.Status != "" {
 		tx = tx.Where("status = ?", query.Status)

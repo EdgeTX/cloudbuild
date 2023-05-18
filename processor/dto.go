@@ -22,8 +22,8 @@ func WorkerDtoFromModel(model *WorkerModel) WorkerDto {
 
 func WorkersDtoFromModels(models *[]WorkerModel) *[]WorkerDto {
 	dtos := make([]WorkerDto, len(*models))
-	for i, m := range *models {
-		dtos[i] = WorkerDtoFromModel(&m)
+	for i := range *models {
+		dtos[i] = WorkerDtoFromModel(&(*models)[i])
 	}
 	return &dtos
 }

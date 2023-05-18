@@ -35,5 +35,5 @@ func UnprocessableEntityResponse(c *gin.Context, message string) {
 	c.AbortWithStatusJSON(
 		http.StatusUnprocessableEntity,
 		NewErrorResponse(message),
-	)	
+	)
 }

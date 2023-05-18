@@ -240,7 +240,7 @@ func (artifactory *Artifactory) ReservePendingBuild() (*BuildJobModel, error) {
 func (artifactory *Artifactory) RunGarbageCollector() {
 	jobsRepo := artifactory.BuildJobsRepository
 	for {
-		jobsRepo.TimeoutBuilds(MaxBuildDuration)
+		_ = jobsRepo.TimeoutBuilds(MaxBuildDuration)
 		time.Sleep(time.Second * 1)
 	}
 }
