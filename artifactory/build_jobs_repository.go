@@ -11,6 +11,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type JobQuery struct {
@@ -30,6 +31,7 @@ func (q *JobQuery) Validate() error {
 type BuildJobsRepository interface {
 	Get(commitHash string, flags []firmware.BuildFlag) (*BuildJobModel, error)
 	List(query *JobQuery) (*database.Pagination, error)
+	Delete(id uuid.UUID) error
 	FindByID(ID uuid.UUID) (*BuildJobModel, error)
 	Create(model BuildJobModel) (*BuildJobModel, error)
 	ReservePendingBuild() (*BuildJobModel, error)
@@ -129,6 +131,10 @@ func (repository *BuildJobsDBRepository) List(query *JobQuery) (*database.Pagina
 	res := query.Pagination
 	res.Rows = &jobs
 	return &res, err
+}
+
+func (repository *BuildJobsDBRepository) Delete(id uuid.UUID) error {
+	return repository.db.Select(clause.Associations).Delete(&BuildJobModel{ID: id}).Error
 }
 
 func (repository *BuildJobsDBRepository) Create(model BuildJobModel) (*BuildJobModel, error) {

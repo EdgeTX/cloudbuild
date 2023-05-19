@@ -34,8 +34,8 @@ type BuildJobModel struct {
 	BuildFlags     datatypes.JSON
 	ContainerImage string
 	BuildFlagsHash string          `gorm:"index:build_flags_hash_idx"`
-	Artifacts      []ArtifactModel `gorm:"foreignKey:BuildJobID"`
-	AuditLogs      []AuditLogModel `gorm:"foreignKey:BuildJobID"`
+	Artifacts      []ArtifactModel `gorm:"foreignKey:BuildJobID;constraint:OnDelete:CASCADE"`
+	AuditLogs      []AuditLogModel `gorm:"foreignKey:BuildJobID;constraint:OnDelete:CASCADE"`
 	BuildStartedAt time.Time
 	BuildEndedAt   time.Time
 	CreatedAt      time.Time

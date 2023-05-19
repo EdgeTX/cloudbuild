@@ -16,6 +16,7 @@ import (
 
 var (
 	ErrInvalidRequest = errors.New("invalid request")
+	ErrNotFound       = errors.New("object not found")
 )
 
 type Application struct {
@@ -90,6 +91,20 @@ func (app *Application) listBuildJobs(c *gin.Context) {
 	c.JSON(http.StatusOK, jobs)
 }
 
+func (app *Application) deleteBuildJob(c *gin.Context) {
+	jobID := c.Param("id")
+	if jobID == "" {
+		BadRequestResponse(c, ErrInvalidRequest)
+		return
+	}
+	err := app.artifactory.DeleteJob(jobID)
+	if err != nil {
+		ServiceUnavailableResponse(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "ok"})
+}
+
 func (app *Application) listWorkers(c *gin.Context) {
 	workers, err := app.workers.List()
 	if err != nil {
@@ -137,9 +152,9 @@ func (app *Application) authenticated(handler gin.HandlerFunc) gin.HandlerFunc {
 }
 
 func (app *Application) addAPIRoutes(rg *gin.RouterGroup) {
-	// authenticated
-	rg.GET("/metrics", app.authenticated(app.metrics))
+	// authenticated endpoints
 	rg.GET("/jobs", app.authenticated(app.listBuildJobs))
+	rg.DELETE("/job/:id", app.authenticated(app.deleteBuildJob))
 	rg.GET("/workers", app.authenticated(app.listWorkers))
 	// public
 	rg.POST("/jobs", app.createBuildJob)
@@ -164,6 +179,7 @@ func (app *Application) Start(listen string) error {
 
 	// later this should server static content (dashboard app?)
 	router.GET("/", app.root)
+	router.GET("/metrics", app.metrics)
 
 	api := router.Group("/api")
 	app.addAPIRoutes(api)

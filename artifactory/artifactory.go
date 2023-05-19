@@ -14,6 +14,7 @@ import (
 	"github.com/edgetx/cloudbuild/firmware"
 	"github.com/edgetx/cloudbuild/source"
 	"github.com/edgetx/cloudbuild/storage"
+	uuid "github.com/satori/go.uuid"
 )
 
 var (
@@ -75,6 +76,14 @@ func (artifactory *Artifactory) ListJobs(query *JobQuery) (*database.Pagination,
 
 	res.Rows, err = BuildJobsDtoFromInterface(res.Rows, artifactory.PrefixURL)
 	return res, err
+}
+
+func (artifactory *Artifactory) DeleteJob(id string) error {
+	uid, err := uuid.FromString(id)
+	if err != nil {
+		return err
+	}
+	return artifactory.BuildJobsRepository.Delete(uid)
 }
 
 func (artifactory *Artifactory) GetBuild(commitHash string, flags []firmware.BuildFlag) (*BuildJobDto, error) {
