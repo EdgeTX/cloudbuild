@@ -119,12 +119,11 @@ func (repository *BuildJobsDBRepository) List(query *JobQuery) (*database.Pagina
 	var jobs []BuildJobModel
 	log.Debugln("Sort:", query.Pagination.Sort, "SoftDesc:", query.Pagination.SortDesc)
 
-	tx := repository.db.Preload("Artifacts")
-	err := tx.Debug().Scopes(
+	tx := repository.db.Preload("Artifacts").Scopes(whereStatus(query))
+	err := tx.Scopes(
 		database.Paginate(
 			&BuildJobModel{}, &query.Pagination, tx,
 		),
-		whereStatus(query),
 	).Find(&jobs).Error
 
 	res := query.Pagination
