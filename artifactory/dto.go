@@ -11,6 +11,9 @@ type BuildJobDto struct {
 	Status         BuildStatus          `json:"status"`
 	BuildAttempts  int64                `json:"build_attempts"`
 	CommitHash     string               `json:"commit_hash"`
+	CommitRef      string               `json:"release"`
+	Target         string               `json:"target"`
+	Flags          []OptionFlag         `json:"flags"`
 	BuildFlags     []firmware.BuildFlag `json:"build_flags"`
 	Artifacts      []ArtifactDto        `json:"artifacts,omitempty"`
 	AuditLogs      []AuditLogDto        `json:"build_logs,omitempty"`

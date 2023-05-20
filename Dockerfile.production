@@ -20,7 +20,8 @@ RUN mkdir -p /home/rootless/src
 WORKDIR /home/rootless/src
 
 USER rootless
-COPY --from=builder /build/bin/ebuild /home/rootless/src
+COPY --from=builder /build/bin/ebuild ./
+COPY --from=builder /build/targets.json ./
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["bash"]

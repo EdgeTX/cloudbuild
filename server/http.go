@@ -44,18 +44,15 @@ func bindQuery(c *gin.Context, query interface{}) error {
 	return nil
 }
 
-func bindBuildRequest(c *gin.Context) (*BuildRequest, error) {
-	req := &BuildRequest{}
+func bindBuildRequest(c *gin.Context) (*artifactory.BuildRequest, error) {
+	req := &artifactory.BuildRequest{}
 	if err := c.ShouldBindBodyWith(req, binding.JSON); err != nil {
 		UnprocessableEntityResponse(c, err.Error())
 		return nil, err
 	}
-	if errs := req.Validate(); len(errs) > 0 {
-		c.AbortWithStatusJSON(
-			http.StatusUnprocessableEntity,
-			NewValidationErrorResponse("Request is not valid", errs),
-		)
-		return nil, ErrInvalidRequest
+	if err := req.Validate(); err != nil {
+		UnprocessableEntityResponse(c, err.Error())
+		return nil, err
 	}
 	return req, nil
 }
@@ -119,7 +116,7 @@ func (app *Application) createBuildJob(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	job, err := app.artifactory.CreateBuildJob(c.ClientIP(), req.CommitHash, req.Flags)
+	job, err := app.artifactory.CreateBuildJob(c.ClientIP(), req)
 	if err != nil {
 		ServiceUnavailableResponse(c, err)
 		return
@@ -132,7 +129,7 @@ func (app *Application) buildJobStatus(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	job, err := app.artifactory.GetBuild(req.CommitHash, req.Flags)
+	job, err := app.artifactory.GetBuild(req)
 	if err != nil {
 		ServiceUnavailableResponse(c, err)
 		return

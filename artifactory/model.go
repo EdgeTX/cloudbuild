@@ -31,6 +31,9 @@ type BuildJobModel struct {
 	Status         BuildStatus `gorm:"index:build_job_status_idx"`
 	BuildAttempts  int64
 	CommitHash     string `gorm:"index:commit_hash_idx"`
+	CommitRef      string `gorm:"index:commit_ref_idx"`
+	Target         string `gorm:"index:target_idx"`
+	Flags          datatypes.JSON
 	BuildFlags     datatypes.JSON
 	ContainerImage string
 	BuildFlagsHash string          `gorm:"index:build_flags_hash_idx"`

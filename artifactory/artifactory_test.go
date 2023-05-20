@@ -14,8 +14,8 @@ import (
 	"github.com/edgetx/cloudbuild/buildlogs"
 	"github.com/edgetx/cloudbuild/config"
 	"github.com/edgetx/cloudbuild/database"
-	"github.com/edgetx/cloudbuild/firmware"
 	"github.com/edgetx/cloudbuild/storage"
+	"github.com/edgetx/cloudbuild/targets"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
@@ -28,19 +28,56 @@ import (
 func init() {
 	log.SetOutput(os.Stdout)
 	log.SetLevel(log.DebugLevel)
+	err := targets.ReadTargetsDefFromBytes([]byte(targetsJSON))
+	if err != nil {
+		panic(err)
+	}
 }
 
 var (
-	commitHash = "8620fe19289c36b574ab68008145a530d589f0fd"
-	flags      = []firmware.BuildFlag{
-		firmware.NewFlag("DISABLE_COMPANION", "YES"),
-		firmware.NewFlag("CMAKE_BUILD_TYPE", "Release"),
-		firmware.NewFlag("TRACE_SIMPGMSPACE", "NO"),
-		firmware.NewFlag("VERBOSE_CMAKELISTS", "YES"),
-		firmware.NewFlag("CMAKE_RULE_MESSAGES", "OFF"),
-		firmware.NewFlag("PCB", "X10"),
-		firmware.NewFlag("PCBREV", "T16"),
-		firmware.NewFlag("INTERNAL_MODULE_MULTI", "ON"),
+	targetsJSON = `{
+	  "releases": { "v1.2.3": { "sha": "3ca63cbb9bb7fe14c22e0349b668900f125e2d09" }},
+	  "flags": {
+	    "language": {
+	      "build_flag": "TRANSLATIONS",
+	      "values": [ "CZ", "FR", "FI" ]
+	    },
+	    "foo": {
+	      "build_flag": "FOO",
+	      "values": [ "BAR" ]
+	    }
+	  },
+	  "tags": {
+	    "colorlcd": {
+	      "flags": {
+		"language": {
+		  "values": [ "CN", "JP", "TW" ]
+		}
+	      }
+	    }
+	  },
+	  "targets": {
+	    "mydreamradio": {
+	      "description": "Acme Dream Radio",
+	      "build_flags": {
+		"PCB": "ACME",
+		"PCBREV": "DREAM"
+	      }
+	    }
+	  }
+	}`
+
+	commitRef  = "v1.2.3"
+	commitHash = "3ca63cbb9bb7fe14c22e0349b668900f125e2d09"
+	target     = "mydreamradio"
+	flags      = []artifactory.OptionFlag{
+		{Name: "language", Value: "FR"},
+		{Name: "foo", Value: "BAR"},
+	}
+	request = &artifactory.BuildRequest{
+		Release: commitRef,
+		Target:  target,
+		Flags:   flags,
 	}
 	testCfg *config.CloudbuildOpts
 	testDB  *gorm.DB
@@ -86,8 +123,7 @@ func newArtifactory(db *gorm.DB, handler storage.Handler) *artifactory.Artifacto
 func createBuildModel(
 	db *gorm.DB,
 	status artifactory.BuildStatus,
-	commitHash string,
-	flags []firmware.BuildFlag,
+	request *artifactory.BuildRequest,
 ) (*artifactory.BuildJobModel, error) {
 	repository := artifactory.NewBuildJobsDBRepository(db)
 	buildFlagsJSON, err := json.Marshal(flags)
@@ -97,8 +133,10 @@ func createBuildModel(
 	build := artifactory.BuildJobModel{
 		Status:         status,
 		CommitHash:     commitHash,
+		CommitRef:      commitRef,
+		Target:         target,
 		BuildFlags:     buildFlagsJSON,
-		BuildFlagsHash: artifactory.HashBuildFlags(flags),
+		BuildFlagsHash: request.HashTargetAndFlags(),
 		Artifacts:      nil,
 	}
 	if status == artifactory.BuildSuccess {
@@ -118,22 +156,23 @@ func TestCreateBuildJob(t *testing.T) {
 	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
 	art := newArtifactory(testDB, nil)
 
-	job, err := art.CreateBuildJob("127.0.0.1", commitHash, flags)
+	job, err := art.CreateBuildJob("127.0.0.1", request)
 	t.Logf("job: %+v err: %s", job, err)
 
 	assert.Nil(t, err)
 	assert.NotNil(t, job)
 
 	assert.Equal(t, artifactory.WaitingForBuild, job.Status)
-	assert.Equal(t, artifactory.HashBuildFlags(flags), job.BuildFlagsHash)
-	assert.Equal(t, len(flags), len(job.BuildFlags))
+	assert.Equal(t, request.HashTargetAndFlags(), job.BuildFlagsHash)
+	// 2 from target + 2 additional flags
+	assert.Equal(t, len(flags)+2, len(job.BuildFlags))
 }
 
 func TestCreatesBuildJobWhenBuildExistsInErrorState(t *testing.T) {
 	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
 	art := newArtifactory(testDB, nil)
 
-	job, err := art.CreateBuildJob("127.0.0.1", commitHash, flags)
+	job, err := art.CreateBuildJob("127.0.0.1", request)
 	assert.Nil(t, err)
 	repository := artifactory.NewBuildJobsDBRepository(testDB)
 	err = repository.Save(&artifactory.BuildJobModel{
@@ -142,15 +181,18 @@ func TestCreatesBuildJobWhenBuildExistsInErrorState(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	job, err = art.CreateBuildJob("127.0.0.1", commitHash, flags)
+	job, err = art.CreateBuildJob("127.0.0.1", request)
 	assert.Nil(t, err)
-	assert.Equal(t, artifactory.WaitingForBuild, job.Status)
+	assert.NotNil(t, job)
+	if job != nil {
+		assert.Equal(t, artifactory.WaitingForBuild, job.Status)
+	}
 }
 
 func TestGetBuildWhenBuildDoesNotExist(t *testing.T) {
 	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
 	art := newArtifactory(testDB, nil)
-	job, err := art.GetBuild(commitHash, flags)
+	job, err := art.GetBuild(request)
 	assert.Nil(t, job)
 	assert.NotNil(t, err)
 }
@@ -158,48 +200,60 @@ func TestGetBuildWhenBuildDoesNotExist(t *testing.T) {
 func TestGetBuildWhenBuildExists(t *testing.T) {
 	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
 	art := newArtifactory(testDB, nil)
-	model, err := createBuildModel(testDB, artifactory.BuildSuccess, commitHash, flags)
+	model, err := createBuildModel(testDB, artifactory.BuildSuccess, request)
 	assert.Nil(t, err)
-	dto, err := art.GetBuild(commitHash, flags)
+	dto, err := art.GetBuild(request)
 	assert.Nil(t, err)
-	assert.Equal(t, model.ID.String(), dto.ID)
-	assert.True(t, len(dto.Artifacts[0].DownloadURL) > 0)
-	assert.True(t,
-		strings.Contains(
-			dto.Artifacts[0].DownloadURL,
-			model.Artifacts[0].Filename,
-		),
-	)
+	assert.NotNil(t, dto)
+	if dto != nil {
+		assert.Equal(t, model.ID.String(), dto.ID)
+		assert.True(t, len(dto.Artifacts[0].DownloadURL) > 0)
+		assert.True(t,
+			strings.Contains(
+				dto.Artifacts[0].DownloadURL,
+				model.Artifacts[0].Filename,
+			),
+		)
+	}
 }
 
 func TestGetBuildWhenInProgress(t *testing.T) {
 	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
 	art := newArtifactory(testDB, nil)
-	model, err := createBuildModel(testDB, artifactory.BuildInProgress, commitHash, flags)
+	model, err := createBuildModel(testDB, artifactory.BuildInProgress, request)
 	assert.Nil(t, err)
-	dto, err := art.GetBuild(commitHash, flags)
+	dto, err := art.GetBuild(request)
 	assert.Nil(t, err)
-	assert.Equal(t, model.ID.String(), dto.ID)
+	assert.NotNil(t, dto)
+	if dto != nil {
+		assert.Equal(t, model.ID.String(), dto.ID)
+	}
 }
 
 func TestGetBuildWhenWaitingForBuild(t *testing.T) {
 	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
 	art := newArtifactory(testDB, nil)
-	model, err := createBuildModel(testDB, artifactory.WaitingForBuild, commitHash, flags)
+	model, err := createBuildModel(testDB, artifactory.WaitingForBuild, request)
 	assert.Nil(t, err)
-	dto, err := art.GetBuild(commitHash, flags)
+	dto, err := art.GetBuild(request)
 	assert.Nil(t, err)
-	assert.Equal(t, model.ID.String(), dto.ID)
+	assert.NotNil(t, dto)
+	if dto != nil {
+		assert.Equal(t, model.ID.String(), dto.ID)
+	}
 }
 
 func TestGetBuildWhenBuildIsInError(t *testing.T) {
 	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
 	art := newArtifactory(testDB, nil)
-	model, err := createBuildModel(testDB, artifactory.BuildError, commitHash, flags)
+	model, err := createBuildModel(testDB, artifactory.BuildError, request)
 	assert.Nil(t, err)
-	dto, err := art.GetBuild(commitHash, flags)
+	dto, err := art.GetBuild(request)
 	assert.Nil(t, err)
-	assert.Equal(t, model.ID.String(), dto.ID)
+	assert.NotNil(t, dto)
+	if dto != nil {
+		assert.Equal(t, model.ID.String(), dto.ID)
+	}
 }
 
 func TestReservePendingBuildWhenNoneAvailable(t *testing.T) {
@@ -213,7 +267,7 @@ func TestReservePendingBuildWhenNoneAvailable(t *testing.T) {
 func TestBuildWhenFailingToDownload(t *testing.T) {
 	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
 	art := newArtifactory(testDB, nil)
-	model1, err := createBuildModel(testDB, artifactory.WaitingForBuild, commitHash, flags)
+	model1, err := createBuildModel(testDB, artifactory.WaitingForBuild, request)
 	assert.Nil(t, err)
 
 	ctx := context.Background()
@@ -235,7 +289,7 @@ func TestBuildWhenFailingToDownload(t *testing.T) {
 func TestBuildWhenFailingToBuild(t *testing.T) {
 	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
 	art := newArtifactory(testDB, nil)
-	model1, err := createBuildModel(testDB, artifactory.WaitingForBuild, commitHash, flags)
+	model1, err := createBuildModel(testDB, artifactory.WaitingForBuild, request)
 	assert.Nil(t, err)
 
 	ctx := context.Background()
@@ -265,7 +319,7 @@ func TestBuildWhenFailingToUpload(t *testing.T) {
 
 	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
 	art := newArtifactory(testDB, uploader)
-	model1, err := createBuildModel(testDB, artifactory.WaitingForBuild, commitHash, flags)
+	model1, err := createBuildModel(testDB, artifactory.WaitingForBuild, request)
 	assert.Nil(t, err)
 
 	ctx := context.Background()
@@ -289,7 +343,7 @@ func TestBuildWhenFailingToUpload(t *testing.T) {
 func TestSuccessfulBuildJobFlow(t *testing.T) {
 	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
 	art := newArtifactory(testDB, nil)
-	model1, err := createBuildModel(testDB, artifactory.WaitingForBuild, commitHash, flags)
+	model1, err := createBuildModel(testDB, artifactory.WaitingForBuild, request)
 	assert.Nil(t, err)
 
 	ctx := context.Background()
@@ -317,7 +371,7 @@ func TestSuccessfulBuildJobFlow(t *testing.T) {
 func TestJobGoesToErrorAfterTooManyFailures(t *testing.T) {
 	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
 	art := newArtifactory(testDB, nil)
-	model1, err := createBuildModel(testDB, artifactory.WaitingForBuild, commitHash, flags)
+	model1, err := createBuildModel(testDB, artifactory.WaitingForBuild, request)
 	assert.Nil(t, err)
 
 	model1.BuildAttempts = 10
@@ -345,7 +399,7 @@ func TestJobGoesToErrorAfterTooManyFailures(t *testing.T) {
 func TestBackoffDurationForFailedBuild(t *testing.T) {
 	resetDB(testCfg.DatabaseDSN) //nolint:errcheck
 	art := newArtifactory(testDB, nil)
-	model1, err := createBuildModel(testDB, artifactory.WaitingForBuild, commitHash, flags)
+	model1, err := createBuildModel(testDB, artifactory.WaitingForBuild, request)
 	assert.Nil(t, err)
 
 	model1.BuildAttempts = 1

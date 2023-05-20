@@ -13,6 +13,7 @@ import (
 	"github.com/edgetx/cloudbuild/config"
 	"github.com/edgetx/cloudbuild/processor"
 	"github.com/edgetx/cloudbuild/server"
+	"github.com/edgetx/cloudbuild/targets"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -34,6 +35,10 @@ func (s *serverRunner) initLogging() {
 
 func (s *serverRunner) runAPI(cmd *cobra.Command, args []string) {
 	s.initLogging()
+	if err := targets.ReadTargetsDef("./targets.json"); err != nil {
+		fmt.Printf("failed to read targets: %s", err)
+		os.Exit(1)
+	}
 	art, err := artifactory.NewFromConfig(s.ctx, s.opts)
 	if err != nil {
 		fmt.Printf("failed to create artifactory: %s", err)

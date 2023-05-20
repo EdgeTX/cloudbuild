@@ -14,6 +14,7 @@ import (
 	"github.com/edgetx/cloudbuild/firmware"
 	"github.com/edgetx/cloudbuild/source"
 	"github.com/edgetx/cloudbuild/storage"
+	"github.com/edgetx/cloudbuild/targets"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -86,8 +87,8 @@ func (artifactory *Artifactory) DeleteJob(id string) error {
 	return artifactory.BuildJobsRepository.Delete(uid)
 }
 
-func (artifactory *Artifactory) GetBuild(commitHash string, flags []firmware.BuildFlag) (*BuildJobDto, error) {
-	buildJob, err := artifactory.BuildJobsRepository.Get(commitHash, flags)
+func (artifactory *Artifactory) GetBuild(request *BuildRequest) (*BuildJobDto, error) {
+	buildJob, err := artifactory.BuildJobsRepository.Get(request)
 	if err != nil {
 		return nil, err
 	}
@@ -98,52 +99,67 @@ func (artifactory *Artifactory) GetBuild(commitHash string, flags []firmware.Bui
 	return BuildJobDtoFromModel(buildJob, artifactory.PrefixURL)
 }
 
-func (artifactory *Artifactory) CreateBuildJob(
-	requesterIP string,
-	commitHash string,
-	flags []firmware.BuildFlag,
+func (artifactory *Artifactory) restartFailedJob(
+	requesterIP string, job *BuildJobModel,
 ) (*BuildJobDto, error) {
-	artifactModel, err := artifactory.BuildJobsRepository.Get(commitHash, flags)
+	job.AuditLogs = append(job.AuditLogs, AuditLogModel{
+		RequestIP: requesterIP,
+		From:      BuildError,
+		To:        WaitingForBuild,
+	})
+	err := artifactory.BuildJobsRepository.Save(&BuildJobModel{
+		ID:        job.ID,
+		Status:    WaitingForBuild,
+		AuditLogs: job.AuditLogs,
+	})
+	if err != nil {
+		return nil, err
+	}
+	job, err = artifactory.BuildJobsRepository.FindByID(job.ID)
+	if err != nil {
+		return nil, err
+	}
+	return BuildJobDtoFromModel(job, artifactory.PrefixURL)
+}
+
+func (artifactory *Artifactory) CreateBuildJob(
+	requesterIP string, request *BuildRequest,
+) (*BuildJobDto, error) {
+	job, err := artifactory.BuildJobsRepository.Get(request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check for existing build: %w", err)
 	}
 
-	if err == nil && artifactModel != nil {
+	if job != nil {
 		// forcibly restart completely failed build
-		if artifactModel.Status == BuildError {
-			artifactModel.AuditLogs = append(artifactModel.AuditLogs, AuditLogModel{
-				RequestIP: requesterIP,
-				From:      BuildError,
-				To:        WaitingForBuild,
-			})
-			err := artifactory.BuildJobsRepository.Save(&BuildJobModel{
-				ID:        artifactModel.ID,
-				Status:    WaitingForBuild,
-				AuditLogs: artifactModel.AuditLogs,
-			})
-			if err != nil {
-				return nil, err
-			}
-			artifactModel, err = artifactory.BuildJobsRepository.Get(commitHash, flags)
-			if err != nil {
-				return nil, err
-			}
-			return BuildJobDtoFromModel(artifactModel, artifactory.PrefixURL)
+		if job.Status == BuildError {
+			return artifactory.restartFailedJob(requesterIP, job)
 		}
-		return BuildJobDtoFromModel(artifactModel, artifactory.PrefixURL)
+		return BuildJobDtoFromModel(job, artifactory.PrefixURL)
 	}
 
-	buildFlagsJSON, err := json.Marshal(flags)
+	buildFlags, err := request.GetBuildFlags()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get build flags: %w", err)
+	}
+	optFlagsJSON, err := json.Marshal(request.Flags)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal option flags: %w", err)
+	}
+	buildFlagsJSON, err := json.Marshal(buildFlags)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal build flags: %w", err)
 	}
 
-	newArtifactModel, err := artifactory.BuildJobsRepository.Create(BuildJobModel{
+	job, err = artifactory.BuildJobsRepository.Create(BuildJobModel{
 		Status:         WaitingForBuild,
-		CommitHash:     commitHash,
-		ContainerImage: artifactory.BuildContainerImage,
+		CommitRef:      request.Release,
+		CommitHash:     targets.GetCommitHashByRef(request.Release),
+		Target:         request.Target,
+		Flags:          optFlagsJSON,
 		BuildFlags:     buildFlagsJSON,
-		BuildFlagsHash: HashBuildFlags(flags),
+		ContainerImage: artifactory.BuildContainerImage,
+		BuildFlagsHash: request.HashTargetAndFlags(),
 		AuditLogs: []AuditLogModel{
 			{
 				RequestIP: requesterIP,
@@ -156,7 +172,7 @@ func (artifactory *Artifactory) CreateBuildJob(
 		return nil, err
 	}
 
-	return BuildJobDtoFromModel(newArtifactModel, artifactory.PrefixURL)
+	return BuildJobDtoFromModel(job, artifactory.PrefixURL)
 }
 
 func (artifactory *Artifactory) Build(
