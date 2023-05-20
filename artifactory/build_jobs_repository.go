@@ -9,26 +9,9 @@ import (
 	"github.com/edgetx/cloudbuild/targets"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
-	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
-
-type JobQuery struct {
-	database.Pagination
-	Status  string `form:"status"`
-	Release string `form:"release"`
-	Target  string `form:"target"`
-}
-
-func (q *JobQuery) Validate() error {
-	switch q.Sort {
-	case "", "created_at", "updated_at", "build_started_at", "build_ended_at":
-		return nil
-	default:
-		return database.ErrBadSortAttribute
-	}
-}
 
 type BuildJobsRepository interface {
 	Get(request *BuildRequest) (*BuildJobModel, error)
@@ -128,12 +111,10 @@ func (repository *BuildJobsDBRepository) List(query *JobQuery) (*database.Pagina
 	}
 
 	var jobs []BuildJobModel
-	log.Debugln("Sort:", query.Pagination.Sort, "SoftDesc:", query.Pagination.SortDesc)
-
 	tx := repository.db.Preload("Artifacts").Scopes(jobQueryClause(query))
 	err := tx.Scopes(
 		database.Paginate(
-			&BuildJobModel{}, &query.Pagination, tx,
+			&BuildJobModel{}, query, tx,
 		),
 	).Find(&jobs).Error
 
