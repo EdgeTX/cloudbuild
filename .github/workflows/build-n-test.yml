@@ -15,8 +15,8 @@ on:
       - '**.md'
 
 jobs:
-  test:
-    name: Test
+  test-backend:
+    name: Test backend
     runs-on: ubuntu-22.04
     env:
       EBUILD_LOG_LEVEL: "debug"
@@ -53,9 +53,26 @@ jobs:
       - name: Test
         run: make test
 
+  test-frontend:
+    name: Test frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Use Node.js 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18.x"
+
+      - name: Check out the repo
+        uses: actions/checkout@v3
+
+      - name: Install
+        run: npm install --prefix ui/
+      - name: Lint
+        run: npm run lint --prefix ui/
+        
   build:
     runs-on: ubuntu-latest
-    needs: test
+    needs: [ test-backend, test-frontend ]
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
