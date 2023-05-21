@@ -7,7 +7,6 @@ import (
 
 	"github.com/edgetx/cloudbuild/auth"
 	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -54,7 +53,6 @@ func BearerAuth(auth *auth.AuthTokenDB, handler gin.HandlerFunc) gin.HandlerFunc
 			)
 			return
 		}
-		log.Debugln("AccessKey:", accessKey, "SecretKey:", secretKey)
 		err = auth.Authenticate(accessKey, secretKey)
 		if err != nil {
 			c.AbortWithStatusJSON(

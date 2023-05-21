@@ -3,8 +3,6 @@ package database
 import (
 	"errors"
 
-	log "github.com/sirupsen/logrus"
-
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -18,6 +16,13 @@ var (
 	ErrBadSortAttribute = errors.New("bad sorting attribute")
 )
 
+type Paginable interface {
+	SetTotalRows(int64)
+	GetOffset() int
+	GetLimit() int
+	GetSort() interface{}
+}
+
 type Pagination struct {
 	Limit     int         `json:"limit,omitempty" form:"limit"`
 	Offset    int         `json:"offset,omitempty" form:"offset"`
@@ -25,6 +30,14 @@ type Pagination struct {
 	SortDesc  bool        `json:"sort_desc" form:"sort_desc"`
 	TotalRows int64       `json:"total_rows"`
 	Rows      interface{} `json:"rows"`
+}
+
+func (p *Pagination) SetTotalRows(rows int64) {
+	p.TotalRows = rows
+}
+
+func (p *Pagination) GetOffset() int {
+	return p.Offset
 }
 
 func (p *Pagination) GetLimit() int {
@@ -46,10 +59,11 @@ func (p *Pagination) GetSort() interface{} {
 	}
 }
 
-func Paginate(value interface{}, p *Pagination, db *gorm.DB) func(db *gorm.DB) *gorm.DB {
-	db.Model(value).Count(&p.TotalRows)
-	log.Debugln("Sort:", p.Sort, "SoftDesc:", p.SortDesc)
+func Paginate(value interface{}, p Paginable, db *gorm.DB) func(db *gorm.DB) *gorm.DB {
+	var rows int64 = 0
+	db.Model(value).Count(&rows)
+	p.SetTotalRows(rows)
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Offset(p.Offset).Limit(p.GetLimit()).Order(p.GetSort())
+		return db.Offset(p.GetOffset()).Limit(p.GetLimit()).Order(p.GetSort())
 	}
 }

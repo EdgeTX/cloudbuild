@@ -11,6 +11,7 @@ import (
 	"github.com/edgetx/cloudbuild/processor"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	ginlogrus "github.com/toorop/gin-logrus"
 )
 
@@ -29,6 +30,12 @@ func New(art *artifactory.Artifactory,
 	auth *auth.AuthTokenDB,
 	workers *processor.WorkerDB,
 ) *Application {
+	RegisterMetrics()
+	go art.RunMetrics(
+		metricBuildRequestQueued,
+		metricBuildRequestBuilding,
+		metricBuildRequestFailed,
+	)
 	return &Application{
 		artifactory: art,
 		auth:        auth,
@@ -44,26 +51,24 @@ func bindQuery(c *gin.Context, query interface{}) error {
 	return nil
 }
 
-func bindBuildRequest(c *gin.Context) (*BuildRequest, error) {
-	req := &BuildRequest{}
+func bindBuildRequest(c *gin.Context) (*artifactory.BuildRequest, error) {
+	req := &artifactory.BuildRequest{}
 	if err := c.ShouldBindBodyWith(req, binding.JSON); err != nil {
 		UnprocessableEntityResponse(c, err.Error())
 		return nil, err
 	}
-	if errs := req.Validate(); len(errs) > 0 {
-		c.AbortWithStatusJSON(
-			http.StatusUnprocessableEntity,
-			NewValidationErrorResponse("Request is not valid", errs),
-		)
-		return nil, ErrInvalidRequest
+	if err := req.Validate(); err != nil {
+		UnprocessableEntityResponse(c, err.Error())
+		return nil, err
 	}
 	return req, nil
 }
 
-func (app *Application) metrics(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"status": "healthy",
-	})
+func metricsHandler() gin.HandlerFunc {
+	h := promhttp.Handler()
+	return func(c *gin.Context) {
+		h.ServeHTTP(c.Writer, c.Request)
+	}
 }
 
 func (app *Application) root(c *gin.Context) {
@@ -119,11 +124,18 @@ func (app *Application) createBuildJob(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	job, err := app.artifactory.CreateBuildJob(c.ClientIP(), req.CommitHash, req.Flags)
+
+	job, err := app.artifactory.CreateBuildJob(c.ClientIP(), req)
 	if err != nil {
 		ServiceUnavailableResponse(c, err)
 		return
 	}
+
+	metricBuildRequestTotal.WithLabelValues(
+		req.Release,
+		req.Target,
+	).Inc()
+
 	c.JSON(http.StatusCreated, job)
 }
 
@@ -132,7 +144,7 @@ func (app *Application) buildJobStatus(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	job, err := app.artifactory.GetBuild(req.CommitHash, req.Flags)
+	job, err := app.artifactory.GetBuild(req)
 	if err != nil {
 		ServiceUnavailableResponse(c, err)
 		return
@@ -157,6 +169,7 @@ func (app *Application) addAPIRoutes(rg *gin.RouterGroup) {
 	rg.DELETE("/job/:id", app.authenticated(app.deleteBuildJob))
 	rg.GET("/workers", app.authenticated(app.listWorkers))
 	// public
+	rg.StaticFile("/targets", "./targets.json")
 	rg.POST("/jobs", app.createBuildJob)
 	rg.POST("/status", app.buildJobStatus)
 }
@@ -179,9 +192,10 @@ func (app *Application) Start(listen string) error {
 
 	// later this should server static content (dashboard app?)
 	router.GET("/", app.root)
-	router.GET("/metrics", app.metrics)
+	router.GET("/metrics", metricsHandler())
 
 	api := router.Group("/api")
+	api.Use(GinMetrics)
 	app.addAPIRoutes(api)
 
 	return router.Run(listen)

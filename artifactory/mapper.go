@@ -17,9 +17,14 @@ func BuildJobDtoFromModel(model *BuildJobModel, prefixURL *url.URL) (*BuildJobDt
 	if model.BuildFlags == nil {
 		return nil, errors.New("build flags are empty")
 	}
+	var optFlags []OptionFlag
+	if model.Flags != nil {
+		if err := json.Unmarshal([]byte(model.Flags.String()), &optFlags); err != nil {
+			return nil, err
+		}
+	}
 	var buildFlags []firmware.BuildFlag
-	err := json.Unmarshal([]byte(model.BuildFlags.String()), &buildFlags)
-	if err != nil {
+	if err := json.Unmarshal([]byte(model.BuildFlags.String()), &buildFlags); err != nil {
 		return nil, err
 	}
 	artifacts := make([]ArtifactDto, 0)
@@ -37,11 +42,14 @@ func BuildJobDtoFromModel(model *BuildJobModel, prefixURL *url.URL) (*BuildJobDt
 		Status:         model.Status,
 		BuildAttempts:  model.BuildAttempts,
 		CommitHash:     model.CommitHash,
-		ContainerImage: model.ContainerImage,
+		CommitRef:      model.CommitRef,
+		Target:         model.Target,
+		Flags:          optFlags,
 		BuildFlags:     buildFlags,
-		BuildFlagsHash: model.BuildFlagsHash,
 		Artifacts:      artifacts,
 		AuditLogs:      auditLogs,
+		ContainerImage: model.ContainerImage,
+		BuildFlagsHash: model.BuildFlagsHash,
 		BuildStartedAt: model.BuildStartedAt,
 		BuildEndedAt:   model.BuildEndedAt,
 		CreatedAt:      model.CreatedAt,

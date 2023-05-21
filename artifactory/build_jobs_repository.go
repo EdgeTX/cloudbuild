@@ -6,37 +6,25 @@ import (
 
 	"github.com/edgetx/cloudbuild/config"
 	"github.com/edgetx/cloudbuild/database"
-	"github.com/edgetx/cloudbuild/firmware"
+	"github.com/edgetx/cloudbuild/targets"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
 	uuid "github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
-type JobQuery struct {
-	database.Pagination
-	Status string `form:"status"`
-}
-
-func (q *JobQuery) Validate() error {
-	switch q.Sort {
-	case "", "created_at", "updated_at", "build_started_at", "build_ended_at":
-		return nil
-	default:
-		return database.ErrBadSortAttribute
-	}
-}
-
 type BuildJobsRepository interface {
-	Get(commitHash string, flags []firmware.BuildFlag) (*BuildJobModel, error)
+	Get(request *BuildRequest) (*BuildJobModel, error)
 	List(query *JobQuery) (*database.Pagination, error)
 	Delete(id uuid.UUID) error
 	FindByID(ID uuid.UUID) (*BuildJobModel, error)
 	Create(model BuildJobModel) (*BuildJobModel, error)
+	Save(model *BuildJobModel) error
 	ReservePendingBuild() (*BuildJobModel, error)
 	TimeoutBuilds(timeout time.Duration) error
-	Save(model *BuildJobModel) error
+	UpdateMetrics(queued, building, failed *prometheus.GaugeVec)
 }
 
 type BuildJobsDBRepository struct {
@@ -57,11 +45,12 @@ func NewBuildJobsDBRepositoryFromConfig(c *config.CloudbuildOpts) (*BuildJobsDBR
 	return NewBuildJobsDBRepository(db), nil
 }
 
-func (repository *BuildJobsDBRepository) Get(commitHash string, flags []firmware.BuildFlag) (*BuildJobModel, error) {
+func (repository *BuildJobsDBRepository) Get(request *BuildRequest) (*BuildJobModel, error) {
 	var buildJob BuildJobModel
 	err := repository.db.Where(&BuildJobModel{
-		CommitHash:     commitHash,
-		BuildFlagsHash: HashBuildFlags(flags),
+		CommitHash:     targets.GetCommitHashByRef(request.Release),
+		Target:         request.Target,
+		BuildFlagsHash: request.HashTargetAndFlags(),
 	}).Preload("Artifacts").First(&buildJob).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -101,16 +90,22 @@ var statusLookup = map[string]interface{}{
 	"in-progress": []string{string(WaitingForBuild), string(BuildInProgress)},
 }
 
-func whereStatus(query *JobQuery) func(db *gorm.DB) *gorm.DB {
-	if query.Status != "" {
-		status, ok := statusLookup[query.Status]
-		if ok && status != "" {
-			return func(db *gorm.DB) *gorm.DB {
-				return db.Where("status IN (?)", status)
+func jobQueryClause(query *JobQuery) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		if query.Status != "" {
+			status, ok := statusLookup[query.Status]
+			if ok && status != "" {
+				db = db.Where("status IN (?)", status)
 			}
 		}
+		if query.Target != "" {
+			db = db.Where("target = ?", query.Target)
+		}
+		if query.Release != "" {
+			db = db.Where("release = ?", query.Release)
+		}
+		return db
 	}
-	return func(db *gorm.DB) *gorm.DB { return db }
 }
 
 func (repository *BuildJobsDBRepository) List(query *JobQuery) (*database.Pagination, error) {
@@ -119,12 +114,10 @@ func (repository *BuildJobsDBRepository) List(query *JobQuery) (*database.Pagina
 	}
 
 	var jobs []BuildJobModel
-	log.Debugln("Sort:", query.Pagination.Sort, "SoftDesc:", query.Pagination.SortDesc)
-
-	tx := repository.db.Preload("Artifacts").Scopes(whereStatus(query))
+	tx := repository.db.Preload("Artifacts").Scopes(jobQueryClause(query))
 	err := tx.Scopes(
 		database.Paginate(
-			&BuildJobModel{}, &query.Pagination, tx,
+			&BuildJobModel{}, query, tx,
 		),
 	).Find(&jobs).Error
 
@@ -203,4 +196,45 @@ func (repository *BuildJobsDBRepository) Save(model *BuildJobModel) error {
 	return repository.db.Session(
 		&gorm.Session{FullSaveAssociations: true},
 	).Save(model).Error
+}
+
+type metricsResult struct {
+	CommitRef string
+	Target    string
+	Count     int64
+}
+
+func countRequestsByStatus(status interface{}) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Model(&BuildJobModel{}).Select(
+			"commit_ref", "target", "count(1)",
+		).Where(
+			"status = ?", status,
+		).Group("commit_ref,target")
+	}
+}
+
+func updateMetricsByStatus(
+	db *gorm.DB, gauge *prometheus.GaugeVec, status interface{},
+) {
+	var metricResults []metricsResult
+	err := db.Scopes(countRequestsByStatus(status)).Scan(&metricResults).Error
+	if err != nil {
+		log.Errorf("failed to query: %s", err.Error())
+	}
+	for i := range metricResults {
+		gauge.WithLabelValues(
+			metricResults[i].CommitRef,
+			metricResults[i].Target,
+		).Set(float64(metricResults[i].Count))
+	}
+}
+
+func (repository *BuildJobsDBRepository) UpdateMetrics(
+	queued, building, failed *prometheus.GaugeVec,
+) {
+	log.Debugln("UpdateMetrics")
+	updateMetricsByStatus(repository.db, queued, WaitingForBuild)
+	updateMetricsByStatus(repository.db, building, BuildInProgress)
+	updateMetricsByStatus(repository.db, failed, BuildError)
 }
