@@ -169,6 +169,7 @@ func (app *Application) addAPIRoutes(rg *gin.RouterGroup) {
 	rg.DELETE("/job/:id", app.authenticated(app.deleteBuildJob))
 	rg.GET("/workers", app.authenticated(app.listWorkers))
 	// public
+	rg.StaticFile("/targets", "./targets.json")
 	rg.POST("/jobs", app.createBuildJob)
 	rg.POST("/status", app.buildJobStatus)
 }
