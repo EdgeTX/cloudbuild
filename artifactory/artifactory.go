@@ -15,7 +15,9 @@ import (
 	"github.com/edgetx/cloudbuild/source"
 	"github.com/edgetx/cloudbuild/storage"
 	"github.com/edgetx/cloudbuild/targets"
+	"github.com/prometheus/client_golang/prometheus"
 	uuid "github.com/satori/go.uuid"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -267,5 +269,14 @@ func (artifactory *Artifactory) RunGarbageCollector() {
 	for {
 		_ = jobsRepo.TimeoutBuilds(MaxBuildDuration)
 		time.Sleep(time.Second * 1)
+	}
+}
+
+func (artifactory *Artifactory) RunMetrics(queued, building, failed *prometheus.GaugeVec) {
+	log.Debugln("Start RunMetrics")
+	jobsRepo := artifactory.BuildJobsRepository
+	for {
+		jobsRepo.UpdateMetrics(queued, building, failed)
+		time.Sleep(time.Second * 30)
 	}
 }

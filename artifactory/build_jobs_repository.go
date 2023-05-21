@@ -8,7 +8,9 @@ import (
 	"github.com/edgetx/cloudbuild/database"
 	"github.com/edgetx/cloudbuild/targets"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
 	uuid "github.com/satori/go.uuid"
+	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -19,9 +21,10 @@ type BuildJobsRepository interface {
 	Delete(id uuid.UUID) error
 	FindByID(ID uuid.UUID) (*BuildJobModel, error)
 	Create(model BuildJobModel) (*BuildJobModel, error)
+	Save(model *BuildJobModel) error
 	ReservePendingBuild() (*BuildJobModel, error)
 	TimeoutBuilds(timeout time.Duration) error
-	Save(model *BuildJobModel) error
+	UpdateMetrics(queued, building, failed *prometheus.GaugeVec)
 }
 
 type BuildJobsDBRepository struct {
@@ -193,4 +196,45 @@ func (repository *BuildJobsDBRepository) Save(model *BuildJobModel) error {
 	return repository.db.Session(
 		&gorm.Session{FullSaveAssociations: true},
 	).Save(model).Error
+}
+
+type metricsResult struct {
+	CommitRef string
+	Target    string
+	Count     int64
+}
+
+func countRequestsByStatus(status interface{}) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Model(&BuildJobModel{}).Select(
+			"commit_ref", "target", "count(1)",
+		).Where(
+			"status = ?", status,
+		).Group("commit_ref,target")
+	}
+}
+
+func updateMetricsByStatus(
+	db *gorm.DB, gauge *prometheus.GaugeVec, status interface{},
+) {
+	var metricResults []metricsResult
+	err := db.Scopes(countRequestsByStatus(status)).Scan(&metricResults).Error
+	if err != nil {
+		log.Errorf("failed to query: %s", err.Error())
+	}
+	for i := range metricResults {
+		gauge.WithLabelValues(
+			metricResults[i].CommitRef,
+			metricResults[i].Target,
+		).Set(float64(metricResults[i].Count))
+	}
+}
+
+func (repository *BuildJobsDBRepository) UpdateMetrics(
+	queued, building, failed *prometheus.GaugeVec,
+) {
+	log.Debugln("UpdateMetrics")
+	updateMetricsByStatus(repository.db, queued, WaitingForBuild)
+	updateMetricsByStatus(repository.db, building, BuildInProgress)
+	updateMetricsByStatus(repository.db, failed, BuildError)
 }
