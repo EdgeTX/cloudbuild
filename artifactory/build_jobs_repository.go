@@ -102,7 +102,7 @@ func jobQueryClause(query *JobQuery) func(db *gorm.DB) *gorm.DB {
 			db = db.Where("target = ?", query.Target)
 		}
 		if query.Release != "" {
-			db = db.Where("release = ?", query.Release)
+			db = db.Where("commit_ref = ?", query.Release)
 		}
 		return db
 	}

@@ -9,7 +9,6 @@ import (
 
 	"github.com/edgetx/cloudbuild/config"
 	"github.com/edgetx/cloudbuild/database"
-	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -106,7 +105,6 @@ func (at *AuthTokenDB) Authenticate(accessKey, secretKey string) error {
 		return err
 	}
 
-	log.Debugf("hashedKey = '%s'", token.SecretKey)
 	secretKeyByte := []byte(secretKey)
 	hashedKeyBytes := []byte(token.SecretKey)
 
