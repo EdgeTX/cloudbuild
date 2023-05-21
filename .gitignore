@@ -11,3 +11,5 @@ data/*
 firmware.bin
 tx16s-internal-elrs.json
 *.paw
+static
+package-lock.json

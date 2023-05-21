@@ -9,6 +9,7 @@ import (
 	"github.com/edgetx/cloudbuild/artifactory"
 	"github.com/edgetx/cloudbuild/auth"
 	"github.com/edgetx/cloudbuild/processor"
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -69,12 +70,6 @@ func metricsHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		h.ServeHTTP(c.Writer, c.Request)
 	}
-}
-
-func (app *Application) root(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"message": "/",
-	})
 }
 
 func (app *Application) listBuildJobs(c *gin.Context) {
@@ -191,7 +186,7 @@ func (app *Application) Start(listen string) error {
 	router.SetTrustedProxies(nil) //nolint:errcheck
 
 	// later this should server static content (dashboard app?)
-	router.GET("/", app.root)
+	router.Use(static.ServeRoot("/", "./static"))
 	router.GET("/metrics", metricsHandler())
 
 	api := router.Group("/api")

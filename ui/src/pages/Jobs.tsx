@@ -1,4 +1,4 @@
-import { Layout, Row, Segmented } from "antd";
+import { Row, Segmented } from "antd";
 import JobsTable from "@comps/jobs/table/JobsTable";
 import { JobStatusQuery } from "@hooks/useJobsData";
 import { useState } from "react";

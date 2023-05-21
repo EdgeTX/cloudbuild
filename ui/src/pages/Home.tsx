@@ -1,16 +1,12 @@
 import { Typography } from "antd";
-import { useContext } from "react";
-import { AuthContext, AuthContextType } from "@hooks/useAuthenticated";
 
 function Home() {
-  const { token } = useContext(AuthContext) as AuthContextType;
-
   return (
     <>
       <Typography>
         <Typography.Title>Home Page</Typography.Title>
         <Typography.Text>
-          Your token is {token}.
+          Welcome to Cloudbuild Dashboard 🇫🇷.
         </Typography.Text>
       </Typography>
     </>

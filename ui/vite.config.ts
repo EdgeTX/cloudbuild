@@ -13,6 +13,9 @@ export default defineConfig({
       "@comps": path.resolve(__dirname, "./src/components"),
     },
   },
+  build: {
+    outDir: "../static",
+  },
   server: {
     proxy: {
       "/api": {
