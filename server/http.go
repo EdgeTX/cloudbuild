@@ -203,6 +203,6 @@ func (app *Application) Start(listen string) error {
 			c.File("./static/index.html")
 		}
 	})
-	
+
 	return router.Run(listen)
 }
