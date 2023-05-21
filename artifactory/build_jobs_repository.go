@@ -2,6 +2,7 @@ package artifactory
 
 import (
 	"database/sql"
+	"strings"
 	"time"
 
 	"github.com/edgetx/cloudbuild/config"
@@ -99,10 +100,12 @@ func jobQueryClause(query *JobQuery) func(db *gorm.DB) *gorm.DB {
 			}
 		}
 		if query.Target != "" {
-			db = db.Where("target = ?", query.Target)
+			targets := strings.Split(query.Target, ",")
+			db = db.Where("target IN(?)", targets)
 		}
 		if query.Release != "" {
-			db = db.Where("commit_ref = ?", query.Release)
+			refs := strings.Split(query.Release, ",")
+			db = db.Where("commit_ref IN(?)", refs)
 		}
 		return db
 	}
