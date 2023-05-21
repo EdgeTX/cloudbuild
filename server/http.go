@@ -3,6 +3,7 @@ package server
 import (
 	"errors"
 	"net/http"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 
@@ -193,5 +194,15 @@ func (app *Application) Start(listen string) error {
 	api.Use(GinMetrics)
 	app.addAPIRoutes(api)
 
+	// catch-all route to serve the UI
+	router.NoRoute(func(c *gin.Context) {
+		path := c.Request.URL.Path
+		if strings.HasPrefix(path, "/api") {
+			c.AbortWithStatus(http.StatusNotFound)
+		} else {
+			c.File("./static/index.html")
+		}
+	})
+	
 	return router.Run(listen)
 }
