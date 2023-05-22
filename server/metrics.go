@@ -8,8 +8,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-const ()
-
 var (
 	// HTTP metrics.
 	metricRequestTotal = prometheus.NewCounterVec(
@@ -30,7 +28,7 @@ var (
 		Help: "Total size of response bodies.",
 	})
 
-	durationBuckets        = []float64{100, 200, 400, 800, 2000}
+	durationBuckets        = []float64{10, 50, 200, 500}
 	metricsRequestDuration = prometheus.NewHistogram(prometheus.HistogramOpts{
 		Name:    "http_request_duration",
 		Help:    "Request processing duration.",
@@ -44,26 +42,23 @@ var (
 		},
 		[]string{"release", "target"},
 	)
-	metricBuildRequestQueued = prometheus.NewGaugeVec(
+	metricBuildRequestQueued = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			Name: "build_request_queued",
 			Help: "Number of build requests queued.",
 		},
-		[]string{"release", "target"},
 	)
-	metricBuildRequestBuilding = prometheus.NewGaugeVec(
+	metricBuildRequestBuilding = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			Name: "build_request_building",
 			Help: "Number of build requests building.",
 		},
-		[]string{"release", "target"},
 	)
-	metricBuildRequestFailed = prometheus.NewGaugeVec(
+	metricBuildRequestFailed = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			Name: "build_request_failed",
 			Help: "Number of build requests failed.",
 		},
-		[]string{"release", "target"},
 	)
 )
 
@@ -85,11 +80,11 @@ func ginMetricsHandle(c *gin.Context, start time.Time) {
 	}
 
 	if w.Size() > 0 {
-		metricRequestBody.Add(float64(w.Size()))
+		metricResponseBody.Add(float64(w.Size()))
 	}
 
-	latency := time.Since(start)
-	metricsRequestDuration.Observe(float64(latency.Milliseconds()))
+	latency := float64(time.Since(start).Milliseconds())
+	metricsRequestDuration.Observe(latency)
 }
 
 func RegisterMetrics() {
