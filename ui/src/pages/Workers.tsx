@@ -1,4 +1,4 @@
-import { Col, Layout, Result, Row, Spin } from "antd";
+import { Col, Result, Row, Spin } from "antd";
 import { useWorkersData } from "@hooks/useWorkersData";
 import WorkerCard from "@comps/workers/WorkerCard";
 
@@ -18,15 +18,15 @@ function Workers() {
   }
 
   return (
-    <Layout>
-      <Row gutter={[8, 8]}>
+    <>
+      <Row justify={"start"} gutter={[8, 8]}>
         {data?.map((worker) => (
           <Col key={worker.id} span="24" md={{ span: 8 }}>
             <WorkerCard worker={worker} />
           </Col>
         ))}
       </Row>
-    </Layout>
+    </>
   );
 }
 

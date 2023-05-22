@@ -1,6 +1,8 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import * as dotenv from "dotenv";
+dotenv.config();
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -19,8 +21,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://cloudbuild.edgetx.org",
-        // target: "http://192.168.1.80:3000",
+        target: process.env.PROXY,
         changeOrigin: true,
       }
     }

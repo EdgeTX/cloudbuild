@@ -53,8 +53,8 @@ function useTargets() {
     },
   });
 
-  return { isLoading, error, data };
+  return { isLoading, error, targets: data};
 }
 
-export type { Release, Tag, Target };
+export type { Release, Tag, Target, Targets };
 export { useTargets };

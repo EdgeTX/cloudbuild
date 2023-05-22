@@ -35,19 +35,15 @@ function mapFilters(values: string[]) {
 }
 
 function useColumns({ setSelectedJob }: Params) {
-  const { data } = useTargets();
-  const [targetFilters, setTargetFilters] = useState<
-    ColumnFilterItem[] | undefined
-  >();
-  const [releaseFilters, setReleaseFilters] = useState<
-    ColumnFilterItem[] | undefined
-  >();
+  const { targets } = useTargets();
+  const [targetFilters, setTargetFilters] = useState<ColumnFilterItem[]>([]);
+  const [releaseFilters, setReleaseFilters] = useState<ColumnFilterItem[]>([]);
 
   useEffect(() => {
-    if (!data) return;
-    setReleaseFilters(mapFilters(Object.keys(data.releases).sort()));
-    setTargetFilters(mapFilters(Object.keys(data.targets).sort()));
-  }, [data]);
+    if (!targets) return;
+    setReleaseFilters(mapFilters(Object.keys(targets.releases).sort()));
+    setTargetFilters(mapFilters(Object.keys(targets.targets).sort()));
+  }, [targets]);
 
   const columns: ColumnsType<Job> = [
     {
