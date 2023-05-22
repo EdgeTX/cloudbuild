@@ -179,6 +179,9 @@
     },
     "t16": {
       "description": "Jumper T16",
+      "tags": [
+        "colorlcd"
+      ],
       "build_flags": {
         "PCB": "X10",
         "PCBREV": "T16"
@@ -186,6 +189,9 @@
     },
     "t18": {
       "description": "Jumper T18",
+      "tags": [
+        "colorlcd"
+      ],
       "build_flags": {
         "PCB": "X10",
         "PCBREV": "T18"
