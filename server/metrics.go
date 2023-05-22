@@ -42,26 +42,23 @@ var (
 		},
 		[]string{"release", "target"},
 	)
-	metricBuildRequestQueued = prometheus.NewGaugeVec(
+	metricBuildRequestQueued = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			Name: "build_request_queued",
 			Help: "Number of build requests queued.",
 		},
-		[]string{"release", "target"},
 	)
-	metricBuildRequestBuilding = prometheus.NewGaugeVec(
+	metricBuildRequestBuilding = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			Name: "build_request_building",
 			Help: "Number of build requests building.",
 		},
-		[]string{"release", "target"},
 	)
-	metricBuildRequestFailed = prometheus.NewGaugeVec(
+	metricBuildRequestFailed = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			Name: "build_request_failed",
 			Help: "Number of build requests failed.",
 		},
-		[]string{"release", "target"},
 	)
 )
 

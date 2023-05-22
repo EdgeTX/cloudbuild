@@ -25,7 +25,7 @@ type BuildJobsRepository interface {
 	Save(model *BuildJobModel) error
 	ReservePendingBuild() (*BuildJobModel, error)
 	TimeoutBuilds(timeout time.Duration) error
-	UpdateMetrics(queued, building, failed *prometheus.GaugeVec)
+	UpdateMetrics(queued, building, failed prometheus.Gauge)
 }
 
 type BuildJobsDBRepository struct {
@@ -201,40 +201,25 @@ func (repository *BuildJobsDBRepository) Save(model *BuildJobModel) error {
 	).Save(model).Error
 }
 
-type metricsResult struct {
-	CommitRef string
-	Target    string
-	Count     int64
-}
-
 func countRequestsByStatus(status interface{}) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Model(&BuildJobModel{}).Select(
-			"commit_ref", "target", "count(1)",
-		).Where(
+		return db.Model(&BuildJobModel{}).Where(
 			"status = ?", status,
-		).Group("commit_ref,target")
+		)
 	}
 }
 
-func updateMetricsByStatus(
-	db *gorm.DB, gauge *prometheus.GaugeVec, status interface{},
-) {
-	var metricResults []metricsResult
-	err := db.Scopes(countRequestsByStatus(status)).Scan(&metricResults).Error
+func updateMetricsByStatus(db *gorm.DB, gauge prometheus.Gauge, status interface{}) {
+	var count int64
+	err := db.Scopes(countRequestsByStatus(status)).Count(&count).Error
 	if err != nil {
 		log.Errorf("failed to query: %s", err.Error())
 	}
-	for i := range metricResults {
-		gauge.WithLabelValues(
-			metricResults[i].CommitRef,
-			metricResults[i].Target,
-		).Set(float64(metricResults[i].Count))
-	}
+	gauge.Set(float64(count))
 }
 
 func (repository *BuildJobsDBRepository) UpdateMetrics(
-	queued, building, failed *prometheus.GaugeVec,
+	queued, building, failed prometheus.Gauge,
 ) {
 	log.Debugln("UpdateMetrics")
 	updateMetricsByStatus(repository.db, queued, WaitingForBuild)
