@@ -33,7 +33,6 @@ linters:
     - godot
     - goerr113
     - godox
-    - noctx
     - nolintlint
     - misspell
     - forcetypeassert

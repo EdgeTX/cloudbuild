@@ -2,6 +2,8 @@ package targets
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"os"
 	"sync/atomic"
 
@@ -10,11 +12,19 @@ import (
 
 var (
 	targetsDef = atomic.Pointer[TargetsDef]{}
+
+	ErrMissingSHA = errors.New("missing SHA")
 )
 
+type RemoteAPI struct {
+	URL  string `json:"url"`
+	Path string `json:"json_path"`
+}
+
 type Release struct {
-	SHA            string   `json:"sha"`
-	ExcludeTargets []string `json:"exclude_targets,omitempty"`
+	SHA            string     `json:"sha"`
+	Remote         *RemoteSHA `json:"remote"`
+	ExcludeTargets []string   `json:"exclude_targets,omitempty"`
 }
 
 type OptionFlag struct {
@@ -48,6 +58,9 @@ func ReadTargetsDefFromBytes(data []byte) error {
 	if err := json.Unmarshal(data, &defs); err != nil {
 		return err
 	}
+	if err := defs.ValidateSHA(); err != nil {
+		return err
+	}
 	targetsDef.Store(&defs)
 	return nil
 }
@@ -65,6 +78,24 @@ func (opts OptionFlags) HasOptionValue(name, value string) bool {
 		return slices.Contains(opt.Values, value)
 	}
 	return false
+}
+
+func (def *TargetsDef) ValidateSHA() error {
+	for k := range def.Releases {
+		v := def.Releases[k]
+		if v.SHA == "" {
+			if v.Remote == nil || v.Remote.URL == "" {
+				return fmt.Errorf("%s: %w", k, ErrMissingSHA)
+			}
+			sha, err := v.Remote.Fetch()
+			if err != nil {
+				return fmt.Errorf("%s: %w", k, err)
+			}
+			v.SHA = sha
+			def.Releases[k] = v
+		}
+	}
+	return nil
 }
 
 func (def *TargetsDef) IsRefSupported(ref string) bool {
@@ -123,30 +154,6 @@ func (def *TargetsDef) GetOptionBuildFlag(name string) string {
 		return opt.BuildFlag
 	}
 	return ""
-}
-
-func IsRefSupported(ref string) bool {
-	return targetsDef.Load().IsRefSupported(ref)
-}
-
-func IsTargetSupported(name, ref string) bool {
-	return targetsDef.Load().IsTargetSupported(name, ref)
-}
-
-func IsOptionFlagSupported(target, name, value string) bool {
-	return targetsDef.Load().IsOptionFlagSupported(target, name, value)
-}
-
-func GetCommitHashByRef(ref string) string {
-	return targetsDef.Load().GetCommitHashByRef(ref)
-}
-
-func GetTargetBuildFlags(target string) *BuildFlags {
-	return targetsDef.Load().GetTargetBuildFlags(target)
-}
-
-func GetOptionBuildFlag(name string) string {
-	return targetsDef.Load().GetOptionBuildFlag(name)
 }
 
 func SetTargets(defs *TargetsDef) {
