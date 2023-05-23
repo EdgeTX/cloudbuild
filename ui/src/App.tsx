@@ -8,6 +8,7 @@ import Footer from "@comps/Footer";
 import Home from "@pages/Home";
 import Jobs from "@pages/Jobs";
 import Workers from "@pages/Workers";
+import JobCreation from "./pages/JobCreation";
 
 function App() {
   const { isAuth, authError, checkAuth, token } = useAuthenticated();
@@ -31,6 +32,7 @@ function App() {
               <Routes>
                 <Route path="home" element={<Home />} />
                 <Route path="jobs" element={<Jobs />} />
+                <Route path="create" element={<JobCreation />} />
                 <Route path="workers" element={<Workers />} />
                 <Route path="*" element={<Navigate to="home" replace />} />
               </Routes>

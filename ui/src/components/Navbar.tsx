@@ -13,6 +13,10 @@ const items: MenuProps["items"] = [
     key: "/jobs",
   },
   {
+    label: <Link to="/create">Create</Link>,
+    key: "/create",
+  },
+  {
     label: <Link to="/workers">Workers</Link>,
     key: "/workers",
   }

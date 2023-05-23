@@ -5,7 +5,7 @@ function Home() {
     <Typography>
       <Typography.Title>Home Page</Typography.Title>
       <Typography.Text>
-        Welcome to Cloudbuild Dashboard 🇫🇷.
+        Welcome to Cloudbuild Dashboard.
       </Typography.Text>
     </Typography>
   );

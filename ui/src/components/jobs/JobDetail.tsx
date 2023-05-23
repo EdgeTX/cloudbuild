@@ -1,11 +1,11 @@
 import { Descriptions, Space, Typography } from "antd";
-import DescriptionsItem from "antd/es/descriptions/Item";
 import { Job } from "@hooks/useJobsData";
 import DateAgo from "@comps/DateAgo";
 import JobFlags from "@comps/jobs/JobFlags";
 import JobDuration from "@comps/jobs/JobDuration";
+import Link from "antd/es/typography/Link";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 interface DescriptionGroupProps {
   children: React.ReactNode;
@@ -34,14 +34,19 @@ function JobDetail({ job }: Props) {
   return (
     <Space direction="vertical">
       <DescriptionGroup title="Job">
-        <DescriptionsItem label="Flags">
-          <JobFlags job={job} />
-        </DescriptionsItem>
-        <Descriptions.Item label="Status">{job.status}</Descriptions.Item>
-        <Descriptions.Item label="Target" children={job.target} />
+        <Descriptions.Item label="Id">
+          <Text copyable children={job.id} />
+        </Descriptions.Item>
+        <Descriptions.Item label="Commit hash">
+          <Text copyable children={job.commit_hash} />
+        </Descriptions.Item>
         <Descriptions.Item label="Release" children={job.release} />
-        <Descriptions.Item label="Commit hash" children={job.commit_hash} />
+        <Descriptions.Item label="Target" children={job.target} />
+        <Descriptions.Item label="Status" children={job.status} />
         <Descriptions.Item label="Attempts" children={job.build_attempts} />
+        <Descriptions.Item label="Flags">
+          <JobFlags job={job} />
+        </Descriptions.Item>
         <Descriptions.Item label="Created">
           <DateAgo date={job.created_at} />
         </Descriptions.Item>
@@ -56,7 +61,9 @@ function JobDetail({ job }: Props) {
         <DescriptionGroup title="Artifact" style={{ marginTop: 10 }}>
           <Descriptions.Item label="Slug" children={artifact.slug} />
           <Descriptions.Item label="Download URL">
-            <a href={artifact.download_url}>{artifact.download_url}</a>
+            <Link copyable href={artifact.download_url}>
+              {artifact.download_url}
+            </Link>
           </Descriptions.Item>
           <Descriptions.Item label="Created">
             <DateAgo date={artifact.created_at} />

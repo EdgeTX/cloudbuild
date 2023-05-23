@@ -1,6 +1,6 @@
-import { useCreatejobs } from "@hooks/useCreateJobs";
+import { JobCreationStatus, useCreatejobs } from "@hooks/useCreateJobs";
 import { Flag } from "@hooks/useJobsData";
-import { Targets, useTargets } from "@hooks/useTargets";
+import { TargetFlag, Targets, useTargets } from "@hooks/useTargets";
 import {
   InboxOutlined,
   MinusCircleOutlined,
@@ -10,17 +10,116 @@ import {
   Button,
   Divider,
   Form,
-  Input,
+  FormListFieldData,
   message,
   Row,
+  Select,
   Space,
   Upload,
 } from "antd";
-import { useForm } from "antd/es/form/Form";
-import { useState } from "react";
+import { FormInstance, useForm } from "antd/es/form/Form";
+import { useEffect, useState } from "react";
+import { DefaultOptionType } from "antd/es/select";
+
+function mapToSelect(values: string[]) {
+  return values.map((value) => ({ value, label: value }));
+}
+
+function getAdditionalTags(targets: Targets, target: string) {
+  let flags: Record<string, TargetFlag> = {};
+
+  const tags = targets.targets[target]?.tags;
+  if (!tags) return flags;
+
+  flags = tags.reduce((obj, tag) => {
+    obj = { ...targets.tags[tag].flags };
+    return obj;
+  }, {});
+
+  return flags;
+}
+
+interface FormTagProps {
+  form: FormInstance<JobCreationParams>;
+  value: FormListFieldData;
+  index: number;
+  remove: (index: number | number[]) => void;
+  targets?: Targets;
+  currentTarget: string;
+}
+
+function FormTag(
+  { form, value, index, remove, targets, currentTarget }: FormTagProps,
+) {
+  const [currentFlag, setCurrentFlag] = useState("");
+  const [flagValues, setFlagValues] = useState<DefaultOptionType[]>([]);
+  const [flagOptions, setFlagOptions] = useState<DefaultOptionType[]>([]);
+
+  useEffect(() => {
+    if (!targets) return;
+
+    const additionalFlags = getAdditionalTags(targets, currentTarget);
+    let values = [
+      ...(targets.flags[currentFlag]?.values ?? []),
+      ...(additionalFlags[currentFlag]?.values ?? []),
+    ];
+    values = [...new Set(values)];
+    if (!values) return;
+
+    // current value not in flag value? reset it
+    const flagValues = form.getFieldsValue()?.flags ?? [];
+    let currentValue = flagValues[index]?.value;
+    if (currentValue && !values.includes(currentValue)) {
+      flagValues[index].value = "";
+    }
+
+    setFlagValues(mapToSelect(values));
+  }, [currentFlag, currentTarget, targets]);
+
+  useEffect(() => {
+    if (!targets) return;
+    const flagKeys = Object.keys(targets.flags);
+    setFlagOptions(mapToSelect(flagKeys));
+  }, [targets]);
+
+  return (
+    <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+      <Space.Compact block style={{ display: "flex" }}>
+        <Form.Item
+          style={{ flex: 1 }}
+          name={[value.name, "name"]}
+          rules={[{
+            required: true,
+            message: "Missing flag",
+          }]}
+        >
+          <Select
+            showSearch
+            placeholder="Flag"
+            onChange={(flag) => setCurrentFlag(flag)}
+            options={flagOptions}
+          />
+        </Form.Item>
+
+        <Form.Item
+          style={{ flex: 1 }}
+          name={[value.name, "value"]}
+          rules={[{ required: true, message: "Missing value" }]}
+        >
+          <Select showSearch placeholder="Value" options={flagValues} />
+        </Form.Item>
+      </Space.Compact>
+      <MinusCircleOutlined
+        onClick={() => remove(value.name)}
+        style={{ fontSize: "1.15rem", transform: "translate(0, 4px)" }}
+      />
+    </div>
+  );
+}
 
 interface JobCreationParams {
-  commit_hash: string;
+  release: string;
+  target: string;
   flags: Flag[];
 }
 
@@ -32,11 +131,41 @@ function JobCreateForm({}: Props) {
   const [messageApi, contextHolder] = message.useMessage();
   const { createJob, createMultipleJobs } = useCreatejobs(messageApi);
 
-  const [fileList, setFileList] = useState<File[]>([]);
-  const [jobsFileContent, setJobsFileContent] = useState<object | undefined>();
+  // target and release options for form select input
 
   const { targets } = useTargets();
-  console.log(targets);
+  const [releaseOptions, setReleaseOptions] = useState<DefaultOptionType[]>([]);
+  const [targetOptions, setTargetOptions] = useState<DefaultOptionType[]>([]);
+  const [currentTarget, setCurrentTarget] = useState("");
+  const [currentRelease, setCurrentRelease] = useState("");
+
+  useEffect(() => {
+    if (!targets) return;
+    const releasesKeys = Object.keys(targets.releases);
+
+    setReleaseOptions(mapToSelect(releasesKeys));
+    form.setFieldValue("release", releasesKeys[0]);
+  }, [targets]);
+
+  useEffect(() => {
+    if (!targets) return;
+    let releaseTargets = Object.keys(targets.targets);
+    const excludeTargets = targets.releases[currentRelease]?.exclude_targets;
+
+    if (excludeTargets) {
+      releaseTargets = releaseTargets.filter((target) =>
+        !excludeTargets.includes(target)
+      );
+    }
+
+    setTargetOptions(mapToSelect(releaseTargets));
+    form.setFieldValue("target", releaseTargets[0]);
+  }, [targets, currentRelease]);
+
+  // file list and file content for upload file form input
+
+  const [fileList, setFileList] = useState<File[]>([]);
+  const [jobsFileContent, setJobsFileContent] = useState<object | undefined>();
 
   const onFileBeforeUpload = async (file: File) => {
     if (file.type === "application/json") {
@@ -59,75 +188,68 @@ function JobCreateForm({}: Props) {
   };
 
   const onFinish = async (values: JobCreationParams) => {
-    messageApi.open({
-      type: "loading",
-      content: "Action in progress..",
-      duration: 0,
-    });
-
+    let result: JobCreationStatus[] = [];
     if (jobsFileContent) {
-      createMultipleJobs(jobsFileContent as JobCreationParams[]);
+      result = await createMultipleJobs(jobsFileContent as JobCreationParams[]);
     } else {
-      createJob(values);
+      result = [await createJob(values)];
     }
+
+    console.log(values);
+    console.log(result);
   };
 
   return (
     <>
       {contextHolder}
       <Form
+        labelCol={{ span: 4 }}
+        aria-labelledby=""
         form={form}
         name="Job Creation"
         onFinish={onFinish}
         style={{ marginTop: "2rem" }}
       >
-
         <Form.Item
           label="Release"
-          name="commit_hash"
+          name="release"
           rules={[{ required: jobsFileContent == undefined }]}
         >
-          <Input />
+          <Select
+            options={releaseOptions}
+            onChange={(newRelease) => setCurrentRelease(newRelease)}
+          />
         </Form.Item>
 
         <Form.Item
-          label="Commit hash"
-          name="commit_hash"
+          label="Target"
+          name="target"
           rules={[{ required: jobsFileContent == undefined }]}
         >
-          <Input />
+          <Select
+            showSearch
+            options={targetOptions}
+            onChange={(newTarget) => setCurrentTarget(newTarget)}
+          />
         </Form.Item>
 
         <Form.List name="flags" initialValue={[]}>
           {(fields, { add, remove }) => (
-            <>
-              {fields.map(({ key, name, ...restField }) => (
-                <Space
-                  key={key}
-                  style={{ display: "flex", marginBottom: 8 }}
-                  align="baseline"
-                >
-                  <Form.Item
-                    {...restField}
-                    name={[name, "key"]}
-                    rules={[{
-                      required: true,
-                      message: "Missing flag",
-                    }]}
-                  >
-                    <Input placeholder="Flag" />
-                  </Form.Item>
-
-                  <Form.Item
-                    {...restField}
-                    name={[name, "value"]}
-                    rules={[{ required: true, message: "Missing value" }]}
-                  >
-                    <Input placeholder="Value" />
-                  </Form.Item>
-
-                  <MinusCircleOutlined onClick={() => remove(name)} />
-                </Space>
+            <Form.Item label="Flags">
+              {fields.map((value, index) => (
+                <div key={value.key}>
+                  <FormTag
+                    {...{
+                      form,
+                      value,
+                      index,
+                      remove,
+                      targets,
+                      currentRelease,
+                      currentTarget,
+                    }}
+                  />
+                </div>
               ))}
 
               <Form.Item>
@@ -140,13 +262,17 @@ function JobCreateForm({}: Props) {
                   Add Flag
                 </Button>
               </Form.Item>
-            </>
+            </Form.Item>
           )}
         </Form.List>
 
         <Divider />
 
-        <Form.Item label="Upload multiple jobs">
+        <Form.Item
+          labelCol={{ span: 24 }}
+          style={{ flexDirection: "column" }}
+          label="Upload multiple jobs"
+        >
           <Upload.Dragger
             name="file"
             maxCount={1}
