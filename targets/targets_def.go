@@ -3,45 +3,52 @@ package targets
 import (
 	"encoding/json"
 	"os"
+	"sync/atomic"
 
 	"golang.org/x/exp/slices"
 )
 
 var (
-	targetsDef = &TargetsDef{}
+	targetsDef = atomic.Pointer[TargetsDef]{}
 )
 
 type Release struct {
 	SHA            string   `json:"sha"`
-	ExcludeTargets []string `json:"exclude_targets"`
+	ExcludeTargets []string `json:"exclude_targets,omitempty"`
 }
 
 type OptionFlag struct {
-	BuildFlag string   `json:"build_flag"`
+	BuildFlag string   `json:"build_flag,omitempty"`
 	Values    []string `json:"values"`
 }
 
 type BuildFlags map[string]string
 
 type Target struct {
-	Description string     `json:"desription"`
-	Tags        []string   `json:"tags"`
+	Description string     `json:"description"`
+	Tags        []string   `json:"tags,omitempty"`
 	BuildFlags  BuildFlags `json:"build_flags"`
 }
 
 type OptionFlags map[string]OptionFlag
 
+type TagDef struct {
+	Flags OptionFlags `json:"flags"`
+}
+
 type TargetsDef struct {
-	Releases    map[string]Release     `json:"releases"`
-	OptionFlags OptionFlags            `json:"flags"`
-	Tags        map[string]OptionFlags `json:"tags"`
-	Targets     map[string]Target      `json:"targets"`
+	Releases    map[string]Release `json:"releases"`
+	OptionFlags OptionFlags        `json:"flags"`
+	Tags        map[string]TagDef  `json:"tags"`
+	Targets     map[string]Target  `json:"targets"`
 }
 
 func ReadTargetsDefFromBytes(data []byte) error {
-	if err := json.Unmarshal(data, targetsDef); err != nil {
+	defs := TargetsDef{}
+	if err := json.Unmarshal(data, &defs); err != nil {
 		return err
 	}
+	targetsDef.Store(&defs)
 	return nil
 }
 
@@ -86,9 +93,9 @@ func (def *TargetsDef) IsOptionFlagSupported(target, name, value string) bool {
 
 	if t, ok := def.Targets[target]; ok {
 		for _, tag := range t.Tags {
-			flags, ok := def.Tags[tag]
+			tagDef, ok := def.Tags[tag]
 			if ok {
-				return flags.HasOptionValue(name, value)
+				return tagDef.Flags.HasOptionValue(name, value)
 			}
 		}
 	}
@@ -119,25 +126,33 @@ func (def *TargetsDef) GetOptionBuildFlag(name string) string {
 }
 
 func IsRefSupported(ref string) bool {
-	return targetsDef.IsRefSupported(ref)
+	return targetsDef.Load().IsRefSupported(ref)
 }
 
 func IsTargetSupported(name, ref string) bool {
-	return targetsDef.IsTargetSupported(name, ref)
+	return targetsDef.Load().IsTargetSupported(name, ref)
 }
 
 func IsOptionFlagSupported(target, name, value string) bool {
-	return targetsDef.IsOptionFlagSupported(target, name, value)
+	return targetsDef.Load().IsOptionFlagSupported(target, name, value)
 }
 
 func GetCommitHashByRef(ref string) string {
-	return targetsDef.GetCommitHashByRef(ref)
+	return targetsDef.Load().GetCommitHashByRef(ref)
 }
 
 func GetTargetBuildFlags(target string) *BuildFlags {
-	return targetsDef.GetTargetBuildFlags(target)
+	return targetsDef.Load().GetTargetBuildFlags(target)
 }
 
 func GetOptionBuildFlag(name string) string {
-	return targetsDef.GetOptionBuildFlag(name)
+	return targetsDef.Load().GetOptionBuildFlag(name)
+}
+
+func SetTargets(defs *TargetsDef) {
+	targetsDef.Store(defs)
+}
+
+func GetTargets() *TargetsDef {
+	return targetsDef.Load()
 }

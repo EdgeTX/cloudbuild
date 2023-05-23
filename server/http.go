@@ -10,11 +10,17 @@ import (
 	"github.com/edgetx/cloudbuild/artifactory"
 	"github.com/edgetx/cloudbuild/auth"
 	"github.com/edgetx/cloudbuild/processor"
+	"github.com/edgetx/cloudbuild/targets"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	ginlogrus "github.com/toorop/gin-logrus"
+)
+
+const (
+	staticContentDir = "./static"
+	defaultFile      = "./static/index.html"
 )
 
 var (
@@ -115,6 +121,16 @@ func (app *Application) listWorkers(c *gin.Context) {
 	c.JSON(http.StatusOK, processor.WorkersDtoFromModels(workers))
 }
 
+func (app *Application) writeTargets(c *gin.Context) {
+	var targetsDef targets.TargetsDef
+	if err := c.BindJSON(&targetsDef); err != nil {
+		UnprocessableEntityResponse(c, err.Error())
+		return
+	}
+	targets.SetTargets(&targetsDef)
+	c.JSON(http.StatusOK, gin.H{"message": "ok"})
+}
+
 func (app *Application) createBuildJob(c *gin.Context) {
 	req, err := bindBuildRequest(c)
 	if err != nil {
@@ -155,6 +171,10 @@ func (app *Application) buildJobStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, job)
 }
 
+func (app *Application) getTargets(c *gin.Context) {
+	c.JSON(http.StatusOK, targets.GetTargets())
+}
+
 func (app *Application) authenticated(handler gin.HandlerFunc) gin.HandlerFunc {
 	return BearerAuth(app.auth, handler)
 }
@@ -164,10 +184,11 @@ func (app *Application) addAPIRoutes(rg *gin.RouterGroup) {
 	rg.GET("/jobs", app.authenticated(app.listBuildJobs))
 	rg.DELETE("/job/:id", app.authenticated(app.deleteBuildJob))
 	rg.GET("/workers", app.authenticated(app.listWorkers))
+	rg.PUT("/targets", app.authenticated(app.writeTargets))
 	// public
-	rg.StaticFile("/targets", "./targets.json")
 	rg.POST("/jobs", app.createBuildJob)
 	rg.POST("/status", app.buildJobStatus)
+	rg.GET("/targets", app.getTargets)
 }
 
 func debugRoutes(method, path, _ string, _ int) {
@@ -187,7 +208,7 @@ func (app *Application) Start(listen string) error {
 	router.SetTrustedProxies(nil) //nolint:errcheck
 
 	// later this should server static content (dashboard app?)
-	router.Use(static.ServeRoot("/", "./static"))
+	router.Use(static.ServeRoot("/", staticContentDir))
 	router.GET("/metrics", metricsHandler())
 
 	api := router.Group("/api")
@@ -200,7 +221,7 @@ func (app *Application) Start(listen string) error {
 		if strings.HasPrefix(path, "/api") {
 			c.AbortWithStatus(http.StatusNotFound)
 		} else {
-			c.File("./static/index.html")
+			c.File(defaultFile)
 		}
 	})
 
