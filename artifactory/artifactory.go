@@ -272,7 +272,9 @@ func (artifactory *Artifactory) RunGarbageCollector() {
 	}
 }
 
-func (artifactory *Artifactory) RunMetrics(queued, building, failed prometheus.Gauge) {
+func (artifactory *Artifactory) RunMetrics(
+	queued, building, failed prometheus.Gauge,
+) {
 	log.Debugln("Start RunMetrics")
 	jobsRepo := artifactory.BuildJobsRepository
 	for {

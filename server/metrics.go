@@ -87,8 +87,9 @@ func ginMetricsHandle(c *gin.Context, start time.Time) {
 	metricsRequestDuration.Observe(latency)
 }
 
-func RegisterMetrics() {
-	prometheus.MustRegister(
+func RegisterMetrics() *prometheus.Registry {
+	r := prometheus.NewRegistry()
+	r.MustRegister(
 		metricRequestTotal,
 		metricRequestBody,
 		metricResponseBody,
@@ -98,4 +99,5 @@ func RegisterMetrics() {
 		metricBuildRequestBuilding,
 		metricBuildRequestFailed,
 	)
+	return r
 }
