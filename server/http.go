@@ -14,6 +14,7 @@ import (
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	ginlogrus "github.com/toorop/gin-logrus"
 )
@@ -32,13 +33,14 @@ type Application struct {
 	artifactory *artifactory.Artifactory
 	auth        *auth.AuthTokenDB
 	workers     *processor.WorkerDB
+	promReg     *prometheus.Registry
 }
 
 func New(art *artifactory.Artifactory,
 	auth *auth.AuthTokenDB,
 	workers *processor.WorkerDB,
 ) *Application {
-	RegisterMetrics()
+	r := RegisterMetrics()
 	go art.RunMetrics(
 		metricBuildRequestQueued,
 		metricBuildRequestBuilding,
@@ -48,6 +50,7 @@ func New(art *artifactory.Artifactory,
 		artifactory: art,
 		auth:        auth,
 		workers:     workers,
+		promReg:     r,
 	}
 }
 
@@ -72,8 +75,11 @@ func bindBuildRequest(c *gin.Context) (*artifactory.BuildRequest, error) {
 	return req, nil
 }
 
-func metricsHandler() gin.HandlerFunc {
-	h := promhttp.Handler()
+func (app *Application) metricsHandler() gin.HandlerFunc {
+	h := promhttp.HandlerFor(
+		app.promReg,
+		promhttp.HandlerOpts{},
+	)
 	return func(c *gin.Context) {
 		h.ServeHTTP(c.Writer, c.Request)
 	}
@@ -209,7 +215,7 @@ func (app *Application) Start(listen string) error {
 
 	// later this should server static content (dashboard app?)
 	router.Use(static.ServeRoot("/", staticContentDir))
-	router.GET("/metrics", metricsHandler())
+	router.GET("/metrics", app.metricsHandler())
 
 	api := router.Group("/api")
 	api.Use(GinMetrics)
