@@ -17,20 +17,22 @@ func TestBuildHashIsTheSameForDiffOrderFlagArrays(t *testing.T) {
 		Value: "second",
 	}
 
-	req1 := artifactory.BuildRequest{
-		Target: "abcd",
-		Flags: []artifactory.OptionFlag{
+	req1 := artifactory.NewBuildRequestWithParams(
+		"v0.0.0",
+		"abcd",
+		[]artifactory.OptionFlag{
 			flag1,
 			flag2,
 		},
-	}
-	req2 := artifactory.BuildRequest{
-		Target: "abcd",
-		Flags: []artifactory.OptionFlag{
+	)
+	req2 := artifactory.NewBuildRequestWithParams(
+		"v0.0.0",
+		"abcd",
+		[]artifactory.OptionFlag{
 			flag2,
 			flag1,
 		},
-	}
+	)
 
 	assert.Equal(t, req1.HashTargetAndFlags(), req2.HashTargetAndFlags())
 }

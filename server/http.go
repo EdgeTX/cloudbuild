@@ -63,7 +63,7 @@ func bindQuery(c *gin.Context, query interface{}) error {
 }
 
 func bindBuildRequest(c *gin.Context) (*artifactory.BuildRequest, error) {
-	req := &artifactory.BuildRequest{}
+	req := artifactory.NewBuildRequest()
 	if err := c.ShouldBindBodyWith(req, binding.JSON); err != nil {
 		UnprocessableEntityResponse(c, err.Error())
 		return nil, err

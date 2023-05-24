@@ -24,9 +24,10 @@ type OptionFlag struct {
 }
 
 type BuildRequest struct {
-	Release string       `json:"release"`
-	Target  string       `json:"target"`
-	Flags   []OptionFlag `json:"flags"`
+	Release string              `json:"release"`
+	Target  string              `json:"target"`
+	Flags   []OptionFlag        `json:"flags"`
+	defs    *targets.TargetsDef `json:"-"`
 }
 
 type BuildRequestError struct {
@@ -42,21 +43,36 @@ func (e *BuildRequestError) Error() string {
 	return fmt.Sprintf("%s: %s", e.Err.Error(), e.What)
 }
 
+func NewBuildRequest() *BuildRequest {
+	return &BuildRequest{
+		defs: targets.GetTargets(),
+	}
+}
+
+func NewBuildRequestWithParams(release, target string, flags []OptionFlag) *BuildRequest {
+	return &BuildRequest{
+		Release: release,
+		Target:  target,
+		Flags:   flags,
+		defs:    targets.GetTargets(),
+	}
+}
+
 func (req *BuildRequest) Validate() error {
-	if !targets.IsRefSupported(req.Release) {
+	if !req.defs.IsRefSupported(req.Release) {
 		return &BuildRequestError{
 			Err:  ErrReleaseNotSupported,
 			What: req.Release,
 		}
 	}
-	if !targets.IsTargetSupported(req.Target, req.Release) {
+	if !req.defs.IsTargetSupported(req.Target, req.Release) {
 		return &BuildRequestError{
 			Err:  ErrTargetNotSupported,
 			What: req.Target,
 		}
 	}
 	for _, flag := range req.Flags {
-		if !targets.IsOptionFlagSupported(req.Target, flag.Name, flag.Value) {
+		if !req.defs.IsOptionFlagSupported(req.Target, flag.Name, flag.Value) {
 			return &BuildRequestError{
 				Err:  ErrOptionFlagNotSupported,
 				What: flag.String(),
@@ -93,7 +109,7 @@ func (req *BuildRequest) HashTargetAndFlags() string {
 func (req *BuildRequest) GetBuildFlags() (*[]firmware.BuildFlag, error) {
 	buildFlags := make([]firmware.BuildFlag, 0)
 	// fetch target flags first
-	targetFlags := targets.GetTargetBuildFlags(req.Target)
+	targetFlags := req.defs.GetTargetBuildFlags(req.Target)
 	if targetFlags == nil {
 		return nil, ErrTargetNotSupported
 	}
@@ -105,11 +121,15 @@ func (req *BuildRequest) GetBuildFlags() (*[]firmware.BuildFlag, error) {
 	}
 	// then the option flags
 	for _, optFlag := range req.Flags {
-		buildFlag := targets.GetOptionBuildFlag(optFlag.Name)
+		buildFlag := req.defs.GetOptionBuildFlag(optFlag.Name)
 		buildFlags = append(buildFlags, firmware.BuildFlag{
 			Key:   buildFlag,
 			Value: optFlag.Value,
 		})
 	}
 	return &buildFlags, nil
+}
+
+func (req *BuildRequest) GetCommitHash() string {
+	return req.defs.GetCommitHashByRef(req.Release)
 }

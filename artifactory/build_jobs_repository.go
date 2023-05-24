@@ -7,7 +7,6 @@ import (
 
 	"github.com/edgetx/cloudbuild/config"
 	"github.com/edgetx/cloudbuild/database"
-	"github.com/edgetx/cloudbuild/targets"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	uuid "github.com/satori/go.uuid"
@@ -49,7 +48,7 @@ func NewBuildJobsDBRepositoryFromConfig(c *config.CloudbuildOpts) (*BuildJobsDBR
 func (repository *BuildJobsDBRepository) Get(request *BuildRequest) (*BuildJobModel, error) {
 	var buildJob BuildJobModel
 	err := repository.db.Where(&BuildJobModel{
-		CommitHash:     targets.GetCommitHashByRef(request.Release),
+		CommitHash:     request.GetCommitHash(),
 		Target:         request.Target,
 		BuildFlagsHash: request.HashTargetAndFlags(),
 	}).Preload("Artifacts").First(&buildJob).Error

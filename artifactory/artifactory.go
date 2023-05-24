@@ -14,7 +14,6 @@ import (
 	"github.com/edgetx/cloudbuild/firmware"
 	"github.com/edgetx/cloudbuild/source"
 	"github.com/edgetx/cloudbuild/storage"
-	"github.com/edgetx/cloudbuild/targets"
 	"github.com/prometheus/client_golang/prometheus"
 	uuid "github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
@@ -156,7 +155,7 @@ func (artifactory *Artifactory) CreateBuildJob(
 	job, err = artifactory.BuildJobsRepository.Create(BuildJobModel{
 		Status:         WaitingForBuild,
 		CommitRef:      request.Release,
-		CommitHash:     targets.GetCommitHashByRef(request.Release),
+		CommitHash:     request.GetCommitHash(),
 		Target:         request.Target,
 		Flags:          optFlagsJSON,
 		BuildFlags:     buildFlagsJSON,

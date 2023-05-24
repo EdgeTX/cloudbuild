@@ -32,6 +32,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+	request = artifactory.NewBuildRequestWithParams(commitRef, target, flags)
 }
 
 var (
@@ -74,11 +75,7 @@ var (
 		{Name: "language", Value: "FR"},
 		{Name: "foo", Value: "BAR"},
 	}
-	request = &artifactory.BuildRequest{
-		Release: commitRef,
-		Target:  target,
-		Flags:   flags,
-	}
+	request *artifactory.BuildRequest
 	testCfg *config.CloudbuildOpts
 	testDB  *gorm.DB
 )
