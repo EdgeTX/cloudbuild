@@ -8,10 +8,10 @@ import (
 
 	"github.com/edgetx/cloudbuild/buildlogs"
 	"github.com/ldez/go-git-cmd-wrapper/v2/checkout"
-	"github.com/ldez/go-git-cmd-wrapper/v2/clone"
 	"github.com/ldez/go-git-cmd-wrapper/v2/fetch"
 	"github.com/ldez/go-git-cmd-wrapper/v2/git"
-	"github.com/ldez/go-git-cmd-wrapper/v2/reset"
+	ginit "github.com/ldez/go-git-cmd-wrapper/v2/init"
+	"github.com/ldez/go-git-cmd-wrapper/v2/remote"
 	"github.com/ldez/go-git-cmd-wrapper/v2/types"
 	log "github.com/sirupsen/logrus"
 )
@@ -44,72 +44,51 @@ func DefaultGitExecutor(workingDir string) types.Executor {
 	}
 }
 
-func (downloader *GitDownloader) repositoryExists(ctx context.Context) bool {
-	output, err := git.StatusWithContext(ctx, git.CmdExecutor(downloader.GitExecutor))
-	downloader.stdOutput.AddStdOut(output)
-	log.Debugf("git status output: %s", output)
-	return err == nil
-}
-
-func (downloader *GitDownloader) cloneRepository(ctx context.Context, repository string) error {
-	output, err := git.CloneWithContext(
+func (downloader *GitDownloader) init(ctx context.Context) error {
+	output, err := git.InitWithContext(
 		ctx,
 		git.CmdExecutor(downloader.GitExecutor),
-		clone.Repository(repository),
-		clone.NoCheckout,
-		clone.ShallowSubmodules,
-		clone.NoHardlinks,
-		func(g *types.Cmd) {
-			g.AddOptions("--filter=blob:none")
-		},
-		clone.Directory("."),
+		ginit.Directory("."),
 	)
 	downloader.stdOutput.AddStdOut(output)
-	log.Debugf("git clone output: %s", output)
+	log.Debugf("git init output: %s", output)
 	return err
 }
 
-func (downloader *GitDownloader) fetchRepository(ctx context.Context) error {
-	output, err := git.FetchWithContext(ctx, git.CmdExecutor(downloader.GitExecutor), fetch.Tags)
+func (downloader *GitDownloader) addRemote(ctx context.Context, repository string) error {
+	output, err := git.RemoteWithContext(
+		ctx,
+		git.CmdExecutor(downloader.GitExecutor),
+		remote.Add("origin", repository),
+	)
+	downloader.stdOutput.AddStdOut(output)
+	log.Debugf("git init output: %s", output)
+	return err
+}
+
+func (downloader *GitDownloader) fetch(ctx context.Context, ref string) error {
+	output, err := git.FetchWithContext(
+		ctx,
+		git.CmdExecutor(downloader.GitExecutor),
+		fetch.NoTags,
+		fetch.Prune,
+		fetch.Progress,
+		fetch.NoRecurseSubmodules,
+		fetch.Depth("1"),
+		fetch.Remote("origin"),
+		fetch.RefSpec(ref),
+	)
 	downloader.stdOutput.AddStdOut(output)
 	log.Debugf("git fetch output: %s", output)
-	return fmt.Errorf("failed to fetch repository: %w", err)
+	return err
 }
 
-func (downloader *GitDownloader) resetRepository(ctx context.Context) error {
-	output, err := git.ResetWithContext(ctx, git.CmdExecutor(downloader.GitExecutor), reset.Hard)
-	downloader.stdOutput.AddStdOut(output)
-	log.Debugf("git reset output: %s", output)
-	return fmt.Errorf("failed to reset repository: %w", err)
-}
-
-func (downloader *GitDownloader) setupSparseCheckout(ctx context.Context) error {
-	output, err := git.RawWithContext(ctx, "sparse-checkout", func(g *types.Cmd) {
-		g.AddOptions("init")
-		g.AddOptions("--cone")
-	}, git.CmdExecutor(downloader.GitExecutor))
-	downloader.stdOutput.AddStdOut(output)
-	log.Debugf("git sparse checkout init output: %s", output)
-	if err != nil {
-		return fmt.Errorf("failed to init sparse checkout: %w", err)
-	}
-
-	output, err = git.RawWithContext(ctx, "sparse-checkout", func(g *types.Cmd) {
-		g.AddOptions("set")
-		g.AddOptions("/radio")
-		g.AddOptions("/tools")
-		g.AddOptions("/cmake")
-	}, git.CmdExecutor(downloader.GitExecutor), git.Debugger(true))
-	downloader.stdOutput.AddStdOut(output)
-	log.Debugf("git sparse checkout output: %s", output)
-	if err != nil {
-		return fmt.Errorf("failed to set sparse-checkout: %w", err)
-	}
-	return nil
-}
-
-func (downloader *GitDownloader) checkout(ctx context.Context, commitID string) error {
-	output, err := git.CheckoutWithContext(ctx, git.CmdExecutor(downloader.GitExecutor), checkout.Branch(commitID))
+func (downloader *GitDownloader) checkout(ctx context.Context, ref string) error {
+	output, err := git.CheckoutWithContext(
+		ctx,
+		git.CmdExecutor(downloader.GitExecutor),
+		checkout.TreeIsh(ref),
+	)
 	downloader.stdOutput.AddStdOut(output)
 	if err != nil {
 		return fmt.Errorf("failed to checkout commit: %w", err)
@@ -134,34 +113,27 @@ func (downloader *GitDownloader) updateSubmodules(ctx context.Context) error {
 }
 
 func (downloader *GitDownloader) Download(ctx context.Context, repository string, commitID string) error {
-	if downloader.repositoryExists(ctx) {
-		err := downloader.resetRepository(ctx)
-		if err != nil {
-			return err
-		}
-
-		err = downloader.fetchRepository(ctx)
-		if err != nil {
-			return err
-		}
-	} else {
-		err := downloader.cloneRepository(ctx, repository)
-		if err != nil {
-			return err
-		}
-
-		err = downloader.setupSparseCheckout(ctx)
-		if err != nil {
-			return err
-		}
-
-		err = downloader.checkout(ctx, commitID)
-		if err != nil {
-			return err
-		}
+	err := downloader.init(ctx)
+	if err != nil {
+		return err
 	}
 
-	err := downloader.updateSubmodules(ctx)
+	err = downloader.addRemote(ctx, repository)
+	if err != nil {
+		return err
+	}
+
+	err = downloader.fetch(ctx, commitID)
+	if err != nil {
+		return err
+	}
+
+	err = downloader.checkout(ctx, "FETCH_HEAD")
+	if err != nil {
+		return err
+	}
+
+	err = downloader.updateSubmodules(ctx)
 	if err != nil {
 		return err
 	}
