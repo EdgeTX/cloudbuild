@@ -15,13 +15,9 @@ WORKDIR /build
 RUN npm install --prefix ui/
 RUN npm run build --prefix ui/
 
-FROM debian:bullseye-slim
-ENV VERSION_ID Debian_11
+FROM debian:bookworm-slim
 RUN apt-get update \
-    && apt-get -y install curl gnupg2 git \
-    && echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/${VERSION_ID}/ /" | tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list \
-    && curl -L "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/${VERSION_ID}/Release.key" | apt-key add - \
-    && apt-get update && apt-get -y upgrade && apt-get -y install podman dumb-init \
+    && apt-get -y install curl gnupg2 git podman dumb-init \
     && rm -rf /var/lib/apt/lists/*
 
 RUN useradd --create-home --shell /bin/bash rootless
