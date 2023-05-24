@@ -23,6 +23,7 @@ function TokenForm({ form, onTokenSubmit }: Props) {
 
   return (
     <Form
+      labelCol={{ span: 5 }}
       form={form}
       name="Login"
       onFinish={onFinish}

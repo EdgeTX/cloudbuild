@@ -20,7 +20,7 @@ interface Artifact {
 }
 
 interface Flag {
-  key: string;
+  name: string;
   value: string;
 }
 

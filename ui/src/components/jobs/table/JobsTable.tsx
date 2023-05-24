@@ -52,8 +52,6 @@ function JobsTable({ style, status }: Props) {
   let paginationOption = {};
   if (data) {
     paginationOption = {
-      showSizeChanger: true,
-      pageSizeOptions: [10, 20, 50],
       current: Math.ceil((offset + 1) / data.limit),
       total: data.total_rows,
       pageSize: data.limit,

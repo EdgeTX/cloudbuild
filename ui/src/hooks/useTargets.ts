@@ -11,13 +11,18 @@ interface Tag {
   flags: Record<string, string[]>;
 }
 
+interface TargetFlag {
+  values: string[]
+}
+
 interface Target {
   description: string;
+  tags: string[];
 }
 
 interface Targets {
   releases: Record<string, Release>;
-  flags: Record<string, string[]>;
+  flags: Record<string, TargetFlag>;
   tags: Record<string, Tag>;
   targets: Record<string, Target>;
 }
@@ -53,8 +58,8 @@ function useTargets() {
     },
   });
 
-  return { isLoading, error, data };
+  return { isLoading, error, targets: data};
 }
 
-export type { Release, Tag, Target };
+export type { Release, Tag, Target, Targets, TargetFlag };
 export { useTargets };

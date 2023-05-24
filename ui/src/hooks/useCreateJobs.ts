@@ -1,12 +1,30 @@
 import { useContext } from "react";
 import { MessageInstance } from "antd/es/message/interface";
 import { AuthContext, AuthContextType } from "@hooks/useAuthenticated";
-import { Flag } from "@hooks/useJobsData";
+import { Flag, Job } from "@hooks/useJobsData";
 
 interface JobCreationParams {
-  commit_hash: string;
+  target: string;
+  release: string;
   flags: Flag[];
 }
+
+interface JobCreationSuccess {
+  job: Job;
+  error: never;
+}
+
+interface JobCreationFail {
+  error: string;
+}
+
+type JobCreationStatus = JobCreationSuccess | JobCreationFail;
+
+const isSuccessful = (
+  status: JobCreationStatus,
+): status is JobCreationSuccess => {
+  return !!status.error;
+};
 
 function sendJobCreationReq(token: string, job: JobCreationParams) {
   return fetch("api/jobs", {
@@ -22,59 +40,45 @@ function sendJobCreationReq(token: string, job: JobCreationParams) {
 function useCreatejobs(messageApi: MessageInstance) {
   const { token } = useContext(AuthContext) as AuthContextType;
 
-  const createJob = async (job: JobCreationParams) => {
-    const response = await sendJobCreationReq(token, job);
+  const startLoading = () => {
+    messageApi.open({
+      type: "loading",
+      content: "Action in progress..",
+      duration: 0,
+    });
+  };
+
+  const stopLoading = () => {
     messageApi.destroy();
+  };
 
-    if (response.ok) {
-      messageApi.success(
-        `Successfuly managed to send the job`
-      );
-      return undefined;
-    }
+  const createJob = async (job: JobCreationParams) => {
+    startLoading();
+    const response = await sendJobCreationReq(token, job);
 
-    const error = await response.json();
-    return error;
+    stopLoading();
+    return await response.json();
   };
 
   const createMultipleJobs = async (jobs: JobCreationParams[]) => {
     const responses = [];
+    startLoading();
+
     for (const job of jobs) {
       responses.push(await sendJobCreationReq(token, job));
     }
 
-    const errors = [];
-    let successfulNb = 0;
-
+    const results: JobCreationStatus[] = [];
     for (const res of responses) {
-      console.log(res.statusText);
-      if (res.ok) {
-        successfulNb += 1;
-        continue;
-      }
-      errors.push(await res.json());
+      results.push(await res.json());
     }
 
-    messageApi.destroy();
-
-    if (errors.length === 0) {
-      messageApi.success(
-        `Successfuly managed to send the ${successfulNb} jobs`,
-      );
-      return undefined;
-    }
-
-    if (successfulNb !== 0) {
-      messageApi.warning(
-        `Managed to send ${successfulNb} out of ${responses.length} jobs`,
-      );
-    }
-
-    return errors;
+    stopLoading();
+    return results;
   };
 
   return { createJob, createMultipleJobs };
 }
 
-export type { JobCreationParams };
+export type { isSuccessful, JobCreationParams, JobCreationStatus };
 export { useCreatejobs };
