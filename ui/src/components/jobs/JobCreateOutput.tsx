@@ -1,7 +1,4 @@
-interface Props {
-}
-
-function JobCreateOutput({}: Props) {
+function JobCreateOutput() {
   return (
     <>
       <p>Hello</p>
@@ -9,5 +6,4 @@ function JobCreateOutput({}: Props) {
   );
 }
 
-export type { Props }
 export default JobCreateOutput;

@@ -1,4 +1,3 @@
-import React from "react";
 import { AuthContext } from "@/hooks/useAuthenticated";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConfigProvider, theme } from "antd";
@@ -22,7 +21,7 @@ const withProvider: Decorator = (Story, options) => {
           }}
         >
           <AuthContext.Provider
-            value={{ token: "hey :)", checkAuth: () => {} }}
+            value={{ token: "hey :)", checkAuth: () => undefined }}
           >
             <Story />
           </AuthContext.Provider>

@@ -20,5 +20,4 @@ function JobCreation() {
   );
 }
 
-export type { Props };
 export default JobCreation;

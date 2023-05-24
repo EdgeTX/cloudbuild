@@ -68,13 +68,13 @@ function FormTag(
 
     // current value not in flag value? reset it
     const flagValues = form.getFieldsValue()?.flags ?? [];
-    let currentValue = flagValues[index]?.value;
+    const currentValue = flagValues[index]?.value;
     if (currentValue && !values.includes(currentValue)) {
       flagValues[index].value = "";
     }
 
     setFlagValues(mapToSelect(values));
-  }, [currentFlag, currentTarget, targets]);
+  }, [currentFlag, currentTarget, flagOptions, targets, form, index]);
 
   useEffect(() => {
     if (!targets) return;
@@ -123,10 +123,7 @@ interface JobCreationParams {
   flags: Flag[];
 }
 
-interface Props {
-}
-
-function JobCreateForm({}: Props) {
+function JobCreateForm() {
   const [form] = useForm<JobCreationParams>();
   const [messageApi, contextHolder] = message.useMessage();
   const { createJob, createMultipleJobs } = useCreatejobs(messageApi);
@@ -145,7 +142,7 @@ function JobCreateForm({}: Props) {
 
     setReleaseOptions(mapToSelect(releasesKeys));
     form.setFieldValue("release", releasesKeys[0]);
-  }, [targets]);
+  }, [targets, form]);
 
   useEffect(() => {
     if (!targets) return;
@@ -160,7 +157,7 @@ function JobCreateForm({}: Props) {
 
     setTargetOptions(mapToSelect(releaseTargets));
     form.setFieldValue("target", releaseTargets[0]);
-  }, [targets, currentRelease]);
+  }, [targets, currentRelease, form]);
 
   // file list and file content for upload file form input
 
@@ -188,15 +185,13 @@ function JobCreateForm({}: Props) {
   };
 
   const onFinish = async (values: JobCreationParams) => {
-    let result: JobCreationStatus[] = [];
+    let _result: JobCreationStatus[] = [];
     if (jobsFileContent) {
-      result = await createMultipleJobs(jobsFileContent as JobCreationParams[]);
+      _result = await createMultipleJobs(jobsFileContent as JobCreationParams[]);
     } else {
-      result = [await createJob(values)];
+      _result = [await createJob(values)];
     }
-
-    console.log(values);
-    console.log(result);
+   
   };
 
   return (
