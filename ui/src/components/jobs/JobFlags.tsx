@@ -1,19 +1,19 @@
-import { Tag } from "antd";
-import { Job } from "@hooks/useJobsData";
+import { Space, Tag } from "antd";
+import { Flag } from "@hooks/useJobsData";
 
 interface Props {
-  job: Job;
+  flags: Flag[];
 }
 
-function JobFlags({ job }: Props) {
+function JobFlags({ flags }: Props) {
   return (
-    <>
-      {job.flags.map((flag) => (
+    <Space size={0}>
+      {flags.map((flag) => (
         <div key={flag.name}>
           <Tag color="purple">{flag.value}</Tag>
         </div>
       ))}
-    </>
+    </Space>
   );
 }
 

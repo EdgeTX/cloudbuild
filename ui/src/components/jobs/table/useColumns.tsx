@@ -9,6 +9,7 @@ import { useTargets } from "@/hooks/useTargets";
 import { useEffect, useState } from "react";
 import { ColumnsType } from "antd/es/table";
 import { ColumnFilterItem } from "antd/es/table/interface";
+import { MessageInstance } from "antd/es/message/interface";
 
 const STATUS_MAP: Record<JobStatus, string> = {
   "VOID": "",
@@ -26,15 +27,17 @@ const BADGE_STATUS_MAP: Record<JobStatus, PresetStatusColorType> = {
   "BUILD_ERROR": "error",
 };
 
-interface Params {
-  setSelectedJob: React.Dispatch<React.SetStateAction<Job | undefined>>;
-}
 
 function mapFilters(values: string[]) {
   return values.map((value) => ({ text: value, value: value }));
 }
 
-function useColumns({ setSelectedJob }: Params) {
+interface Params {
+  setSelectedJob: React.Dispatch<React.SetStateAction<Job | undefined>>;
+  messageApi: MessageInstance;
+}
+
+function useColumns({ setSelectedJob, messageApi }: Params) {
   const { targets } = useTargets();
   const [targetFilters, setTargetFilters] = useState<ColumnFilterItem[]>([]);
   const [releaseFilters, setReleaseFilters] = useState<ColumnFilterItem[]>([]);
@@ -85,14 +88,14 @@ function useColumns({ setSelectedJob }: Params) {
     },
     {
       title: "Flags",
-      render: (job: Job) => <JobFlags job={job} />,
+      render: (job: Job) => <JobFlags flags={job.flags} />,
     },
     {
       title: "Action",
       render: (job: Job) => (
         <Space size="middle" wrap>
           <a onClick={() => setSelectedJob(job)}>Detail</a>
-          <JobRemove job={job} />
+          <JobRemove job={job} messageApi={messageApi} />
         </Space>
       ),
     },
