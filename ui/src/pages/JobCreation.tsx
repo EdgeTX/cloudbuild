@@ -40,7 +40,7 @@ function JobCreation() {
       {contextHolder}
       <div style={{ height: "100%" }}>
         <Row style={{ height: "100%" }}>
-          <Col flex={"1"} style={{ overflowY: "auto", height: "100%" }}>
+          <Col flex={"1"} style={{ overflowY: "auto", height: "100%", paddingRight: 25 }}>
             <JobCreateForm {...{ messageApi, onFinish }} />
           </Col>
           <Col>
