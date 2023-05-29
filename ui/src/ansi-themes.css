@@ -1,0 +1,63 @@
+.ansi-black-fg {
+  color: rgb(55, 55, 55);
+}
+
+.ansi-red-fg {
+  color: rgb(230, 55, 55);
+}
+
+.ansi-green-fg {
+  color: rgb(55, 230, 55);
+}
+
+.ansi-yellow-fg {
+  color: rgb(230, 230, 55);
+}
+
+.ansi-blue-fg {
+  color: rgb(55, 55, 230);
+}
+
+.ansi-magenta-fg {
+  color: rgb(230, 55, 230);
+}
+
+.ansi-cyan-fg {
+  color: rgb(55, 230, 230);
+}
+
+.ansi-white-fg {
+  color: rgb(255, 255, 255);
+}
+
+.ansi-bright-black-fg {
+  color: rgb(85, 85, 85);
+}
+
+.ansi-bright-red-fg {
+  color: rgb(255, 85, 85);
+}
+
+.ansi-bright-green-fg {
+  color: rgb(0, 255, 0);
+}
+
+.ansi-bright-yellow-fg {
+  color: rgb(255, 255, 85);
+}
+
+.ansi-bright-blue-fg {
+  color: rgb(85, 85, 255);
+}
+
+.ansi-bright-magenta-fg {
+  color: rgb(255, 85, 255);
+}
+
+.ansi-bright-cyan-fg {
+  color: rgb(85, 255, 255);
+}
+
+.ansi-bright-white-fg {
+  color: rgb(255, 255, 255);
+}

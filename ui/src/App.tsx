@@ -1,3 +1,4 @@
+import Layout from "@comps/Layout"
 import { ConfigProvider, Result, theme } from "antd";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useColorScheme } from "@hooks/useColorscheme";
@@ -18,7 +19,11 @@ function App() {
       }}
     >
       <AuthContext.Provider value={{ checkAuth, token }}>
-        {isAuth === false && <Result status="error" title={authError} />}
+        {isAuth === false && (
+          <Layout>
+            <Result status="error" title={authError} />
+          </Layout>
+        )}
         {isAuth && (
           <Routes>
             <Route path="home" element={<Home />} />
