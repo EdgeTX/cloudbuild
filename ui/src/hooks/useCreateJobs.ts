@@ -1,5 +1,4 @@
 import { useContext } from "react";
-import { MessageInstance } from "antd/es/message/interface";
 import { AuthContext, AuthContextType } from "@hooks/useAuthenticated";
 import { Flag, Job } from "@hooks/useJobsData";
 
@@ -9,25 +8,27 @@ interface JobCreationParams {
   flags: Flag[];
 }
 
-interface JobCreationSuccess {
-  job: Job;
+type JobCreationSuccess = {
+  job: Pick<Job, "id" | "status">;
+  params: JobCreationParams;
   error: never;
-}
+};
 
-interface JobCreationFail {
+type JobCreationFail = {
+  params: Partial<JobCreationParams>;
   error: string;
-}
+};
 
 type JobCreationStatus = JobCreationSuccess | JobCreationFail;
 
 const isSuccessful = (
   status: JobCreationStatus,
 ): status is JobCreationSuccess => {
-  return !!status.error;
+  return !status.error;
 };
 
-function sendJobCreationReq(token: string, job: JobCreationParams) {
-  return fetch("api/jobs", {
+async function sendJobCreationReq(token: string, job: JobCreationParams) {
+  const res = await fetch("api/jobs", {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${token}`,
@@ -35,50 +36,28 @@ function sendJobCreationReq(token: string, job: JobCreationParams) {
     },
     body: JSON.stringify(job),
   });
+  const data = await res.json();
+  if (res.ok) return { job: data, params: job };
+  return { ...data, params: job };
 }
 
-function useCreatejobs(messageApi: MessageInstance) {
+function useCreatejobs() {
   const { token } = useContext(AuthContext) as AuthContextType;
 
-  const startLoading = () => {
-    messageApi.open({
-      type: "loading",
-      content: "Action in progress..",
-      duration: 0,
-    });
-  };
-
-  const stopLoading = () => {
-    messageApi.destroy();
-  };
-
   const createJob = async (job: JobCreationParams) => {
-    startLoading();
-    const response = await sendJobCreationReq(token, job);
-
-    stopLoading();
-    return await response.json();
+    return (await sendJobCreationReq(token, job));
   };
 
   const createMultipleJobs = async (jobs: JobCreationParams[]) => {
-    const responses = [];
-    startLoading();
-
-    for (const job of jobs) {
-      responses.push(await sendJobCreationReq(token, job));
-    }
-
     const results: JobCreationStatus[] = [];
-    for (const res of responses) {
-      results.push(await res.json());
+    for (const job of jobs) {
+      results.push(await sendJobCreationReq(token, job));
     }
-
-    stopLoading();
     return results;
   };
 
   return { createJob, createMultipleJobs };
 }
 
-export type { isSuccessful, JobCreationParams, JobCreationStatus };
-export { useCreatejobs };
+export type { JobCreationParams, JobCreationStatus };
+export { isSuccessful, useCreatejobs };

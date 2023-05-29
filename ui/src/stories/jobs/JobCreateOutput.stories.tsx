@@ -1,16 +1,54 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import JobCreateOutput from "@comps/jobs/JobCreateOutput";
-import { withProvider } from "../decorators/withProvider";
 
 const meta: Meta = {
   title: "jobs/JobCreateOutput",
   component: JobCreateOutput,
-  decorators: [withProvider],
 };
 
 export default meta;
 type Story = StoryObj;
 
-export const Primary: Story = {
-  args: {},
+export const Empty: Story = {
+  args: {
+    jobsStatus: [],
+  },
+};
+
+export const Loading: Story = {
+  args: {
+    jobsStatus: [],
+    isLoading: true,
+  }
+}
+
+export const Errors: Story = {
+  args: {
+    jobsStatus: [
+      {
+        "error": "release not supported: ",
+      },
+      {
+        "error": "release not supported: ",
+      },
+      {
+        "error": "release not supported: ",
+      },
+      {
+        "error": "release not supported: ",
+      },
+      {
+        "error": "release not supported: ",
+      },
+      {
+        "error": "release not supported: ",
+      },
+      {
+        "error": "release not supported: ",
+      },
+      {
+        "error": "release not supported: ",
+      },
+    ],
+  },
 };

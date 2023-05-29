@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Modal, Result, Table, TablePaginationConfig } from "antd";
+import { Modal, Result, Table, TablePaginationConfig, message } from "antd";
 import { FilterValue, SorterResult } from "antd/es/table/interface";
 import {
   Job,
@@ -43,7 +43,9 @@ function JobsTable({ style, status }: Props) {
   const hideJobModal = () => {
     setSelectedJob(undefined);
   };
-  const { columns } = useColumns({ setSelectedJob });
+
+  const [messageApi, contextHolder] = message.useMessage();
+  const { columns } = useColumns({ setSelectedJob, messageApi });
 
   if (error) {
     return <Result status="error" title={error.message} />;
@@ -88,6 +90,7 @@ function JobsTable({ style, status }: Props) {
 
   return (
     <div style={style}>
+      {contextHolder}
       <Table
         size={"middle"}
         loading={isLoading}

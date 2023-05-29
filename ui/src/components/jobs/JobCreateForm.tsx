@@ -1,4 +1,3 @@
-import { JobCreationStatus, useCreatejobs } from "@hooks/useCreateJobs";
 import { Flag } from "@hooks/useJobsData";
 import { TargetFlag, Targets, useTargets } from "@hooks/useTargets";
 import {
@@ -11,7 +10,6 @@ import {
   Divider,
   Form,
   FormListFieldData,
-  message,
   Row,
   Select,
   Space,
@@ -20,6 +18,7 @@ import {
 import { FormInstance, useForm } from "antd/es/form/Form";
 import { useEffect, useState } from "react";
 import { DefaultOptionType } from "antd/es/select";
+import { MessageInstance } from "antd/es/message/interface";
 
 function mapToSelect(values: string[]) {
   return values.map((value) => ({ value, label: value }));
@@ -123,13 +122,18 @@ interface JobCreationParams {
   flags: Flag[];
 }
 
-function JobCreateForm() {
+interface Props {
+  messageApi: MessageInstance;
+  onFinish: (
+    values: JobCreationParams,
+    jobsFileContent: object | undefined,
+  ) => void;
+}
+
+function JobCreateForm({ messageApi, onFinish }: Props) {
   const [form] = useForm<JobCreationParams>();
-  const [messageApi, contextHolder] = message.useMessage();
-  const { createJob, createMultipleJobs } = useCreatejobs(messageApi);
 
   // target and release options for form select input
-
   const { targets } = useTargets();
   const [releaseOptions, setReleaseOptions] = useState<DefaultOptionType[]>([]);
   const [targetOptions, setTargetOptions] = useState<DefaultOptionType[]>([]);
@@ -184,25 +188,16 @@ function JobCreateForm() {
     setFileList([]);
   };
 
-  const onFinish = async (values: JobCreationParams) => {
-    let _result: JobCreationStatus[] = [];
-    if (jobsFileContent) {
-      _result = await createMultipleJobs(jobsFileContent as JobCreationParams[]);
-    } else {
-      _result = [await createJob(values)];
-    }
-   
-  };
-
   return (
     <>
-      {contextHolder}
       <Form
         labelCol={{ span: 4 }}
         aria-labelledby=""
         form={form}
         name="Job Creation"
-        onFinish={onFinish}
+        onFinish={(values) => {
+          onFinish(values, jobsFileContent);
+        }}
         style={{ marginTop: "2rem" }}
       >
         <Form.Item

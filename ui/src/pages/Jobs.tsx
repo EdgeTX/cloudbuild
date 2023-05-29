@@ -1,3 +1,4 @@
+import Layout from "@comps/Layout";
 import { Row, Segmented } from "antd";
 import JobsTable from "@comps/jobs/table/JobsTable";
 import { JobStatusQuery } from "@hooks/useJobsData";
@@ -14,7 +15,7 @@ function Jobs() {
   const [status, setStatus] = useState<JobStatusQuery>("all");
 
   return (
-    <>
+    <Layout>
       <Row justify={"space-between"}>
         <Segmented
           size="middle"
@@ -26,7 +27,7 @@ function Jobs() {
         status={status}
         style={{ marginTop: 10 }}
       />
-    </>
+    </Layout>
   );
 }
 
