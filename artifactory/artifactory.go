@@ -100,6 +100,25 @@ func (artifactory *Artifactory) GetBuild(request *BuildRequest) (*BuildJobDto, e
 	return BuildJobDtoFromModel(buildJob, artifactory.PrefixURL)
 }
 
+func (artifactory *Artifactory) GetLogs(jobID string) (*[]AuditLogDto, error) {
+	uid, err := uuid.FromString(jobID)
+	if err != nil {
+		return nil, err
+	}
+
+	logs, err := artifactory.BuildJobsRepository.GetLogs(uid)
+	if err != nil {
+		return nil, err
+	}
+
+	auditLogs := make([]AuditLogDto, 0)
+	for i := range *logs {
+		auditLogs = append(auditLogs, AuditLogDtoFromModel(&(*logs)[i]))
+	}
+
+	return &auditLogs, nil
+}
+
 func (artifactory *Artifactory) restartFailedJob(
 	requesterIP string, job *BuildJobModel,
 ) (*BuildJobDto, error) {

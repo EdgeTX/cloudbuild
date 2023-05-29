@@ -20,6 +20,7 @@ type BuildJobsRepository interface {
 	List(query *JobQuery) (*database.Pagination, error)
 	Delete(id uuid.UUID) error
 	FindByID(ID uuid.UUID) (*BuildJobModel, error)
+	GetLogs(ID uuid.UUID) (*[]AuditLogModel, error)
 	Create(model BuildJobModel) (*BuildJobModel, error)
 	Save(model *BuildJobModel) error
 	ReservePendingBuild() (*BuildJobModel, error)
@@ -79,6 +80,17 @@ func (repository *BuildJobsDBRepository) FindByID(id uuid.UUID) (*BuildJobModel,
 	}
 
 	return &buildJob, nil
+}
+
+func (repository *BuildJobsDBRepository) GetLogs(id uuid.UUID) (*[]AuditLogModel, error) {
+	logs := make([]AuditLogModel, 0)
+	err := repository.db.Where(&AuditLogModel{
+		BuildJobID: id.String(),
+	}).Find(&logs).Error
+	if err != nil {
+		return nil, err
+	}
+	return &logs, nil
 }
 
 var statusLookup = map[string]interface{}{
