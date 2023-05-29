@@ -118,6 +118,27 @@ func (app *Application) deleteBuildJob(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "ok"})
 }
 
+func (app *Application) getBuildJobLogs(c *gin.Context) {
+	jobID := c.Param("id")
+	if jobID == "" {
+		BadRequestResponse(c, ErrInvalidRequest)
+		return
+	}
+	logs, err := app.artifactory.GetLogs(jobID)
+	if err != nil {
+		ServiceUnavailableResponse(c, err)
+		return
+	}
+	if logs == nil {
+		c.AbortWithStatusJSON(
+			http.StatusNotFound,
+			NewErrorResponse("Failed to find job"),
+		)
+		return
+	}
+	c.JSON(http.StatusOK, logs)
+}
+
 func (app *Application) listWorkers(c *gin.Context) {
 	workers, err := app.workers.List()
 	if err != nil {
@@ -189,6 +210,7 @@ func (app *Application) addAPIRoutes(rg *gin.RouterGroup) {
 	// authenticated endpoints
 	rg.GET("/jobs", app.authenticated(app.listBuildJobs))
 	rg.DELETE("/job/:id", app.authenticated(app.deleteBuildJob))
+	rg.GET("/logs/:id", app.authenticated(app.getBuildJobLogs))
 	rg.GET("/workers", app.authenticated(app.listWorkers))
 	rg.PUT("/targets", app.authenticated(app.writeTargets))
 	// public
