@@ -1,9 +1,10 @@
-import { Popconfirm } from "antd";
+import { Button, Popconfirm, Tooltip } from "antd";
 import { useContext } from "react";
 import { AuthContext, AuthContextType } from "@hooks/useAuthenticated";
 import { Job } from "@hooks/useJobsData";
 import { useQueryClient } from "@tanstack/react-query";
 import { MessageInstance } from "antd/es/message/interface";
+import { DeleteOutlined } from "@ant-design/icons";
 
 function sendJobDeleteRequest(token: string, id: string) {
   return fetch("api/job/" + id, {
@@ -43,17 +44,15 @@ function JobRemove({ job, messageApi }: Props) {
   };
 
   return (
-    <>
-      <Popconfirm
-        title="Delete the job"
-        description="Are you sure to delete this job?"
-        onConfirm={remove}
-        okText="Yes"
-        cancelText="No"
-      >
-        <a>Delete</a>
-      </Popconfirm>
-    </>
+    <Popconfirm
+      title="Delete the job"
+      description="Are you sure to delete this job?"
+      onConfirm={remove}
+      okText="Yes"
+      cancelText="No"
+    >
+      <Button type="link" icon={<DeleteOutlined />} />
+    </Popconfirm>
   );
 }
 

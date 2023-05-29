@@ -1,4 +1,4 @@
-import { Badge, Space } from "antd";
+import { Badge, Button, Space, Tooltip } from "antd";
 import { PresetStatusColorType } from "antd/es/_util/colors";
 import { Job, JobStatus } from "@hooks/useJobsData";
 import JobRemove from "@comps/jobs/JobRemove";
@@ -10,9 +10,11 @@ import { useEffect, useState } from "react";
 import { ColumnsType } from "antd/es/table";
 import { ColumnFilterItem } from "antd/es/table/interface";
 import { MessageInstance } from "antd/es/message/interface";
+import { CodeOutlined, EyeOutlined, FileTextOutlined } from "@ant-design/icons";
+import { JobSelectionAction } from "./JobsTable";
 
 const STATUS_MAP: Record<JobStatus, string> = {
-  "VOID": "",
+  "VOID": "Created",
   "WAITING_FOR_BUILD": "Waiting",
   "BUILD_IN_PROGRESS": "Building",
   "BUILD_SUCCESS": "Success",
@@ -27,13 +29,14 @@ const BADGE_STATUS_MAP: Record<JobStatus, PresetStatusColorType> = {
   "BUILD_ERROR": "error",
 };
 
-
 function mapFilters(values: string[]) {
   return values.map((value) => ({ text: value, value: value }));
 }
 
 interface Params {
-  setSelectedJob: React.Dispatch<React.SetStateAction<Job | undefined>>;
+  setSelectedJob: React.Dispatch<
+    React.SetStateAction<JobSelectionAction | undefined>
+  >;
   messageApi: MessageInstance;
 }
 
@@ -93,8 +96,28 @@ function useColumns({ setSelectedJob, messageApi }: Params) {
     {
       title: "Action",
       render: (job: Job) => (
-        <Space size="middle" wrap>
-          <a onClick={() => setSelectedJob(job)}>Detail</a>
+        <Space size={0} wrap>
+          <Tooltip title="detail">
+            <Button
+              type="link"
+              icon={<EyeOutlined />}
+              onClick={() => setSelectedJob({ job, action: "detail" })}
+            />
+          </Tooltip>
+          <Tooltip title="json">
+            <Button
+              type="link"
+              icon={<FileTextOutlined />}
+              onClick={() => setSelectedJob({ job, action: "json" })}
+            />
+          </Tooltip>
+          <Tooltip title="logs">
+            <Button
+              type="link"
+              icon={<CodeOutlined />}
+              onClick={() => setSelectedJob({ job, action: "logs" })}
+            />
+          </Tooltip>
           <JobRemove job={job} messageApi={messageApi} />
         </Space>
       ),
@@ -104,4 +127,4 @@ function useColumns({ setSelectedJob, messageApi }: Params) {
   return { columns };
 }
 
-export { useColumns };
+export { useColumns, STATUS_MAP };

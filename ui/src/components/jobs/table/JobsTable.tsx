@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Modal, Result, Table, TablePaginationConfig, message } from "antd";
+import { message, Modal, Result, Table, TablePaginationConfig } from "antd";
 import { FilterValue, SorterResult } from "antd/es/table/interface";
 import {
   Job,
@@ -10,6 +10,13 @@ import {
 } from "@hooks/useJobsData";
 import { useColumns } from "./useColumns";
 import JobDetail from "@comps/jobs/JobDetail";
+import JobJson from "@comps/jobs/JobJson";
+import JobLogs from "@comps/jobs/JobLogs";
+
+interface JobSelectionAction {
+  job: Job;
+  action: "detail" | "json" | "logs";
+}
 
 interface Props {
   style?: React.CSSProperties;
@@ -38,7 +45,9 @@ function JobsTable({ style, status }: Props) {
     },
   );
 
-  const [selectedJob, setSelectedJob] = useState<Job | undefined>(undefined);
+  const [selectedJob, setSelectedJob] = useState<
+    JobSelectionAction | undefined
+  >(undefined);
   const jobModalOpened = selectedJob != undefined;
   const hideJobModal = () => {
     setSelectedJob(undefined);
@@ -89,28 +98,35 @@ function JobsTable({ style, status }: Props) {
   };
 
   return (
-    <div style={style}>
+    <>
       {contextHolder}
-      <Table
-        size={"middle"}
-        loading={isLoading}
-        dataSource={data?.rows}
-        columns={columns}
-        rowKey={"id"}
-        onChange={handleChange}
-        pagination={{ ...paginationOption, size: "default" }}
-      />
-      <Modal
-        open={jobModalOpened}
-        onCancel={hideJobModal}
-        centered
-        width={800}
-        footer={[]}
-      >
-        {selectedJob && <JobDetail job={selectedJob} />}
-      </Modal>
-    </div>
+      <div style={style}>
+        <Table
+          size={"middle"}
+          loading={isLoading}
+          dataSource={data?.rows}
+          columns={columns}
+          rowKey={"id"}
+          onChange={handleChange}
+          pagination={{ ...paginationOption, size: "default" }}
+        />
+        <Modal
+          open={jobModalOpened}
+          onCancel={hideJobModal}
+          centered
+          width={selectedJob?.action === "logs" ? "90vw" : 800}
+          footer={[]}
+        >
+          {selectedJob?.action === "detail" && (
+            <JobDetail job={selectedJob.job} />
+          )}
+          {selectedJob?.action === "json" && <JobJson job={selectedJob.job} />}
+          {selectedJob?.action === "logs" && <JobLogs job={selectedJob.job} />}
+        </Modal>
+      </div>
+    </>
   );
 }
 
+export type { JobSelectionAction };
 export default JobsTable;
