@@ -1,6 +1,18 @@
 # EdgeTX CloudBuild
 
-EdgeTX CloudBuild is an open-source EdgeTX firmware build service
+EdgeTX CloudBuild is an open-source EdgeTX firmware build service.
+
+It is not meant to be run directly connected to the internet be behind a proxy
+that will only allow the following endpoint prefixes toward the public interface:
+- `/api/*`: public and authenticated endpoints.
+
+If you are using the local file system storage (not recommended in production), you will need
+to allow the download URL as well:
+- `/firmwares/*`
+
+The administrative UI is accessible from the root endpoint `/`. The static content endpoints are
+**not** authenticated.
+
 
 ## Build and run locally
 
@@ -96,4 +108,21 @@ EBUILD_S3_URL_IMMUTABLE: true
 
 # Public download URL prefix (object key is appended to create download link)
 EBUILD_DOWNLOAD_URL: https://bucket.s3.super-provider.com
+```
+
+## Generating a token to access the UI
+
+To be able to use the administrative UI, a token must be generated for every user:
+
+``` shell
+docker exec -it cloudbuild-api-1 ./ebuild auth create [some name]
+AccessKey: [some access key]
+SecretKey: [very secret key]
+```
+
+The token can be later removed:
+
+``` shell
+docker exec -it cloudbuild-api-1 ./ebuild auth remove [Access Key]
+token [Access Key] removed
 ```
