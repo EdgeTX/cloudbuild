@@ -6,6 +6,8 @@ services:
     dns_search: ''
     networks:
       - net
+    volumes:
+      - db-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     environment:
@@ -23,6 +25,8 @@ services:
       - ./api.env
     networks:
       - net
+    volumes:
+      - firmwares:/home/rootless/src/static/firmwares
     depends_on:
       - db
     ports:
@@ -36,8 +40,14 @@ services:
       - ./api.env
     networks:
       - net
+    volumes:
+      - firmwares:/home/rootless/src/static/firmwares
     depends_on:
       - db
 
 networks:
   net:
+
+volumes:
+  db-data:
+  firmwares:

@@ -2,80 +2,98 @@
 
 EdgeTX CloudBuild is an open-source EdgeTX firmware build service
 
-## CLI tool
+## Build and run locally
 
 It is possible to use this tool from command line as well.
 
 ### Prerequisites
 
-Unix based operating system, git & podman installed:
-
-* Install git: https://git-scm.com/download/linux
-* Install podman: https://podman.io/getting-started/installation.html
+Linux operating system with:
+- `docker` (including `docker-compose` plugin).
+- `git` (required only to checkout this repository).
 
 ### Setup
 
-To use binary from `edgetx-cloudbuild/bin` directory run this command:
+First clone this repository:
 
-```
-make edgetx-build
-```
-
-To have cli tool `edgetx-build` available on your $PATH run this:
-
-```
-make edgetx-build-install
+``` shell
+git clone https://github.com/EdgeTX/cloudbuild.git
 ```
 
-### Example
+Then you will need to configure some things:
 
-#### Using build flags json file
-
-```
-go run cmd/edgetx-build/main.go -commit fac0eed66c2e7c4eb3d4602dd52b30564c4a4a16 -build-flags-file ./tx16s-internal-elrs.json
-```
-
-Where `./tx16s-internal-elrs.json` is in this format:
-
-```
-[
-    {
-        "key": "DISABLE_COMPANION",
-        "value": "YES"
-    },
-    {
-        "key": "CMAKE_BUILD_TYPE",
-        "value": "Release"
-    },
-    {
-        "key": "TRACE_SIMPGMSPACE",
-        "value": "NO"
-    },
-    {
-        "key": "VERBOSE_CMAKELISTS",
-        "value": "YES"
-    },
-    {
-        "key": "CMAKE_RULE_MESSAGES",
-        "value": "OFF"
-    },
-    {
-        "key": "PCB",
-        "value": "X10"
-    },
-    {
-        "key": "PCBREV",
-        "value": "TX16S"
-    },
-    {
-        "key": "INTERNAL_MODULE_MULTI",
-        "value": "ON"
-    }
-]
+``` shell
+# Create config from template
+cp api.env.example api.env
 ```
 
-#### Using inline build flags
+For a quick test, all you need to edit is external URL (as it will be seen by web client)
+and the directory in which the firmwares are stored (which should be shared among all 
+containers as a volume).
 
 ```
-go run cmd/edgetx-build/main.go -commit 55b3f91d0cf1d0130371343aef458bee1bfccbdf -build-flags "-DDISABLE_COMPANION=YES -DCMAKE_BUILD_TYPE=Release -DTRACE_SIMPGMSPACE=NO -DVERBOSE_CMAKELISTS=YES -DCMAKE_RULE_MESSAGES=OFF -DPCB=X10 -DPCBREV=TX16S -DINTERNAL_MODULE_MULTI=ON"
+EBUILD_STORAGE_PATH=/home/rootless/src/static/firmwares
+EBUILD_DOWNLOAD_URL=http://localhost:3000/firmwares
+```
+
+### Build container image
+
+The runtime container image can be built with:
+
+``` shell
+docker compose build api
+```
+
+### Run the containers
+
+#### On the very first start, or after a database schema change
+
+Start the database first:
+
+``` shell
+docker compose up -d db
+```
+
+Then start the API:
+
+``` shell
+docker compose up -d api
+```
+
+And setup the database schema with:
+
+``` shell
+docker exec -it cloudbuild-api-1 ./ebuild db migrate
+```
+
+Once the database is setup, proceed to the next step to start the workers as well.
+
+#### After the first time
+
+Then the rest of the stack can be run all together:
+
+``` shell
+docker compose up -d --scale worker=2
+```
+
+You can increase the number of workers if you want to build more firmwares in parallel.
+
+
+## Using S3 compatible storage
+
+To offload serving the firmware files to a S3 compatible storage, a few configuration
+parameters need to be set additionally in the environment file (`api.env`):
+
+```
+# Common settings for all provider
+EBUILD_STORAGE_TYPE: S3
+EBUILD_S3_ACCESS_KEY: myAccessKey
+EBUILD_S3_SECRET_KEY: super-secret-key
+
+# These settings depend on the provider:
+EBUILD_S3_URL: https://s3.super-provider.com
+EBUILD_S3_URL_IMMUTABLE: true
+
+# Public download URL prefix (object key is appended to create download link)
+EBUILD_DOWNLOAD_URL: https://bucket.s3.super-provider.com
 ```
