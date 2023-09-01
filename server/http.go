@@ -241,6 +241,9 @@ func (app *Application) Start(listen string) error {
 
 	api := router.Group("/api")
 	api.Use(GinMetrics)
+	api.Use(func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", "*")
+	})
 	app.addAPIRoutes(api)
 
 	// catch-all route to serve the UI
