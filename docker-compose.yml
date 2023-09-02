@@ -44,6 +44,7 @@ services:
       - firmwares:/home/rootless/src/static/firmwares
     depends_on:
       - db
+      - api
 
 networks:
   net:

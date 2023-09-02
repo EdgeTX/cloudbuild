@@ -11,6 +11,7 @@ import (
 	"github.com/edgetx/cloudbuild/artifactory"
 	"github.com/edgetx/cloudbuild/auth"
 	"github.com/edgetx/cloudbuild/config"
+	"github.com/edgetx/cloudbuild/database"
 	"github.com/edgetx/cloudbuild/processor"
 	"github.com/edgetx/cloudbuild/server"
 	"github.com/edgetx/cloudbuild/targets"
@@ -35,6 +36,10 @@ func (s *serverRunner) initLogging() {
 
 func (s *serverRunner) runAPI(cmd *cobra.Command, args []string) {
 	s.initLogging()
+	if err := database.Migrate(s.opts.DatabaseDSN); err != nil {
+		fmt.Printf("failed to migrate database: %s", err)
+		os.Exit(1)
+	}
 	if err := targets.ReadTargetsDef("./targets.json"); err != nil {
 		fmt.Printf("failed to read targets: %s", err)
 		os.Exit(1)
