@@ -6,8 +6,11 @@
         "path": "object.sha"
       }
     },
-    "v2.8.4": {
-      "sha": "da28e356449e54c57f0e5e356bd5ec5709128ff7",
+    "v2.9.0": {
+      "sha": "0ff73ccafad063fcc65ea64e7dca35e7f00011a1"
+    },
+    "v2.8.5": {
+      "sha": "cbac1063eb8637457d2a63c367863c6bfd6f0c31",
       "exclude_targets": [
         "tlitef4"
       ]
@@ -33,6 +36,13 @@
         "HU",
         "NL"
       ]
+    },
+    "fai_mode": {
+      "build_flag": "FAI",
+      "values": [
+        "YES",
+        "CHOICE"
+      ]
     }
   },
   "tags": {
@@ -46,11 +56,34 @@
           ]
         }
       }
+    },
+    "stdlcd": {
+      "flags": {
+        "ppm_unit": {
+          "build_flag": "PPM_UNIT",
+          "values": [
+            "US"
+          ]
+        }
+      }
+    },
+    "x9e": {
+      "flags": {
+        "sticks": {
+          "build_flag": "STICKS",
+          "values": [
+            "HORUS"
+          ]
+        }
+      }
     }
   },
   "targets": {
     "lr3pro": {
       "description": "BETAFPV LiteRadio 3 Pro",
+      "tags": [
+        "stdlcd"
+      ],
       "build_flags": {
         "PCB": "X7",
         "PCBREV": "LR3PRO"
@@ -105,12 +138,18 @@
     },
     "x7": {
       "description": "FrSky QX7",
+      "tags": [
+        "stdlcd"
+      ],
       "build_flags": {
         "PCB": "X7"
       }
     },
     "x7-access": {
       "description": "FrSky QX7 Access",
+      "tags": [
+        "stdlcd"
+      ],
       "build_flags": {
         "PCB": "X7",
         "PCBREV": "ACCESS"
@@ -118,12 +157,18 @@
     },
     "x9d": {
       "description": "FrSky X9D",
+      "tags": [
+        "stdlcd"
+      ],
       "build_flags": {
         "PCB": "X9D"
       }
     },
     "x9dp": {
       "description": "FrSky X9D Plus",
+      "tags": [
+        "stdlcd"
+      ],
       "build_flags": {
         "PCB": "X9D+",
         "PCBREV": "ACCESS"
@@ -131,6 +176,9 @@
     },
     "x9dp2019": {
       "description": "FrSky X9D Plus 2019",
+      "tags": [
+        "stdlcd"
+      ],
       "build_flags": {
         "PCB": "X9D+",
         "PCBREV": "2019"
@@ -138,36 +186,55 @@
     },
     "x9e": {
       "description": "FrSky X9E",
+      "tags": [
+        "stdlcd",
+        "x9e"
+      ],
       "build_flags": {
         "PCB": "X9E"
       }
     },
     "x9lite": {
       "description": "FrSky X9 Lite",
+      "tags": [
+        "stdlcd"
+      ],
       "build_flags": {
         "PCB": "X9LITE"
       }
     },
     "x9lites": {
       "description": "FrSky X9 Lite S",
+      "tags": [
+        "stdlcd"
+      ],
       "build_flags": {
         "PCB": "X9LITES"
       }
     },
     "xlite": {
       "description": "FrSky X-Lite",
+      "tags": [
+        "stdlcd"
+      ],
       "build_flags": {
         "PCB": "XLITE"
       }
     },
     "xlites": {
       "description": "FrSky X-Lite S",
+      "tags": [
+        "stdlcd"
+      ],
       "build_flags": {
         "PCB": "XLITES"
       }
     },
     "commando8": {
       "description": "iFlight Commando 8",
+      "tags": [
+        "stdlcd"
+      ],
       "build_flags": {
         "PCB": "X7",
         "PCBREV": "COMMANDO8"
@@ -175,6 +242,9 @@
     },
     "t12": {
       "description": "Jumper T12",
+      "tags": [
+        "stdlcd"
+      ],
       "build_flags": {
         "PCB": "X7",
         "PCBREV": "T12"
@@ -202,6 +272,9 @@
     },
     "tlite": {
       "description": "Jumper T-Lite",
+      "tags": [
+        "stdlcd"
+      ],
       "build_flags": {
         "PCB": "X7",
         "PCBREV": "TLITE"
@@ -209,6 +282,9 @@
     },
     "tlitef4": {
       "description": "Jumper T-Lite (F4 MCU)",
+      "tags": [
+        "stdlcd"
+      ],
       "build_flags": {
         "PCB": "X7",
         "PCBREV": "TLITEF4"
@@ -216,6 +292,9 @@
     },
     "tpro": {
       "description": "Jumper T-Pro",
+      "tags": [
+        "stdlcd"
+      ],
       "build_flags": {
         "PCB": "X7",
         "PCBREV": "TPRO"
@@ -223,6 +302,9 @@
     },
     "t8": {
       "description": "Radiomaster T8",
+      "tags": [
+        "stdlcd"
+      ],
       "build_flags": {
         "PCB": "X7",
         "PCBREV": "T8"
@@ -230,13 +312,19 @@
     },
     "tx12": {
       "description": "Radiomaster TX12",
+      "tags": [
+        "stdlcd"
+      ],
       "build_flags": {
         "PCB": "X7",
         "PCBREV": "TX12"
       }
     },
-    "tx12": {
+    "tx12mk2": {
       "description": "Radiomaster TX12MK2",
+      "tags": [
+        "stdlcd"
+      ],
       "build_flags": {
         "PCB": "X7",
         "PCBREV": "TX12MK2"
@@ -254,6 +342,9 @@
     },
     "boxer": {
       "description": "RadioMaster Boxer",
+      "tags": [
+        "stdlcd"
+      ],
       "build_flags": {
         "PCB": "X7",
         "PCBREV": "BOXER"
@@ -261,6 +352,9 @@
     },
     "zorro": {
       "description": "RadioMaster Zorro",
+      "tags": [
+        "stdlcd"
+      ],
       "build_flags": {
         "PCB": "X7",
         "PCBREV": "ZORRO"

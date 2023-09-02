@@ -149,10 +149,22 @@ func (def *TargetsDef) GetTargetBuildFlags(target string) *BuildFlags {
 	return nil
 }
 
-func (def *TargetsDef) GetOptionBuildFlag(name string) string {
+func (def *TargetsDef) GetOptionBuildFlag(target, name string) string {
 	if opt, ok := def.OptionFlags[name]; ok {
 		return opt.BuildFlag
 	}
+
+	if t, ok := def.Targets[target]; ok {
+		for _, tag := range t.Tags {
+			tagDef, ok := def.Tags[tag]
+			if ok {
+				if opt, ok := tagDef.Flags[name]; ok {
+					return opt.BuildFlag
+				}
+			}
+		}
+	}
+
 	return ""
 }
 

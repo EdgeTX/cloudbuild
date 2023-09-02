@@ -14,9 +14,6 @@ var (
 )
 
 func BuildJobDtoFromModel(model *BuildJobModel, prefixURL *url.URL) (*BuildJobDto, error) {
-	if model.BuildFlags == nil {
-		return nil, errors.New("build flags are empty")
-	}
 	var optFlags []OptionFlag
 	if model.Flags != nil {
 		if err := json.Unmarshal([]byte(model.Flags.String()), &optFlags); err != nil {
@@ -24,8 +21,11 @@ func BuildJobDtoFromModel(model *BuildJobModel, prefixURL *url.URL) (*BuildJobDt
 		}
 	}
 	var buildFlags []firmware.BuildFlag
-	if err := json.Unmarshal([]byte(model.BuildFlags.String()), &buildFlags); err != nil {
-		return nil, err
+	if model.BuildFlags != nil {
+		strFlags := model.BuildFlags.String()
+		if err := json.Unmarshal([]byte(strFlags), &buildFlags); err != nil {
+			return nil, err
+		}
 	}
 	artifacts := make([]ArtifactDto, 0)
 	for i := range model.Artifacts {
