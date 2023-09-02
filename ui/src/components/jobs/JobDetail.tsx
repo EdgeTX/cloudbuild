@@ -45,7 +45,7 @@ function JobDetail({ job }: Props) {
         <Descriptions.Item label="Status" children={job.status} />
         <Descriptions.Item label="Attempts" children={job.build_attempts} />
         <Descriptions.Item label="Flags">
-          <JobFlags flags={job.flags} />
+          <JobFlags flags={job.flags ?? []} />
         </Descriptions.Item>
         <Descriptions.Item label="Created">
           <DateAgo date={job.created_at} />

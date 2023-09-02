@@ -91,7 +91,7 @@ function useColumns({ setSelectedJob, messageApi }: Params) {
     },
     {
       title: "Flags",
-      render: (job: Job) => <JobFlags flags={job.flags} />,
+      render: (job: Job) => <JobFlags flags={job.flags ?? []} />,
     },
     {
       title: "Action",

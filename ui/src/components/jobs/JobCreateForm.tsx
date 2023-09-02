@@ -16,7 +16,7 @@ import {
   Upload,
 } from "antd";
 import { FormInstance, useForm } from "antd/es/form/Form";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DefaultOptionType } from "antd/es/select";
 import { MessageInstance } from "antd/es/message/interface";
 
@@ -24,62 +24,41 @@ function mapToSelect(values: string[]) {
   return values.map((value) => ({ value, label: value }));
 }
 
-function getAdditionalTags(targets: Targets, target: string) {
-  let flags: Record<string, TargetFlag> = {};
-
-  const tags = targets.targets[target]?.tags;
-  if (!tags) return flags;
-
-  flags = tags.reduce((obj, tag) => {
-    obj = { ...targets.tags[tag].flags };
-    return obj;
-  }, {});
-
-  return flags;
-}
-
 interface FormTagProps {
+  flags: Record<string, TargetFlag>;
   form: FormInstance<JobCreationParams>;
   value: FormListFieldData;
   index: number;
   remove: (index: number | number[]) => void;
-  targets?: Targets;
-  currentTarget: string;
 }
 
 function FormTag(
-  { form, value, index, remove, targets, currentTarget }: FormTagProps,
+  { flags, form, value, index, remove }: FormTagProps,
 ) {
   const [currentFlag, setCurrentFlag] = useState("");
-  const [flagValues, setFlagValues] = useState<DefaultOptionType[]>([]);
-  const [flagOptions, setFlagOptions] = useState<DefaultOptionType[]>([]);
 
-  useEffect(() => {
-    if (!targets) return;
+  // flag values
+  const values = [...new Set(flags[currentFlag]?.values)];
 
-    const additionalFlags = getAdditionalTags(targets, currentTarget);
-    let values = [
-      ...(targets.flags[currentFlag]?.values ?? []),
-      ...(additionalFlags[currentFlag]?.values ?? []),
-    ];
-    values = [...new Set(values)];
-    if (!values) return;
+  // current value not in flag value? reset it
+  const flagValues = form.getFieldsValue()?.flags ?? [];
+  const currentValue = flagValues[index]?.value;
+  if (currentValue && !values.includes(currentValue)) {
+    flagValues[index].value = "";
+  }
 
-    // current value not in flag value? reset it
-    const flagValues = form.getFieldsValue()?.flags ?? [];
-    const currentValue = flagValues[index]?.value;
-    if (currentValue && !values.includes(currentValue)) {
-      flagValues[index].value = "";
-    }
+  // selected flags
+  const selectedFlags = new Set(
+    form.getFieldValue("flags")
+      .filter((flag: { name?: string }) => (flag?.name))
+      .map((flag: { name: string }) => (flag.name)),
+  );
 
-    setFlagValues(mapToSelect(values));
-  }, [currentFlag, currentTarget, flagOptions, targets, form, index]);
+  // remove already selected flags from options
+  const flagOptions = mapToSelect(Object.keys(flags))
+    .filter((option) => (!selectedFlags.has(option.label)));
 
-  useEffect(() => {
-    if (!targets) return;
-    const flagKeys = Object.keys(targets.flags);
-    setFlagOptions(mapToSelect(flagKeys));
-  }, [targets]);
+  const valueOptions = mapToSelect(values);
 
   return (
     <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
@@ -105,7 +84,7 @@ function FormTag(
           name={[value.name, "value"]}
           rules={[{ required: true, message: "Missing value" }]}
         >
-          <Select showSearch placeholder="Value" options={flagValues} />
+          <Select showSearch placeholder="Value" options={valueOptions} />
         </Form.Item>
       </Space.Compact>
       <MinusCircleOutlined
@@ -140,14 +119,17 @@ function JobCreateForm({ messageApi, onFinish }: Props) {
   const [currentTarget, setCurrentTarget] = useState("");
   const [currentRelease, setCurrentRelease] = useState("");
 
+  // set release to first release of cloudbuild targets
   useEffect(() => {
     if (!targets) return;
     const releasesKeys = Object.keys(targets.releases);
 
     setReleaseOptions(mapToSelect(releasesKeys));
     form.setFieldValue("release", releasesKeys[0]);
+    setCurrentRelease(releasesKeys[0]);
   }, [targets, form]);
 
+  // set target to first target of cloudbuild targets
   useEffect(() => {
     if (!targets) return;
     let releaseTargets = Object.keys(targets.targets);
@@ -161,10 +143,28 @@ function JobCreateForm({ messageApi, onFinish }: Props) {
 
     setTargetOptions(mapToSelect(releaseTargets));
     form.setFieldValue("target", releaseTargets[0]);
+    setCurrentTarget(releaseTargets[0]);
   }, [targets, currentRelease, form]);
 
-  // file list and file content for upload file form input
+  // flags
+  const flags = targets?.flags ?? {};
 
+  // get additional flags from the target tags
+  const tags = targets?.targets[currentTarget]?.tags;
+  const additionalFlags: Record<string, TargetFlag> =
+    tags?.reduce((obj, tag) => {
+      obj = { ...targets?.tags[tag].flags };
+      return obj;
+    }, {}) ?? {};
+
+  // add new flags defined in the tags in the flags list
+  for (const [key, value] of Object.entries(additionalFlags)) {
+    if (!Object.hasOwn(flags, key)) {
+      flags[key] = value;
+    }
+  }
+
+  // file list and file content for upload file form input
   const [fileList, setFileList] = useState<File[]>([]);
   const [jobsFileContent, setJobsFileContent] = useState<object | undefined>();
 
@@ -230,13 +230,11 @@ function JobCreateForm({ messageApi, onFinish }: Props) {
                 <div key={value.key}>
                   <FormTag
                     {...{
+                      flags,
                       form,
                       value,
                       index,
                       remove,
-                      targets,
-                      currentRelease,
-                      currentTarget,
                     }}
                   />
                 </div>

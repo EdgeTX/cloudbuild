@@ -27,7 +27,6 @@ interface Props {
 }
 
 function TerminalOutput({ logs }: { logs: string }) {
-  console.log(logs);
   const ansi_up = new AnsiUp();
   ansi_up.use_classes = true;
   return (

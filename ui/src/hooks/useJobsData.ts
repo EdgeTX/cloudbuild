@@ -31,9 +31,9 @@ interface Job {
   commit_hash: string;
   release: string;
   target: string;
-  flags: Flag[];
-  build_flags: Flag[];
-  artifacts: Artifact[];
+  flags: Flag[] | null;
+  build_flags: Flag[] | null;
+  artifacts?: Artifact[];
   container_image: string;
   build_flags_hash: string;
   build_started_at: string;
