@@ -23,7 +23,7 @@ type RemoteAPI struct {
 
 type Release struct {
 	SHA            string     `json:"sha"`
-	Remote         *RemoteSHA `json:"remote"`
+	Remote         *RemoteSHA `json:"remote,omitempty"`
 	ExcludeTargets []string   `json:"exclude_targets,omitempty"`
 }
 
@@ -125,8 +125,8 @@ func (def *TargetsDef) IsOptionFlagSupported(target, name, value string) bool {
 	if t, ok := def.Targets[target]; ok {
 		for _, tag := range t.Tags {
 			tagDef, ok := def.Tags[tag]
-			if ok {
-				return tagDef.Flags.HasOptionValue(name, value)
+			if ok && tagDef.Flags.HasOptionValue(name, value) {
+				return true
 			}
 		}
 	}
