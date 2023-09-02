@@ -164,7 +164,7 @@ func (def *TargetsDef) GetOptionBuildFlag(target, name string) string {
 			}
 		}
 	}
-	
+
 	return ""
 }
 
