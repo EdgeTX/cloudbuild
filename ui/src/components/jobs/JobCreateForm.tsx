@@ -36,27 +36,35 @@ function FormTag(
   { flags, form, value, index, remove }: FormTagProps,
 ) {
   const [currentFlag, setCurrentFlag] = useState("");
+  const [currentValue, setCurrentValue] = useState("");
+
+  // selected flags
+  const selectedFlags = form.getFieldsValue()?.flags ?? [];
+
+  // current flag not in flag list, then remove it
+  useEffect(() => {
+    if (currentFlag == "" || Object.hasOwn(flags, currentFlag)) return;
+    remove(index);
+  }, [currentFlag, flags, form, selectedFlags]);
 
   // flag values
   const values = [...new Set(flags[currentFlag]?.values)];
 
   // current value not in flag value? reset it
-  const flagValues = form.getFieldsValue()?.flags ?? [];
-  const currentValue = flagValues[index]?.value;
   if (currentValue && !values.includes(currentValue)) {
-    flagValues[index].value = "";
+    selectedFlags[index].value = "";
   }
 
   // selected flags
-  const selectedFlags = new Set(
-    form.getFieldValue("flags")
+  const selectedFlagsName = new Set(
+    selectedFlags
       .filter((flag: { name?: string }) => (flag?.name))
       .map((flag: { name: string }) => (flag.name)),
   );
 
   // remove already selected flags from options
   const flagOptions = mapToSelect(Object.keys(flags))
-    .filter((option) => (!selectedFlags.has(option.label)));
+    .filter((option) => (!selectedFlagsName.has(option.label)));
 
   const valueOptions = mapToSelect(values);
 
@@ -84,7 +92,12 @@ function FormTag(
           name={[value.name, "value"]}
           rules={[{ required: true, message: "Missing value" }]}
         >
-          <Select showSearch placeholder="Value" options={valueOptions} />
+          <Select
+            showSearch
+            placeholder="Value"
+            onChange={(value) => setCurrentValue(value)}
+            options={valueOptions}
+          />
         </Form.Item>
       </Space.Compact>
       <MinusCircleOutlined
@@ -147,7 +160,7 @@ function JobCreateForm({ messageApi, onFinish }: Props) {
   }, [targets, currentRelease, form]);
 
   // flags
-  const flags = targets?.flags ?? {};
+  const flags = structuredClone(targets?.flags) ?? {};
 
   // get additional flags from the target tags
   const tags = targets?.targets[currentTarget]?.tags;
