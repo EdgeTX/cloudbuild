@@ -121,7 +121,7 @@ func (req *BuildRequest) GetBuildFlags() (*[]firmware.BuildFlag, error) {
 	}
 	// then the option flags
 	for _, optFlag := range req.Flags {
-		buildFlag := req.defs.GetOptionBuildFlag(optFlag.Name)
+		buildFlag := req.defs.GetOptionBuildFlag(req.Target, optFlag.Name)
 		buildFlags = append(buildFlags, firmware.BuildFlag{
 			Key:   buildFlag,
 			Value: optFlag.Value,
