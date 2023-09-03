@@ -13,6 +13,10 @@ to allow the download URL as well:
 The administrative UI is accessible from the root endpoint `/`. The static content endpoints are
 **not** authenticated.
 
+## Public API
+
+The public API is documented [here](doc/PublicAPI.md).
+
 
 ## Build and run locally
 
