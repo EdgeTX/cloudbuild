@@ -67,6 +67,16 @@
         }
       }
     },
+    "bluetooth": {
+      "flags": {
+        "bluetooth": {
+          "build_flag": "BLUETOOTH",
+          "values": [
+            "YES"
+          ]
+        }
+      }
+    },
     "x9e": {
       "flags": {
         "sticks": {
@@ -253,7 +263,8 @@
     "t16": {
       "description": "Jumper T16",
       "tags": [
-        "colorlcd"
+        "colorlcd",
+        "bluetooth"
       ],
       "build_flags": {
         "PCB": "X10",
@@ -263,7 +274,8 @@
     "t18": {
       "description": "Jumper T18",
       "tags": [
-        "colorlcd"
+        "colorlcd",
+        "bluetooth"
       ],
       "build_flags": {
         "PCB": "X10",
@@ -323,7 +335,8 @@
     "tx12mk2": {
       "description": "Radiomaster TX12MK2",
       "tags": [
-        "stdlcd"
+        "stdlcd",
+        "bluetooth"
       ],
       "build_flags": {
         "PCB": "X7",
@@ -333,7 +346,8 @@
     "tx16s": {
       "description": "RadioMaster TX16S",
       "tags": [
-        "colorlcd"
+        "colorlcd",
+        "bluetooth"
       ],
       "build_flags": {
         "PCB": "X10",
@@ -343,7 +357,8 @@
     "boxer": {
       "description": "RadioMaster Boxer",
       "tags": [
-        "stdlcd"
+        "stdlcd",
+        "bluetooth"
       ],
       "build_flags": {
         "PCB": "X7",
