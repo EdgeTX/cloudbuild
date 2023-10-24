@@ -59,6 +59,12 @@
     },
     "stdlcd": {
       "flags": {
+        "font": {
+          "build_flag": "FONT",
+          "values": [
+            "SQT5"
+          ]
+        },
         "ppm_unit": {
           "build_flag": "PPM_UNIT",
           "values": [
