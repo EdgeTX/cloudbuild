@@ -171,18 +171,27 @@ func TestCreatesBuildJobWhenBuildExistsInErrorState(t *testing.T) {
 
 	job, err := art.CreateBuildJob("127.0.0.1", request)
 	assert.Nil(t, err)
+
 	repository := artifactory.NewBuildJobsDBRepository(testDB)
-	err = repository.Save(&artifactory.BuildJobModel{
-		ID:     uuid.Must(uuid.FromString(job.ID)),
-		Status: artifactory.BuildError,
-	})
+	model, err := repository.FindByID(uuid.Must(uuid.FromString(job.ID)))
 	assert.Nil(t, err)
+
+	model.Status = artifactory.BuildError
+	model.BuildAttempts = artifactory.MaxBuildAttempts
+	assert.Nil(t, repository.Save(model))
 
 	job, err = art.CreateBuildJob("127.0.0.1", request)
 	assert.Nil(t, err)
 	assert.NotNil(t, job)
-	if job != nil {
-		assert.Equal(t, artifactory.WaitingForBuild, job.Status)
+	assert.Equal(t, model.ID, uuid.Must(uuid.FromString(job.ID)))
+
+	model, err = repository.FindByID(model.ID)
+	assert.Nil(t, err)
+	assert.NotNil(t, model)
+
+	if model != nil {
+		assert.Equal(t, artifactory.WaitingForBuild, model.Status)
+		assert.Equal(t, request.HashTargetAndFlags(), model.BuildFlagsHash)
 	}
 }
 
