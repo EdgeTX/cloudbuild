@@ -127,18 +127,14 @@ func (artifactory *Artifactory) restartFailedJob(
 		From:      BuildError,
 		To:        WaitingForBuild,
 	})
-	err := artifactory.BuildJobsRepository.Save(&BuildJobModel{
-		ID:        job.ID,
-		Status:    WaitingForBuild,
-		AuditLogs: job.AuditLogs,
-	})
+	job.Status = WaitingForBuild
+	job.BuildAttempts = 0
+
+	err := artifactory.BuildJobsRepository.Save(job)
 	if err != nil {
 		return nil, err
 	}
-	job, err = artifactory.BuildJobsRepository.FindByID(job.ID)
-	if err != nil {
-		return nil, err
-	}
+
 	return BuildJobDtoFromModel(job, artifactory.PrefixURL)
 }
 
