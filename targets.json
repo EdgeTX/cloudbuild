@@ -9,9 +9,6 @@
     "v2.9.1": {
       "sha": "e84a36510e495450e5ef8b2db379f13586918dcf"
     },
-    "v2.9.0": {
-      "sha": "0ff73ccafad063fcc65ea64e7dca35e7f00011a1"
-    },
     "v2.8.5": {
       "sha": "cbac1063eb8637457d2a63c367863c6bfd6f0c31",
       "exclude_targets": [
