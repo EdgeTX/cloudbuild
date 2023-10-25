@@ -67,6 +67,12 @@
           "values": [
             "US"
           ]
+        },
+        "sqt5font": {
+          "build_flag": "FONT",
+          "values": [
+            "SQT5"
+          ]
         }
       }
     },
