@@ -4,11 +4,10 @@ import { Collapse, Empty, Result } from "antd";
 import { STATUS_MAP } from "./table/useColumns";
 import { CaretRightOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
-import { default as AnsiUp } from "ansi_up";
+import { AnsiUp } from "ansi_up";
 
-import "@/ansi-themes.css"
-
-const { Panel } = Collapse;
+import "@/ansi-themes.css";
+import { CollapsibleType } from "antd/es/collapse/CollapsePanel";
 
 function getStepDuration(data: LogsData[], index: number) {
   const current = data[index];
@@ -47,26 +46,25 @@ function JobLogs({ job }: Props) {
     return <Empty />;
   }
 
+  const items = data?.map((logs, i) => ({
+    label: STATUS_MAP[logs.from],
+    key: logs.id,
+    showArrow: logs.std_out.length > 0,
+    collapsible: logs.std_out.length > 0 ? undefined : "icon" as CollapsibleType,
+    extra: getStepDuration(data, i),
+    children: (
+      <TerminalOutput logs={logs.std_out} />
+    ),
+  }));
+
   return (
     <Collapse
+      items={items}
       expandIcon={({ isActive }) => (
         <CaretRightOutlined rotate={isActive ? 90 : 0} />
       )}
       style={{ maxHeight: "80vh", overflowY: "auto", marginRight: 20 }}
-    >
-      {data &&
-        data.map((logs, i) => (
-          <Panel
-            showArrow={logs.std_out.length > 0}
-            collapsible={logs.std_out.length > 0 ? undefined : "icon"}
-            header={STATUS_MAP[logs.from]}
-            key={logs.id}
-            extra={getStepDuration(data, i)}
-          >
-            <TerminalOutput logs={logs.std_out} />
-          </Panel>
-        ))}
-    </Collapse>
+    />
   );
 }
 

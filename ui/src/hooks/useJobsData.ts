@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { AuthContext, AuthContextType } from "@hooks/useAuthenticated";
 
 const REFRESH_INTERVAL = 10000;
@@ -83,11 +83,15 @@ function useJobsData(
   statusFilter: JobStatusQuery,
   offset: number,
   pageSize: number,
-  { sortData, target, release }: {
+  {
+    sortData,
+    target,
+    release,
+  }: {
     sortData?: JobSortData;
     target?: string;
     release?: string;
-  },
+  }
 ) {
   const { token } = useContext(AuthContext) as AuthContextType;
 
@@ -102,20 +106,17 @@ function useJobsData(
 
   const { isLoading, error, data } = useQuery<JobsResponse, Error>({
     refetchInterval: REFRESH_INTERVAL,
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
     queryKey: ["jobs", { params, token }],
     queryFn: async () => {
       let response: Response;
       try {
-        response = await fetch(
-          "api/jobs?" + new URLSearchParams(params),
-          {
-            headers: {
-              "Authorization": `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
+        response = await fetch("api/jobs?" + new URLSearchParams(params), {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
-        );
+        });
       } catch (_err) {
         throw new Error("Oops! Could not fetch jobs");
       }
