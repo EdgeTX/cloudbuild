@@ -46,15 +46,15 @@ function JobLogs({ job }: Props) {
     return <Empty />;
   }
 
+  data?.sort((a, b) => (a.created_at < b.created_at ? -1 : 1));
   const items = data?.map((logs, i) => ({
     label: STATUS_MAP[logs.from],
     key: logs.id,
     showArrow: logs.std_out.length > 0,
-    collapsible: logs.std_out.length > 0 ? undefined : "icon" as CollapsibleType,
+    collapsible:
+      logs.std_out.length > 0 ? undefined : ("icon" as CollapsibleType),
     extra: getStepDuration(data, i),
-    children: (
-      <TerminalOutput logs={logs.std_out} />
-    ),
+    children: <TerminalOutput logs={logs.std_out} />,
   }));
 
   return (
