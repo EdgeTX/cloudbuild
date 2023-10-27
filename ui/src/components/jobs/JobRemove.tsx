@@ -1,4 +1,4 @@
-import { Button, Popconfirm, Tooltip } from "antd";
+import { Button, Popconfirm } from "antd";
 import { useContext } from "react";
 import { AuthContext, AuthContextType } from "@hooks/useAuthenticated";
 import { Job } from "@hooks/useJobsData";

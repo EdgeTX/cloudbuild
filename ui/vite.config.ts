@@ -23,7 +23,7 @@ export default defineConfig({
       "/api": {
         target: process.env.PROXY,
         changeOrigin: true,
-      }
-    }
-  }
+      },
+    },
+  },
 });

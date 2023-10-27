@@ -1,4 +1,4 @@
-import Layout from "@comps/Layout"
+import Layout from "@comps/Layout";
 import { ConfigProvider, Result, theme } from "antd";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useColorScheme } from "@hooks/useColorscheme";

@@ -1,5 +1,5 @@
 import { Flag } from "@hooks/useJobsData";
-import { TargetFlag, Targets, useTargets } from "@hooks/useTargets";
+import { TargetFlag, useTargets } from "@hooks/useTargets";
 import {
   InboxOutlined,
   MinusCircleOutlined,
@@ -32,23 +32,25 @@ interface FormTagProps {
   remove: (index: number | number[]) => void;
 }
 
-function FormTag(
-  { flags, form, value, index, remove }: FormTagProps,
-) {
+function FormTag({ flags, form, value, index, remove }: FormTagProps) {
   const [currentFlag, setCurrentFlag] = useState("");
   const [currentValue, setCurrentValue] = useState("");
 
   // selected flags
-  const selectedFlags = form.getFieldsValue()?.flags ?? [];
+  const selectedFlags = useMemo(
+    () => form.getFieldsValue()?.flags ?? [],
+    [form]
+  );
 
   // current flag not in flag list, then remove it
   useEffect(() => {
     if (currentFlag == "" || Object.hasOwn(flags, currentFlag)) return;
     remove(index);
-  }, [currentFlag, flags, form, selectedFlags]);
+  }, [currentFlag, flags, form, selectedFlags, index, remove]);
 
   // flag values
   const values = [...new Set(flags[currentFlag]?.values)];
+  values.sort();
 
   // current value not in flag value? reset it
   if (currentValue && !values.includes(currentValue)) {
@@ -58,14 +60,16 @@ function FormTag(
   // selected flags
   const selectedFlagsName = new Set(
     selectedFlags
-      .filter((flag: { name?: string }) => (flag?.name))
-      .map((flag: { name: string }) => (flag.name)),
+      .filter((flag: { name?: string }) => flag?.name)
+      .map((flag: { name: string }) => flag.name)
   );
 
   // remove already selected flags from options
-  const flagOptions = mapToSelect(Object.keys(flags))
-    .filter((option) => (!selectedFlagsName.has(option.label)));
-
+  const flagKeys = Object.keys(flags);
+  flagKeys.sort();
+  const flagOptions = mapToSelect(flagKeys).filter(
+    (option) => !selectedFlagsName.has(option.label)
+  );
   const valueOptions = mapToSelect(values);
 
   return (
@@ -74,10 +78,12 @@ function FormTag(
         <Form.Item
           style={{ flex: 1 }}
           name={[value.name, "name"]}
-          rules={[{
-            required: true,
-            message: "Missing flag",
-          }]}
+          rules={[
+            {
+              required: true,
+              message: "Missing flag",
+            },
+          ]}
         >
           <Select
             showSearch
@@ -118,7 +124,7 @@ interface Props {
   messageApi: MessageInstance;
   onFinish: (
     values: JobCreationParams,
-    jobsFileContent: object | undefined,
+    jobsFileContent: object | undefined
   ) => void;
 }
 
@@ -136,6 +142,10 @@ function JobCreateForm({ messageApi, onFinish }: Props) {
   useEffect(() => {
     if (!targets) return;
     const releasesKeys = Object.keys(targets.releases);
+    releasesKeys.sort((a, b) => {
+      if (b == "nightly") return 1;
+      return (b > a) ? 0 : -1;
+    });
 
     setReleaseOptions(mapToSelect(releasesKeys));
     form.setFieldValue("release", releasesKeys[0]);
@@ -149,8 +159,8 @@ function JobCreateForm({ messageApi, onFinish }: Props) {
     const excludeTargets = targets.releases[currentRelease]?.exclude_targets;
 
     if (excludeTargets) {
-      releaseTargets = releaseTargets.filter((target) =>
-        !excludeTargets.includes(target)
+      releaseTargets = releaseTargets.filter(
+        (target) => !excludeTargets.includes(target)
       );
     }
 
@@ -166,7 +176,7 @@ function JobCreateForm({ messageApi, onFinish }: Props) {
   const tags = targets?.targets[currentTarget]?.tags;
   const additionalFlags: Record<string, TargetFlag> =
     tags?.reduce((obj, tag) => {
-      obj = { ...targets?.tags[tag].flags };
+      obj = { ...targets?.tags[tag].flags, ...obj };
       return obj;
     }, {}) ?? {};
 
