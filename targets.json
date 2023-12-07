@@ -6,13 +6,22 @@
         "path": "object.sha"
       }
     },
+    "v2.9.2": {
+      "sha": "8faf13126e93194d6ba8dbaa84d0152552c358a9",
+      "exclude_targets": [
+        "pl18", "pl18ev", "t20", "tprov2", "mt12", "pocket"
+      ]
+    },
     "v2.9.1": {
-      "sha": "e84a36510e495450e5ef8b2db379f13586918dcf"
+      "sha": "e84a36510e495450e5ef8b2db379f13586918dcf",
+      "exclude_targets": [
+        "pl18", "pl18ev", "t20", "tprov2", "mt12", "pocket"
+      ]
     },
     "v2.8.5": {
       "sha": "cbac1063eb8637457d2a63c367863c6bfd6f0c31",
       "exclude_targets": [
-        "tlitef4"
+        "pl18", "pl18ev", "t20", "tprov2", "mt12", "pocket"
       ]
     }
   },
@@ -113,6 +122,25 @@
       ],
       "build_flags": {
         "PCB": "NV14"
+      }
+    },
+    "pl18": {
+      "description": "Flysky PL18",
+      "tags": [
+        "colorlcd"
+      ],
+      "build_flags": {
+        "PCB": "PL18"
+      }
+    },
+    "pl18ev": {
+      "description": "Flysky PL18EV",
+      "tags": [
+        "colorlcd"
+      ],
+      "build_flags": {
+        "PCB": "PL18",
+        "PCBREV": "PL18EV"
       }
     },
     "nv14": {
@@ -289,6 +317,16 @@
         "PCBREV": "T18"
       }
     },
+    "t20": {
+      "description": "Jumper T20",
+      "tags": [
+        "stdlcd"
+      ],
+      "build_flags": {
+        "PCB": "X7",
+        "PCBREV": "T20"
+      }
+    },
     "tlite": {
       "description": "Jumper T-Lite",
       "tags": [
@@ -299,16 +337,6 @@
         "PCBREV": "TLITE"
       }
     },
-    "tlitef4": {
-      "description": "Jumper T-Lite (F4 MCU)",
-      "tags": [
-        "stdlcd"
-      ],
-      "build_flags": {
-        "PCB": "X7",
-        "PCBREV": "TLITEF4"
-      }
-    },
     "tpro": {
       "description": "Jumper T-Pro",
       "tags": [
@@ -317,6 +345,26 @@
       "build_flags": {
         "PCB": "X7",
         "PCBREV": "TPRO"
+      }
+    },
+    "tprov2": {
+      "description": "Jumper T-Pro V2",
+      "tags": [
+        "stdlcd"
+      ],
+      "build_flags": {
+        "PCB": "X7",
+        "PCBREV": "TPROV2"
+      }
+    },
+    "mt12": {
+      "description": "Radiomaster MT12",
+      "tags": [
+        "stdlcd"
+      ],
+      "build_flags": {
+        "PCB": "X7",
+        "PCBREV": "MT12"
       }
     },
     "t8": {
@@ -370,6 +418,17 @@
       "build_flags": {
         "PCB": "X7",
         "PCBREV": "BOXER"
+      }
+    },
+    "pocket": {
+      "description": "RadioMaster Pocket",
+      "tags": [
+        "stdlcd",
+        "bluetooth"
+      ],
+      "build_flags": {
+        "PCB": "X7",
+        "PCBREV": "POCKET"
       }
     },
     "zorro": {
