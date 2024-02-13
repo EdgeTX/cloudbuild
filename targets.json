@@ -6,6 +6,12 @@
         "path": "object.sha"
       }
     },
+    "v2.9.4": {
+      "sha": "77884b6a22e20ad91ba6c6656b96bcb2adc86768",
+      "exclude_targets": [
+        "pl18", "pl18ev", "t20", "tprov2", "mt12", "pocket"
+      ]
+    },
     "v2.9.3": {
       "sha": "0a815368144e021d3b6d733c5965bd0530821b80",
       "exclude_targets": [
