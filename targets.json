@@ -87,6 +87,12 @@
             "SQT5"
           ]
         },
+        "heli": {
+          "build_flag": "HELI",
+          "values": [
+            "NO"
+          ]
+        },
         "ppm_unit": {
           "build_flag": "PPM_UNIT",
           "values": [
