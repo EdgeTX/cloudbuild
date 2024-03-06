@@ -49,14 +49,15 @@
         "ES",
         "FI",
         "FR",
+        "HU",
         "IT",
         "PT",
         "RU",
         "SK",
         "SE",
         "PL",
-        "HU",
-        "NL"
+        "NL",
+        "UA"
       ]
     },
     "fai_mode": {
@@ -73,6 +74,7 @@
         "language": {
           "values": [
             "CN",
+            "HE",
             "JP",
             "TW"
           ]
