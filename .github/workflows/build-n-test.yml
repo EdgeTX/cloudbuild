@@ -15,6 +15,17 @@ on:
       - '**.md'
 
 jobs:
+  json-validate:
+      name: Validate JSON/YML files
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+
+        - name: json-yaml-validate
+          uses: GrantBirki/json-yaml-validate@v2
+          with:
+            mode: fail
+
   test-backend:
     name: Test backend
     runs-on: ubuntu-22.04
