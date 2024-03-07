@@ -38,8 +38,8 @@ cat << EOF > body.json
 }
 EOF
 
-curl -X POST "https://cloudbuild.edgetx.org/api/jobs" \
-    --data-raw @body.json
+curl -X POST -H "Content-Type: application/json" -d @body.json \
+     https://cloudbuild.edgetx.org/api/jobs
 ```
 
 #### Body Parameters
@@ -80,8 +80,8 @@ cat << EOF > body.json
 }
 EOF
 
-curl -X POST "https://cloudbuild.edgetx.org/api/status" \
-    --data-raw "$body"
+curl -X POST -H "Content-Type: application/json" -d @body.json \
+     https://cloudbuild.edgetx.org/api/status
 ```
 
 #### Body Parameters
