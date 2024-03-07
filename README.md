@@ -2,8 +2,8 @@
 
 EdgeTX CloudBuild is an open-source EdgeTX firmware build service.
 
-It is not meant to be run directly connected to the internet be behind a proxy
-that will only allow the following endpoint prefixes toward the public interface:
+It is not meant to be run directly connected to the internet, but instead be behind a
+proxy that will only allow the following endpoint prefixes toward the public interface:
 - `/api/*`: public and authenticated endpoints.
 
 If you are using the local file system storage (not recommended in production), you will need
