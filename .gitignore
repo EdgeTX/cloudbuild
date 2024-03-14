@@ -9,8 +9,6 @@ bin
 data/*
 !data/.gitkeep
 firmware.bin
-tx16s-internal-elrs.json
 *.paw
 static
-package-lock.json
 ui/.env

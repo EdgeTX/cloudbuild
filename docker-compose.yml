@@ -20,7 +20,7 @@ services:
     command: ./ebuild run api
     build:
       context: .
-      dockerfile: Dockerfile.production
+      dockerfile: Dockerfile
     env_file:
       - ./api.env
     networks:
