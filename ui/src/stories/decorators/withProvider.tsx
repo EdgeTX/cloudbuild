@@ -1,17 +1,17 @@
 import { AuthContext } from "@/hooks/useAuthenticated";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ConfigProvider, theme } from "antd";
+import { ConfigProvider, MappingAlgorithm, theme } from "antd";
 import { BrowserRouter } from "react-router-dom";
 import { Decorator } from "@storybook/react";
 
-const queryClient = new QueryClient();
+export const withProvider: Decorator = (Story, options) => {
+  const queryClient = new QueryClient();
 
-const THEMES: Record<string, any> = {
-  "#F8F8F8": theme.defaultAlgorithm,
-  "#333333": theme.darkAlgorithm,
-};
+  const THEMES: Record<string, MappingAlgorithm> = {
+    "#F8F8F8": theme.defaultAlgorithm,
+    "#333333": theme.darkAlgorithm,
+  };
 
-const withProvider: Decorator = (Story, options) => {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
@@ -30,5 +30,3 @@ const withProvider: Decorator = (Story, options) => {
     </QueryClientProvider>
   );
 };
-
-export { withProvider };
