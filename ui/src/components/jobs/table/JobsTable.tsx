@@ -72,7 +72,7 @@ function JobsTable({ style, status }: Props) {
   const handleChange = (
     pagination: TablePaginationConfig,
     filters: Record<string, FilterValue | null>,
-    sorter: SorterResult<any> | SorterResult<any>[],
+    sorter: SorterResult<Job> | SorterResult<Job>[],
   ) => {
     // offset and page size
     let newOffset = offset;

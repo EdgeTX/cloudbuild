@@ -211,6 +211,8 @@ function JobCreateForm({ messageApi, onFinish }: Props) {
     setFileList([]);
   };
 
+  const toUploadFiles = (files: File[]) => files.map((f) => ({ uid: f.name, name: f.name}));
+
   return (
     <>
       <Form
@@ -287,7 +289,7 @@ function JobCreateForm({ messageApi, onFinish }: Props) {
           <Upload.Dragger
             name="file"
             maxCount={1}
-            fileList={fileList as any}
+            fileList={toUploadFiles(fileList)}
             onRemove={onFileRemove}
             beforeUpload={onFileBeforeUpload}
           >
