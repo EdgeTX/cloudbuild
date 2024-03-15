@@ -58,6 +58,7 @@ function useColumns({ setSelectedJob, messageApi }: Params) {
       dataIndex: "created_at",
       render: (date: string) => <DateAgo date={date} />,
       sorter: true,
+      sortDirections: ["descend", "ascend", "descend"],
       defaultSortOrder: "descend",
     },
     {
@@ -76,6 +77,7 @@ function useColumns({ setSelectedJob, messageApi }: Params) {
       key: "duration",
       render: (job: Job) => <JobDuration job={job} />,
       sorter: true,
+      sortDirections: ["descend", "ascend", "descend"],
     },
     {
       title: "Target",
