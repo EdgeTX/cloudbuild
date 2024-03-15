@@ -12,8 +12,8 @@ function JobDuration({ job }: Props) {
 
   return (
     <DateDuration
-      lhsDate={job.created_at}
-      rhsDate={job.updated_at}
+      lhsDate={job.build_started_at}
+      rhsDate={job.build_ended_at}
     />
   );
 }
