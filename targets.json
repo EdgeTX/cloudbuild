@@ -18,24 +18,6 @@
         "pl18", "pl18ev", "t20", "tprov2", "mt12", "pocket"
       ]
     },
-    "v2.9.3": {
-      "sha": "0a815368144e021d3b6d733c5965bd0530821b80",
-      "exclude_targets": [
-        "pl18", "pl18ev", "t20", "tprov2", "mt12", "pocket"
-      ]
-    },
-    "v2.9.2": {
-      "sha": "8faf13126e93194d6ba8dbaa84d0152552c358a9",
-      "exclude_targets": [
-        "pl18", "pl18ev", "t20", "tprov2", "mt12", "pocket"
-      ]
-    },
-    "v2.9.1": {
-      "sha": "e84a36510e495450e5ef8b2db379f13586918dcf",
-      "exclude_targets": [
-        "pl18", "pl18ev", "t20", "tprov2", "mt12", "pocket"
-      ]
-    },
     "v2.8.5": {
       "sha": "cbac1063eb8637457d2a63c367863c6bfd6f0c31",
       "exclude_targets": [
