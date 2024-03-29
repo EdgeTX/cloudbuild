@@ -250,7 +250,10 @@ func (app *Application) Start(listen string) error {
 	router.NoRoute(func(c *gin.Context) {
 		path := c.Request.URL.Path
 		if strings.HasPrefix(path, "/api") {
-			c.AbortWithStatus(http.StatusNotFound)
+			c.AbortWithStatusJSON(
+				http.StatusNotFound,
+				NewErrorResponse("route not found"),
+			)
 		} else {
 			c.File(defaultFile)
 		}
