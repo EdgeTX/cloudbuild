@@ -9,10 +9,12 @@ RUN make build
 FROM node:slim as ui-builder
 
 RUN mkdir /build
-ADD . /build/
 WORKDIR /build
 
+ADD ui/package*.json /build/ui/
 RUN npm ci --prefix ui/
+
+ADD . /build/
 RUN npm run build --prefix ui/
 
 FROM debian:bookworm-slim

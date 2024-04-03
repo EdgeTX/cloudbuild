@@ -120,337 +120,212 @@
       "description": "BETAFPV LiteRadio 3 Pro",
       "tags": [
         "stdlcd"
-      ],
-      "build_flags": {
-        "PCB": "X7",
-        "PCBREV": "LR3PRO"
-      }
+      ]
     },
     "el18": {
       "description": "Flysky EL18",
       "tags": [
         "colorlcd"
-      ],
-      "build_flags": {
-        "PCB": "NV14"
-      }
+      ]
     },
     "pl18": {
       "description": "Flysky PL18",
       "tags": [
         "colorlcd"
-      ],
-      "build_flags": {
-        "PCB": "PL18"
-      }
+      ]
     },
     "pl18ev": {
       "description": "Flysky PL18EV",
       "tags": [
         "colorlcd"
-      ],
-      "build_flags": {
-        "PCB": "PL18",
-        "PCBREV": "PL18EV"
-      }
+      ]
     },
     "nv14": {
       "description": "Flysky NV14",
       "tags": [
         "colorlcd"
-      ],
-      "build_flags": {
-        "PCB": "NV14"
-      }
+      ]
     },
     "x10": {
       "description": "FrSky Horus X10",
       "tags": [
         "colorlcd"
-      ],
-      "build_flags": {
-        "PCB": "X10"
-      }
+      ]
     },
     "x10-access": {
       "description": "FrSky Horus X10 Access",
       "tags": [
         "colorlcd"
-      ],
-      "build_flags": {
-        "PCB": "X10",
-        "PCBREV": "EXPRESS",
-        "PXX1": "YES"
-      }
+      ]
     },
     "x12s": {
       "description": "FrSky Horus X12S",
       "tags": [
         "colorlcd"
-      ],
-      "build_flags": {
-        "PCB": "X12S"
-      }
+      ]
     },
     "x7": {
       "description": "FrSky QX7",
       "tags": [
         "stdlcd"
-      ],
-      "build_flags": {
-        "PCB": "X7"
-      }
+      ]
     },
     "x7-access": {
       "description": "FrSky QX7 Access",
       "tags": [
         "stdlcd"
-      ],
-      "build_flags": {
-        "PCB": "X7",
-        "PCBREV": "ACCESS"
-      }
+      ]
     },
     "x9d": {
       "description": "FrSky X9D",
       "tags": [
         "stdlcd"
-      ],
-      "build_flags": {
-        "PCB": "X9D"
-      }
+      ]
     },
     "x9dp": {
       "description": "FrSky X9D Plus",
       "tags": [
         "stdlcd"
-      ],
-      "build_flags": {
-        "PCB": "X9D+",
-        "PCBREV": "ACCESS"
-      }
+      ]
     },
     "x9dp2019": {
       "description": "FrSky X9D Plus 2019",
       "tags": [
         "stdlcd"
-      ],
-      "build_flags": {
-        "PCB": "X9D+",
-        "PCBREV": "2019"
-      }
+      ]
     },
     "x9e": {
       "description": "FrSky X9E",
       "tags": [
         "stdlcd",
         "x9e"
-      ],
-      "build_flags": {
-        "PCB": "X9E"
-      }
+      ]
     },
     "x9lite": {
       "description": "FrSky X9 Lite",
       "tags": [
         "stdlcd"
-      ],
-      "build_flags": {
-        "PCB": "X9LITE"
-      }
+      ]
     },
     "x9lites": {
       "description": "FrSky X9 Lite S",
       "tags": [
         "stdlcd"
-      ],
-      "build_flags": {
-        "PCB": "X9LITES"
-      }
+      ]
     },
     "xlite": {
       "description": "FrSky X-Lite",
       "tags": [
         "stdlcd"
-      ],
-      "build_flags": {
-        "PCB": "XLITE"
-      }
+      ]
     },
     "xlites": {
       "description": "FrSky X-Lite S",
       "tags": [
         "stdlcd"
-      ],
-      "build_flags": {
-        "PCB": "XLITES"
-      }
+      ]
     },
     "commando8": {
       "description": "iFlight Commando 8",
       "tags": [
         "stdlcd"
-      ],
-      "build_flags": {
-        "PCB": "X7",
-        "PCBREV": "COMMANDO8"
-      }
+      ]
     },
     "t12": {
       "description": "Jumper T12",
       "tags": [
         "stdlcd"
-      ],
-      "build_flags": {
-        "PCB": "X7",
-        "PCBREV": "T12"
-      }
+      ]
     },
     "t16": {
       "description": "Jumper T16",
       "tags": [
         "colorlcd",
         "bluetooth"
-      ],
-      "build_flags": {
-        "PCB": "X10",
-        "PCBREV": "T16"
-      }
+      ]
     },
     "t18": {
       "description": "Jumper T18",
       "tags": [
         "colorlcd",
         "bluetooth"
-      ],
-      "build_flags": {
-        "PCB": "X10",
-        "PCBREV": "T18"
-      }
+      ]
     },
     "t20": {
       "description": "Jumper T20",
       "tags": [
         "stdlcd"
-      ],
-      "build_flags": {
-        "PCB": "X7",
-        "PCBREV": "T20"
-      }
+      ]
     },
     "tlite": {
       "description": "Jumper T-Lite",
       "tags": [
         "stdlcd"
-      ],
-      "build_flags": {
-        "PCB": "X7",
-        "PCBREV": "TLITE"
-      }
+      ]
     },
     "tpro": {
       "description": "Jumper T-Pro",
       "tags": [
         "stdlcd"
-      ],
-      "build_flags": {
-        "PCB": "X7",
-        "PCBREV": "TPRO"
-      }
+      ]
     },
     "tprov2": {
       "description": "Jumper T-Pro V2",
       "tags": [
         "stdlcd"
-      ],
-      "build_flags": {
-        "PCB": "X7",
-        "PCBREV": "TPROV2"
-      }
+      ]
     },
     "mt12": {
       "description": "Radiomaster MT12",
       "tags": [
         "stdlcd"
-      ],
-      "build_flags": {
-        "PCB": "X7",
-        "PCBREV": "MT12"
-      }
+      ]
     },
     "t8": {
       "description": "Radiomaster T8",
       "tags": [
         "stdlcd"
-      ],
-      "build_flags": {
-        "PCB": "X7",
-        "PCBREV": "T8"
-      }
+      ]
     },
     "tx12": {
       "description": "Radiomaster TX12",
       "tags": [
         "stdlcd"
-      ],
-      "build_flags": {
-        "PCB": "X7",
-        "PCBREV": "TX12"
-      }
+      ]
     },
     "tx12mk2": {
       "description": "Radiomaster TX12MK2",
       "tags": [
         "stdlcd",
         "bluetooth"
-      ],
-      "build_flags": {
-        "PCB": "X7",
-        "PCBREV": "TX12MK2"
-      }
+      ]
     },
     "tx16s": {
       "description": "RadioMaster TX16S",
       "tags": [
         "colorlcd",
         "bluetooth"
-      ],
-      "build_flags": {
-        "PCB": "X10",
-        "PCBREV": "TX16S"
-      }
+      ]
     },
     "boxer": {
       "description": "RadioMaster Boxer",
       "tags": [
         "stdlcd",
         "bluetooth"
-      ],
-      "build_flags": {
-        "PCB": "X7",
-        "PCBREV": "BOXER"
-      }
+      ]
     },
     "pocket": {
       "description": "RadioMaster Pocket",
       "tags": [
         "stdlcd",
         "bluetooth"
-      ],
-      "build_flags": {
-        "PCB": "X7",
-        "PCBREV": "POCKET"
-      }
+      ]
     },
     "zorro": {
       "description": "RadioMaster Zorro",
       "tags": [
         "stdlcd"
-      ],
-      "build_flags": {
-        "PCB": "X7",
-        "PCBREV": "ZORRO"
-      }
+      ]
     }
   }
 }

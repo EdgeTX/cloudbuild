@@ -93,7 +93,7 @@ func (artifactory *Artifactory) GetBuild(request *BuildRequest) (*BuildJobDto, e
 	if err != nil {
 		return nil, err
 	}
-	if err == nil && buildJob == nil {
+	if buildJob == nil {
 		return nil, ErrBuildNotFound
 	}
 
@@ -241,7 +241,7 @@ func (artifactory *Artifactory) Build(
 		return onBuildFailure(err, build)
 	}
 
-	firmwareBin, err := builder.Build(ctx, build.ContainerImage, flags)
+	firmwareBin, err := builder.Build(ctx, build.ContainerImage, build.Target, build.CommitRef, flags)
 	if err != nil {
 		return onBuildFailure(err, build)
 	}

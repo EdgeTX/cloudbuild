@@ -43,6 +43,8 @@ func ParseBuildFlags(buildFlagsJSON []byte) ([]firmware.BuildFlag, error) {
 }
 
 type BuildCommandArgs struct {
+	Target           string
+	VersionTag       string
 	CommitHash       string
 	BuildFlagsFile   string
 	BuildFlagsInline string
@@ -55,13 +57,15 @@ type BuildCommandArgs struct {
 func ParseArgs() (*BuildCommandArgs, error) {
 	config := &BuildCommandArgs{}
 
+	flag.StringVar(&config.Target, "target", "", "firmware target")
+	flag.StringVar(&config.VersionTag, "version", "", "version tag")
 	flag.StringVar(&config.CommitHash, "commit", "", "specify commit hash")
 	flag.StringVar(&config.BuildFlagsFile, "build-flags-file", "", "specify build flags json file location")
 	flag.StringVar(&config.BuildFlagsInline, "build-flags", "", "specify build flags inline")
 	flag.StringVar(
 		&config.BuildImage,
 		"build-image",
-		"ghcr.io/edgetx/edgetx-builder:2.5.1",
+		"ghcr.io/edgetx/edgetx-builder",
 		"specify podman image for building",
 	)
 
@@ -114,6 +118,8 @@ func ValidateBuildArgs(config *BuildCommandArgs) error {
 
 func Build(
 	ctx context.Context,
+	target string,
+	versionTag string,
 	buildImage string,
 	sourceRepository string,
 	commitHash string,
@@ -133,7 +139,7 @@ func Build(
 		return nil, err
 	}
 
-	firmwareBin, err := firmwareBuilder.Build(ctx, buildImage, buildFlags)
+	firmwareBin, err := firmwareBuilder.Build(ctx, buildImage, target, versionTag, buildFlags)
 	if err != nil {
 		return nil, err
 	}
