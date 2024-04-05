@@ -149,6 +149,12 @@ func (o *CloudbuildOpts) BindStorageOpts(c *cobra.Command) {
 	)
 }
 
+func (o *CloudbuildOpts) BindBuildOpts(c *cobra.Command) {
+	c.PersistentFlags().StringVar(
+		&o.BuildImage, "build-img", o.BuildImage, "Build docker image",
+	)
+}
+
 func (o *CloudbuildOpts) BindAPIOpts(c *cobra.Command) {
 	c.Flags().Uint16VarP(&o.HTTPBindPort, "port", "p", o.HTTPBindPort, "HTTP listen port")
 	c.Flags().IPVarP(&o.HTTPBindAddress, "listen-ip", "l", net.IPv4zero, "HTTP listen IP")
@@ -157,7 +163,6 @@ func (o *CloudbuildOpts) BindAPIOpts(c *cobra.Command) {
 }
 
 func (o *CloudbuildOpts) BindWorkerOpts(c *cobra.Command) {
-	c.Flags().StringVar(&o.BuildImage, "build-img", o.BuildImage, "Build docker image")
 	c.Flags().StringVar(
 		&o.SourceRepository, "src-repo", o.SourceRepository, "Source repository")
 }
