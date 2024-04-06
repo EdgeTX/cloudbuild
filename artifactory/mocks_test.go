@@ -28,6 +28,8 @@ func (downloader *MockFirmwareBuilder) PullImage(ctx context.Context, buildConta
 func (downloader *MockFirmwareBuilder) Build(
 	ctx context.Context,
 	buildContainer string,
+	target string,
+	versionTag string,
 	flags []firmware.BuildFlag,
 ) ([]byte, error) {
 	args := downloader.Called(ctx, buildContainer, flags)

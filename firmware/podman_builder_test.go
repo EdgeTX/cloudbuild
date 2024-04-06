@@ -35,13 +35,17 @@ func TestFirmwareFirmwareBuild(t *testing.T) {
 		firmware.NewFlag("TRACE_SIMPGMSPACE", "NO"),
 		firmware.NewFlag("VERBOSE_CMAKELISTS", "YES"),
 		firmware.NewFlag("CMAKE_RULE_MESSAGES", "OFF"),
-		firmware.NewFlag("PCB", "X10"),
-		firmware.NewFlag("PCBREV", "T16"),
 		firmware.NewFlag("INTERNAL_MODULE_MULTI", "ON"),
 	}
 	ctx, cancel = context.WithTimeout(context.Background(), time.Minute*20)
 	defer cancel()
-	firmwareBin, err := firmwareBuilder.Build(ctx, "ghcr.io/edgetx/edgetx-commit-tests:latest", flags)
+	firmwareBin, err := firmwareBuilder.Build(
+		ctx,
+		"ghcr.io/edgetx/edgetx-builder",
+		"t16",
+		"test",
+		flags,
+	)
 	assert.Nil(t, err, "failed to build firmware")
 	assert.True(t, len(firmwareBin) > 0, "firmware bin is empty")
 }

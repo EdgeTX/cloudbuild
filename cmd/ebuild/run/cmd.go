@@ -142,6 +142,7 @@ func NewRunCommand(ctx context.Context, o *config.CloudbuildOpts) *cobra.Command
 	o.BindCliOpts(cmd)
 	o.BindDBOpts(cmd)
 	o.BindStorageOpts(cmd)
+	o.BindBuildOpts(cmd)
 
 	s := newServerRunner(ctx, o)
 	cmd.AddCommand(NewAPICommand(s))

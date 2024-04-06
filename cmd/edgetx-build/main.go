@@ -48,7 +48,15 @@ func main() {
 			}
 		}
 
-		firmwareBin, err := cli.Build(ctx, config.BuildImage, config.SourceRepository, config.CommitHash, buildFlags)
+		firmwareBin, err := cli.Build(
+			ctx,
+			config.Target,
+			config.VersionTag,
+			config.BuildImage,
+			config.SourceRepository,
+			config.CommitHash,
+			buildFlags,
+		)
 		if err != nil {
 			log.Fatalf("failed to build firmware: %s", err)
 		}
