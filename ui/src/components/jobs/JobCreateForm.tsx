@@ -15,8 +15,8 @@ import {
   Space,
   Upload,
 } from "antd";
-import { FormInstance, useForm } from "antd/es/form/Form";
-import { useEffect, useMemo, useState } from "react";
+import { useForm } from "antd/es/form/Form";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { DefaultOptionType } from "antd/es/select";
 import { MessageInstance } from "antd/es/message/interface";
 
@@ -25,52 +25,44 @@ function mapToSelect(values: string[]) {
 }
 
 interface FormTagProps {
-  flags: Record<string, TargetFlag>;
-  form: FormInstance<JobCreationParams>;
   value: FormListFieldData;
-  index: number;
+  flags: Record<string, TargetFlag>;
+  selectedFlags: Flag[];
+  updateSelectedFlags: (flags: Flag[]) => void;
   remove: (index: number | number[]) => void;
 }
 
-function FormTag({ flags, form, value, index, remove }: FormTagProps) {
-  const [currentFlag, setCurrentFlag] = useState("");
-  const [currentValue, setCurrentValue] = useState("");
+function FormTag({ value, flags, selectedFlags, updateSelectedFlags, remove }: FormTagProps) {
+  const currentFlag = selectedFlags?.at(value.key)?.name;
+  const currentValue = selectedFlags?.at(value.key)?.value;
 
-  // selected flags
-  const selectedFlags = useMemo(
-    () => form.getFieldsValue()?.flags ?? [],
-    [form]
-  );
-
-  // current flag not in flag list, then remove it
-  useEffect(() => {
-    if (currentFlag == "" || Object.hasOwn(flags, currentFlag)) return;
-    remove(index);
-  }, [currentFlag, flags, form, selectedFlags, index, remove]);
-
-  // flag values
-  const values = [...new Set(flags[currentFlag]?.values)];
-  values.sort();
-
-  // current value not in flag value? reset it
-  if (currentValue && !values.includes(currentValue)) {
-    selectedFlags[index].value = "";
-  }
-
-  // selected flags
-  const selectedFlagsName = new Set(
-    selectedFlags
-      .filter((flag: { name?: string }) => flag?.name)
-      .map((flag: { name: string }) => flag.name)
-  );
+  const selectedFlagsName = new Set(selectedFlags?.map((flag) => flag.name));
 
   // remove already selected flags from options
-  const flagKeys = Object.keys(flags);
-  flagKeys.sort();
-  const flagOptions = mapToSelect(flagKeys).filter(
+  const flagNames = Object.keys(flags).sort();
+  const flagOptions = mapToSelect(flagNames).filter(
     (option) => !selectedFlagsName.has(option.label)
   );
-  const valueOptions = mapToSelect(values);
+
+  // flag values
+  const flagValuesSet = useMemo(
+    () => new Set(flags[currentFlag ?? ""]?.values),
+    [flags, currentFlag]
+  );
+
+  const flagValues = mapToSelect([...flagValuesSet].sort());
+
+  // reset the flag value if the target or flag name doesn't support it
+  useEffect(() => {
+    if (!currentValue || flagValuesSet.size === 0) return;
+    if (!flagValuesSet.has(currentValue)) {
+      const newSelectedFlags = selectedFlags.map((flag) => ({
+        name: flag.name,
+        value: flag.name === currentFlag ? "" : flag.value,
+      }));
+      updateSelectedFlags(newSelectedFlags);
+    }
+  }, [flagValuesSet, currentFlag, currentValue, selectedFlags, updateSelectedFlags]);
 
   return (
     <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
@@ -88,7 +80,6 @@ function FormTag({ flags, form, value, index, remove }: FormTagProps) {
           <Select
             showSearch
             placeholder="Flag"
-            onChange={(flag) => setCurrentFlag(flag)}
             options={flagOptions}
           />
         </Form.Item>
@@ -101,8 +92,7 @@ function FormTag({ flags, form, value, index, remove }: FormTagProps) {
           <Select
             showSearch
             placeholder="Value"
-            onChange={(value) => setCurrentValue(value)}
-            options={valueOptions}
+            options={flagValues}
           />
         </Form.Item>
       </Space.Compact>
@@ -155,14 +145,10 @@ function JobCreateForm({ messageApi, onFinish }: Props) {
   // set target to first target of cloudbuild targets
   useEffect(() => {
     if (!targets) return;
-    let releaseTargets = Object.keys(targets.targets);
     const excludeTargets = targets.releases[currentRelease]?.exclude_targets;
-
-    if (excludeTargets) {
-      releaseTargets = releaseTargets.filter(
-        (target) => !excludeTargets.includes(target)
-      );
-    }
+    const releaseTargets = Object.keys(targets.targets).filter(
+      (target) => !excludeTargets?.includes(target)
+    );
 
     setTargetOptions(mapToSelect(releaseTargets));
     form.setFieldValue("target", releaseTargets[0]);
@@ -170,22 +156,54 @@ function JobCreateForm({ messageApi, onFinish }: Props) {
   }, [targets, currentRelease, form]);
 
   // flags
-  const flags = structuredClone(targets?.flags) ?? {};
+  const flags = useMemo(
+    () => {
+      const flags = structuredClone(targets?.flags) ?? {};
 
-  // get additional flags from the target tags
-  const tags = targets?.targets[currentTarget]?.tags;
-  const additionalFlags: Record<string, TargetFlag> =
-    tags?.reduce((obj, tag) => {
-      obj = { ...targets?.tags[tag].flags, ...obj };
-      return obj;
-    }, {}) ?? {};
+      // get additional flags from the target tags
+      const tags = targets?.targets[currentTarget]?.tags;
+      const additionalFlags: Record<string, TargetFlag> =
+        tags?.reduce((obj, tag) => {
+          obj = { ...targets?.tags[tag].flags, ...obj };
+          return obj;
+        }, {}) ?? {};
 
-  // add new flags defined in the tags in the flags list
-  for (const [key, value] of Object.entries(additionalFlags)) {
-    if (!Object.hasOwn(flags, key)) {
-      flags[key] = value;
+      // add new flags defined in the tags in the flags list
+      for (const [key, value] of Object.entries(additionalFlags)) {
+        if (!Object.hasOwn(flags, key)) {
+          flags[key] = value;
+        } else {
+          const valueSet = new Set(flags[key].values)
+          value.values.forEach((v) => valueSet.add(v));
+          flags[key].values = Array.from(valueSet.values());
+        }
+      }
+      return flags;
+    },
+    [targets, currentTarget]
+  );
+
+  const [selectedFlags, setSelectedFlags] = useState<Flag[]>([]);
+  const updateSelectedFlags = useCallback(
+    (flags: Flag[]) => {
+      setSelectedFlags(flags);
+      form.setFieldValue("flags", flags);
+    },
+    [form]
+  );
+
+  // remove selected flag if it's not in the flags anymore
+  useEffect(() => {
+    if (!flags || !selectedFlags) return;
+
+    const flagIds = new Set(Object.keys(flags));
+    const newSelectedFlags = selectedFlags.filter(
+      (flag) => !flag.name || flagIds.has(flag.name)
+    );
+    if (newSelectedFlags.length !== selectedFlags.length) {
+      updateSelectedFlags(newSelectedFlags);
     }
-  }
+  }, [flags, selectedFlags, updateSelectedFlags]);
 
   // file list and file content for upload file form input
   const [fileList, setFileList] = useState<File[]>([]);
@@ -211,7 +229,7 @@ function JobCreateForm({ messageApi, onFinish }: Props) {
     setFileList([]);
   };
 
-  const toUploadFiles = (files: File[]) => files.map((f) => ({ uid: f.name, name: f.name}));
+  const toUploadFiles = (files: File[]) => files.map((f) => ({ uid: f.name, name: f.name }));
 
   return (
     <>
@@ -220,6 +238,9 @@ function JobCreateForm({ messageApi, onFinish }: Props) {
         aria-labelledby=""
         form={form}
         name="Job Creation"
+        onValuesChange={(_, values) => {
+          setSelectedFlags(values.flags);
+        }}
         onFinish={(values) => {
           onFinish(values, jobsFileContent);
         }}
@@ -248,17 +269,17 @@ function JobCreateForm({ messageApi, onFinish }: Props) {
           />
         </Form.Item>
 
-        <Form.List name="flags" initialValue={[]}>
+        <Form.List name="flags" initialValue={selectedFlags}>
           {(fields, { add, remove }) => (
             <Form.Item label="Flags">
-              {fields.map((value, index) => (
+              {fields.map((value) => (
                 <div key={value.key}>
                   <FormTag
                     {...{
-                      flags,
-                      form,
                       value,
-                      index,
+                      flags,
+                      selectedFlags,
+                      updateSelectedFlags,
                       remove,
                     }}
                   />
@@ -268,7 +289,7 @@ function JobCreateForm({ messageApi, onFinish }: Props) {
               <Form.Item>
                 <Button
                   type="dashed"
-                  onClick={() => add()}
+                  onClick={() => add({ name: undefined, value: undefined })}
                   block
                   icon={<PlusOutlined />}
                 >
