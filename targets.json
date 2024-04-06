@@ -32,7 +32,6 @@
     "language": {
       "build_flag": "TRANSLATIONS",
       "values": [
-        "EN",
         "CZ",
         "DA",
         "DE",
@@ -42,12 +41,12 @@
         "FR",
         "HU",
         "IT",
+        "NL",
+        "PL",
         "PT",
         "RU",
         "SK",
         "SE",
-        "PL",
-        "NL",
         "UA"
       ]
     },
