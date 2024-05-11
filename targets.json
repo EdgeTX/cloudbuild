@@ -50,6 +50,13 @@
         "YES",
         "CHOICE"
       ]
+    },
+    "disable_mcucheck": {
+      "build_flag": "DISABLE_MCUCHECK",
+      "values": [
+        "YES",
+        "NO"
+      ]
     }
   },
   "tags": {
