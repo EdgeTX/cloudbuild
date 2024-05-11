@@ -6,17 +6,8 @@
         "path": "object.sha"
       }
     },
-    "v2.10.0-rc4": {
-      "sha": "e0aca6433ec7dc949491c0479403c0f1b85fe1ea"
-    },
-    "v2.10.0-rc3": {
-      "sha": "30e8769f701d3faf2c05516a9889378881353c33"
-    },
-    "v2.10.0-rc2": {
-      "sha": "58b8cb364f7bfe0ce87c22e152943acd8bdf0f65"
-    },
-    "v2.10.0-rc1": {
-      "sha": "0f7b0ec26e41f0e129d3ef81ae595885d807c911"
+    "v2.10.0": {
+      "sha": "287dd75d1c3d8d240204820fc8a1d15f1f52da72"
     },
     "v2.9.4": {
       "sha": "77884b6a22e20ad91ba6c6656b96bcb2adc86768",
