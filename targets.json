@@ -6,6 +6,9 @@
         "path": "object.sha"
       }
     },
+    "v2.10.2": {
+      "sha": "1de06000cdfe3398840a8d28f7bf5de7fbedc899"
+    },
     "v2.10.1": {
       "sha": "839b60f6cc88d22383a6f686862b3fba4108884e"
     },
