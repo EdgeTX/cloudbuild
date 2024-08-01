@@ -7,24 +7,33 @@
       }
     },
     "v2.10.2": {
-      "sha": "1de06000cdfe3398840a8d28f7bf5de7fbedc899"
+      "sha": "1de06000cdfe3398840a8d28f7bf5de7fbedc899",
+      "exclude_targets": [
+        "t12max", "tpros"
+      ]
     },
     "v2.10.1": {
-      "sha": "839b60f6cc88d22383a6f686862b3fba4108884e"
+      "sha": "839b60f6cc88d22383a6f686862b3fba4108884e",
+      "exclude_targets": [
+        "f16", "t12max", "tpros"
+      ]
     },
     "v2.10.0": {
-      "sha": "22ce06d3423fdb265c6c7bce6031f1003027bf0c"
+      "sha": "22ce06d3423fdb265c6c7bce6031f1003027bf0c",
+      "exclude_targets": [
+        "f16", "t12max", "t15", "tpros"
+      ]
     },
     "v2.9.4": {
       "sha": "77884b6a22e20ad91ba6c6656b96bcb2adc86768",
       "exclude_targets": [
-        "pl18", "pl18ev", "t20", "tprov2", "mt12", "pocket"
+        "pl18", "pl18ev", "t20", "tprov2", "mt12", "pocket", "f16", "t12max", "t14", "t15", "t20v2", "tpros"
       ]
     },
     "v2.8.5": {
       "sha": "cbac1063eb8637457d2a63c367863c6bfd6f0c31",
       "exclude_targets": [
-        "pl18", "pl18ev", "t20", "tprov2", "mt12", "pocket"
+        "pl18", "pl18ev", "t20", "tprov2", "mt12", "pocket", "f16", "t12max", "t14", "t15", "t20v2", "tpros"
       ]
     }
   },
@@ -126,6 +135,13 @@
       "description": "BETAFPV LiteRadio 3 Pro",
       "tags": [
         "stdlcd"
+      ]
+    },
+    "f16": {
+      "description": "Fatfish F16",
+      "tags": [
+        "colorlcd",
+        "bluetooth"
       ]
     },
     "el18": {
@@ -243,6 +259,25 @@
         "stdlcd"
       ]
     },
+    "t12max": {
+      "description": "Jumper T12 MAX",
+      "tags": [
+        "stdlcd"
+      ]
+    },
+    "t14": {
+      "description": "Jumper T14",
+      "tags": [
+        "stdlcd"
+      ]
+    },
+    "t15": {
+      "description": "Jumper T15",
+      "tags": [
+        "colorlcd",
+        "bluetooth"
+      ]
+    },
     "t16": {
       "description": "Jumper T16",
       "tags": [
@@ -263,6 +298,12 @@
         "stdlcd"
       ]
     },
+    "t20v2": {
+      "description": "Jumper T20 V2",
+      "tags": [
+        "stdlcd"
+      ]
+    },
     "tlite": {
       "description": "Jumper T-Lite",
       "tags": [
@@ -277,6 +318,12 @@
     },
     "tprov2": {
       "description": "Jumper T-Pro V2",
+      "tags": [
+        "stdlcd"
+      ]
+    },
+    "tpros": {
+      "description": "Jumper T-Pro S",
       "tags": [
         "stdlcd"
       ]
