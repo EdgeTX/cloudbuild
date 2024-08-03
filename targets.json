@@ -6,6 +6,9 @@
         "path": "object.sha"
       }
     },
+    "v2.10.3": {
+      "sha": "2fc5a9acab767b7b3f4861d85dffd359d6ad28f6",
+    },
     "v2.10.2": {
       "sha": "1de06000cdfe3398840a8d28f7bf5de7fbedc899",
       "exclude_targets": [
