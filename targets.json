@@ -268,6 +268,12 @@
         "stdlcd"
       ]
     },
+    "bumblebee": {
+      "description": "Jumper Bumblebee",
+      "tags": [
+        "stdlcd"
+      ]
+    },
     "t12": {
       "description": "Jumper T12",
       "tags": [
