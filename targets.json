@@ -10,13 +10,13 @@
       "sha": "6b539d03c66061e431d9090531ac192f7550a102"
     },
     "v2.10.4": {
-      "sha": "9b901689fbd84fb4027b4f898460314d76b1f69a"
+      "sha": "9b901689fbd84fb4027b4f898460314d76b1f69a",
       "exclude_targets": [
         "bumblebee"
       ]
     },
     "v2.10.3": {
-      "sha": "2fc5a9acab767b7b3f4861d85dffd359d6ad28f6"
+      "sha": "2fc5a9acab767b7b3f4861d85dffd359d6ad28f6",
       "exclude_targets": [
         "bumblebee"
       ]
