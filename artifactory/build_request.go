@@ -130,6 +130,10 @@ func (req *BuildRequest) GetBuildFlags() (*[]firmware.BuildFlag, error) {
 	return &buildFlags, nil
 }
 
+func (req *BuildRequest) GetBuildContainerImage() string {
+	return req.defs.GetBuildContainer(req.Release)
+}
+
 func (req *BuildRequest) GetCommitHash() string {
 	return req.defs.GetCommitHashByRef(req.Release)
 }
