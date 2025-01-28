@@ -25,6 +25,7 @@ type Release struct {
 	SHA            string     `json:"sha"`
 	Remote         *RemoteSHA `json:"remote,omitempty"`
 	ExcludeTargets []string   `json:"exclude_targets,omitempty"`
+	BuildContainer string     `json:"build_container,omitempty"`
 }
 
 type OptionFlag struct {
@@ -166,6 +167,14 @@ func (def *TargetsDef) GetOptionBuildFlag(target, name string) string {
 	}
 
 	return ""
+}
+
+func (def *TargetsDef) GetBuildContainer(ref string) string {
+	release, ok := def.Releases[ref]
+	if !ok {
+		return ""
+	}
+	return release.BuildContainer
 }
 
 func SetTargets(defs *TargetsDef) {

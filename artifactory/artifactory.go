@@ -167,6 +167,11 @@ func (artifactory *Artifactory) CreateBuildJob(
 		return nil, fmt.Errorf("failed to marshal build flags: %w", err)
 	}
 
+	buildContainer := request.GetBuildContainerImage()
+	if len(buildContainer) == 0 {
+		buildContainer = artifactory.BuildContainerImage
+	}
+
 	job, err = artifactory.BuildJobsRepository.Create(BuildJobModel{
 		Status:         WaitingForBuild,
 		CommitRef:      request.Release,
@@ -174,7 +179,7 @@ func (artifactory *Artifactory) CreateBuildJob(
 		Target:         request.Target,
 		Flags:          optFlagsJSON,
 		BuildFlags:     buildFlagsJSON,
-		ContainerImage: artifactory.BuildContainerImage,
+		ContainerImage: buildContainer,
 		BuildFlagsHash: request.HashTargetAndFlags(),
 		AuditLogs: []AuditLogModel{
 			{
