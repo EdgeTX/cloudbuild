@@ -1,6 +1,5 @@
 run:
   timeout: 5m
-  debug: true
 
 linters-settings:
   gocritic:
@@ -57,3 +56,5 @@ linters:
     - goprintffuncname
     - whitespace
     - thelper
+  disabe:
+    - goanalysis_metalinter
