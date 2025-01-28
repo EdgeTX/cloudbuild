@@ -6,7 +6,7 @@ linters-settings:
     disabled-checks:
       - exitAfterDefer
   gofumpt:
-    lang-version: "1.23"
+    lang-version: "1.18"
 
 output:
   format: colored-line-number
@@ -56,5 +56,3 @@ linters:
     - goprintffuncname
     - whitespace
     - thelper
-  disable:
-    - goanalysis_metalinter
