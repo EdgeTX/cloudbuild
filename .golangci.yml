@@ -56,5 +56,5 @@ linters:
     - goprintffuncname
     - whitespace
     - thelper
-  disabe:
+  disable:
     - goanalysis_metalinter
