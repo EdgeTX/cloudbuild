@@ -195,6 +195,12 @@
         "colorlcd"
       ]
     },
+    "nb4p": {
+        "description": "Flysky NB4+",
+        "tags": [
+          "colorlcd"
+        ]
+    },
     "x10": {
       "description": "FrSky Horus X10",
       "tags": [
@@ -363,6 +369,13 @@
     },
     "boxer": {
         "description": "RadioMaster Boxer",
+        "tags": [
+          "stdlcd",
+          "bluetooth"
+        ]
+    },
+    "gx12": {
+        "description": "Radiomaster GX12",
         "tags": [
           "stdlcd",
           "bluetooth"
