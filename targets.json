@@ -361,11 +361,25 @@
         "stdlcd"
       ]
     },
+    "boxer": {
+        "description": "RadioMaster Boxer",
+        "tags": [
+          "stdlcd",
+          "bluetooth"
+        ]
+    },
     "mt12": {
       "description": "Radiomaster MT12",
       "tags": [
         "stdlcd"
       ]
+    },
+    "pocket": {
+        "description": "RadioMaster Pocket",
+        "tags": [
+          "stdlcd",
+          "bluetooth"
+        ]
     },
     "t8": {
       "description": "Radiomaster T8",
@@ -390,20 +404,6 @@
       "description": "RadioMaster TX16S",
       "tags": [
         "colorlcd",
-        "bluetooth"
-      ]
-    },
-    "boxer": {
-      "description": "RadioMaster Boxer",
-      "tags": [
-        "stdlcd",
-        "bluetooth"
-      ]
-    },
-    "pocket": {
-      "description": "RadioMaster Pocket",
-      "tags": [
-        "stdlcd",
         "bluetooth"
       ]
     },
