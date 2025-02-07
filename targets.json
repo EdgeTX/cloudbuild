@@ -57,14 +57,14 @@
     },
     "v2.9.4": {
       "sha": "77884b6a22e20ad91ba6c6656b96bcb2adc86768",
-      "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.9.0",
       "exclude_targets": [
         "pl18", "pl18ev", "t20", "tprov2", "mt12", "pocket", "f16", "t12max", "t14", "t15", "t20v2", "tpros", "bumblebee", "gx12", "nb4p"
       ]
     },
     "v2.8.5": {
       "sha": "cbac1063eb8637457d2a63c367863c6bfd6f0c31",
-      "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.8",
       "exclude_targets": [
         "pl18", "pl18ev", "t20", "tprov2", "mt12", "pocket", "f16", "t12max", "t14", "t15", "t20v2", "tpros", "bumblebee", "gx12", "nb4p"
       ]
