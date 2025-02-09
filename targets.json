@@ -8,59 +8,65 @@
     },
     "v2.10.6": {
       "sha": "14adf0474ccedbd935fac7d71958946680b5fdfc",
-      "build_container": "ghcr.io/edgetx/edgetx-builder:2.10"
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
+      "exclude_targets": [
+        "gx12", "nb4p"
+      ]
     },
     "v2.10.5": {
       "sha": "6b539d03c66061e431d9090531ac192f7550a102",
-      "build_container": "ghcr.io/edgetx/edgetx-builder:2.10"
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
+      "exclude_targets": [
+        "gx12", "nb4p"
+      ]
     },
     "v2.10.4": {
       "sha": "9b901689fbd84fb4027b4f898460314d76b1f69a",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
       "exclude_targets": [
-        "bumblebee"
+        "bumblebee", "gx12", "nb4p"
       ]
     },
     "v2.10.3": {
       "sha": "2fc5a9acab767b7b3f4861d85dffd359d6ad28f6",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
       "exclude_targets": [
-        "bumblebee"
+        "bumblebee", "gx12", "nb4p"
       ]
     },
     "v2.10.2": {
       "sha": "1de06000cdfe3398840a8d28f7bf5de7fbedc899",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
       "exclude_targets": [
-        "t12max", "tpros", "bumblebee"
+        "t12max", "tpros", "bumblebee", "gx12", "nb4p"
       ]
     },
     "v2.10.1": {
       "sha": "839b60f6cc88d22383a6f686862b3fba4108884e",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
       "exclude_targets": [
-        "f16", "t12max", "tpros", "bumblebee"
+        "f16", "t12max", "tpros", "bumblebee", "gx12", "nb4p"
       ]
     },
     "v2.10.0": {
       "sha": "22ce06d3423fdb265c6c7bce6031f1003027bf0c",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
       "exclude_targets": [
-        "f16", "t12max", "t15", "tpros", "bumblebee"
+        "f16", "t12max", "t15", "tpros", "bumblebee", "gx12", "nb4p"
       ]
     },
     "v2.9.4": {
       "sha": "77884b6a22e20ad91ba6c6656b96bcb2adc86768",
-      "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.9.0",
       "exclude_targets": [
-        "pl18", "pl18ev", "t20", "tprov2", "mt12", "pocket", "f16", "t12max", "t14", "t15", "t20v2", "tpros", "bumblebee"
+        "pl18", "pl18ev", "t20", "tprov2", "mt12", "pocket", "f16", "t12max", "t14", "t15", "t20v2", "tpros", "bumblebee", "gx12", "nb4p"
       ]
     },
     "v2.8.5": {
       "sha": "cbac1063eb8637457d2a63c367863c6bfd6f0c31",
-      "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.8",
       "exclude_targets": [
-        "pl18", "pl18ev", "t20", "tprov2", "mt12", "pocket", "f16", "t12max", "t14", "t15", "t20v2", "tpros", "bumblebee"
+        "pl18", "pl18ev", "t20", "tprov2", "mt12", "pocket", "f16", "t12max", "t14", "t15", "t20v2", "tpros", "bumblebee", "gx12", "nb4p"
       ]
     }
   },
@@ -194,6 +200,12 @@
       "tags": [
         "colorlcd"
       ]
+    },
+    "nb4p": {
+        "description": "Flysky NB4+",
+        "tags": [
+          "colorlcd"
+        ]
     },
     "x10": {
       "description": "FrSky Horus X10",
@@ -361,11 +373,32 @@
         "stdlcd"
       ]
     },
+    "boxer": {
+        "description": "RadioMaster Boxer",
+        "tags": [
+          "stdlcd",
+          "bluetooth"
+        ]
+    },
+    "gx12": {
+        "description": "Radiomaster GX12",
+        "tags": [
+          "stdlcd",
+          "bluetooth"
+        ]
+    },
     "mt12": {
       "description": "Radiomaster MT12",
       "tags": [
         "stdlcd"
       ]
+    },
+    "pocket": {
+        "description": "RadioMaster Pocket",
+        "tags": [
+          "stdlcd",
+          "bluetooth"
+        ]
     },
     "t8": {
       "description": "Radiomaster T8",
@@ -390,20 +423,6 @@
       "description": "RadioMaster TX16S",
       "tags": [
         "colorlcd",
-        "bluetooth"
-      ]
-    },
-    "boxer": {
-      "description": "RadioMaster Boxer",
-      "tags": [
-        "stdlcd",
-        "bluetooth"
-      ]
-    },
-    "pocket": {
-      "description": "RadioMaster Pocket",
-      "tags": [
-        "stdlcd",
         "bluetooth"
       ]
     },
