@@ -1,4 +1,4 @@
-FROM golang:1.20-bullseye as builder
+FROM golang:1.20-bullseye AS builder
 
 RUN mkdir /build
 ADD . /build/
@@ -6,7 +6,7 @@ WORKDIR /build
 
 RUN make build
 
-FROM node:slim as ui-builder
+FROM node:slim AS ui-builder
 
 RUN mkdir /build
 WORKDIR /build
@@ -17,7 +17,7 @@ RUN npm ci --prefix ui/
 ADD . /build/
 RUN npm run build --prefix ui/
 
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 RUN apt-get update \
     && apt-get -y install curl gnupg2 git podman dumb-init \
     && rm -rf /var/lib/apt/lists/*
