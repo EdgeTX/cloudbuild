@@ -5,11 +5,10 @@ linters-settings:
   gocritic:
     disabled-checks:
       - exitAfterDefer
-  gofumpt:
-    lang-version: "1.18"
 
 output:
-  format: colored-line-number
+  formats:
+  - format: colored-line-number
   print-issued-lines: true
   print-linter-name: true
 
@@ -31,7 +30,7 @@ linters:
     - gocritic
     - gocyclo
     - godot
-    - goerr113
+    - err113
     - godox
     - nolintlint
     - misspell
@@ -47,7 +46,6 @@ linters:
     - nakedret
     - prealloc
     - staticcheck
-    - exportloopref
     - stylecheck
     - typecheck
     - unconvert
