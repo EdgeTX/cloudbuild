@@ -6,6 +6,13 @@
         "path": "object.sha"
       }
     },
+    "v2.11.0-rc2": {
+      "sha": "4827fb7fa0d76c06ae2c0d9f1c427be1ae467d6b",
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
+      "exclude_targets": [
+        "x10-access", "x7-access"
+      ]
+    },
     "v2.11.0-rc1": {
       "sha": "f51c67af4507941afad6bce4caf3a6f2fe4f9cde",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
