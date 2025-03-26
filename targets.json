@@ -6,81 +6,127 @@
         "path": "object.sha"
       }
     },
+    "v2.11.0-rc3": {
+      "sha": "59b96867da49f7a8ca05dd0664151815d01176bd",
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
+      "exclude_targets": ["x10-access", "x7-access"]
+    },
     "v2.11.0-rc2": {
       "sha": "4827fb7fa0d76c06ae2c0d9f1c427be1ae467d6b",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
-      "exclude_targets": [
-        "x10-access", "x7-access"
-      ]
+      "exclude_targets": ["x10-access", "x7-access"]
     },
     "v2.11.0-rc1": {
       "sha": "f51c67af4507941afad6bce4caf3a6f2fe4f9cde",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
-      "exclude_targets": [
-        "x10-access", "x7-access"
-      ]
+      "exclude_targets": ["x10-access", "x7-access"]
     },
     "v2.10.6": {
       "sha": "14adf0474ccedbd935fac7d71958946680b5fdfc",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
-      "exclude_targets": [
-        "gx12", "nb4p", "x10express", "x7access"
-      ]
+      "exclude_targets": ["gx12", "nb4p", "x10express", "x7access"]
     },
     "v2.10.5": {
       "sha": "6b539d03c66061e431d9090531ac192f7550a102",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
-      "exclude_targets": [
-        "gx12", "nb4p", "x10express", "x7access"
-      ]
+      "exclude_targets": ["gx12", "nb4p", "x10express", "x7access"]
     },
     "v2.10.4": {
       "sha": "9b901689fbd84fb4027b4f898460314d76b1f69a",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
-      "exclude_targets": [
-        "bumblebee", "gx12", "nb4p", "x10express", "x7access"
-      ]
+      "exclude_targets": ["bumblebee", "gx12", "nb4p", "x10express", "x7access"]
     },
     "v2.10.3": {
       "sha": "2fc5a9acab767b7b3f4861d85dffd359d6ad28f6",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
-      "exclude_targets": [
-        "bumblebee", "gx12", "nb4p", "x10express", "x7access"
-      ]
+      "exclude_targets": ["bumblebee", "gx12", "nb4p", "x10express", "x7access"]
     },
     "v2.10.2": {
       "sha": "1de06000cdfe3398840a8d28f7bf5de7fbedc899",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
       "exclude_targets": [
-        "t12max", "tpros", "bumblebee", "gx12", "nb4p", "x10express", "x7access"
+        "t12max",
+        "tpros",
+        "bumblebee",
+        "gx12",
+        "nb4p",
+        "x10express",
+        "x7access"
       ]
     },
     "v2.10.1": {
       "sha": "839b60f6cc88d22383a6f686862b3fba4108884e",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
       "exclude_targets": [
-        "f16", "t12max", "tpros", "bumblebee", "gx12", "nb4p", "x10express", "x7access"
+        "f16",
+        "t12max",
+        "tpros",
+        "bumblebee",
+        "gx12",
+        "nb4p",
+        "x10express",
+        "x7access"
       ]
     },
     "v2.10.0": {
       "sha": "22ce06d3423fdb265c6c7bce6031f1003027bf0c",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
       "exclude_targets": [
-        "f16", "t12max", "t15", "tpros", "bumblebee", "gx12", "nb4p", "x10express", "x7access"
+        "f16",
+        "t12max",
+        "t15",
+        "tpros",
+        "bumblebee",
+        "gx12",
+        "nb4p",
+        "x10express",
+        "x7access"
       ]
     },
     "v2.9.4": {
       "sha": "77884b6a22e20ad91ba6c6656b96bcb2adc86768",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.9.0",
       "exclude_targets": [
-        "pl18", "pl18ev", "t20", "tprov2", "mt12", "pocket", "f16", "t12max", "t14", "t15", "t20v2", "tpros", "bumblebee", "gx12", "nb4p", "x10express", "x7access"
+        "pl18",
+        "pl18ev",
+        "t20",
+        "tprov2",
+        "mt12",
+        "pocket",
+        "f16",
+        "t12max",
+        "t14",
+        "t15",
+        "t20v2",
+        "tpros",
+        "bumblebee",
+        "gx12",
+        "nb4p",
+        "x10express",
+        "x7access"
       ]
     },
     "v2.8.5": {
       "sha": "cbac1063eb8637457d2a63c367863c6bfd6f0c31",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.8",
       "exclude_targets": [
-        "pl18", "pl18ev", "t20", "tprov2", "mt12", "pocket", "f16", "t12max", "t14", "t15", "t20v2", "tpros", "bumblebee", "gx12", "nb4p", "x10express", "x7access"
+        "pl18",
+        "pl18ev",
+        "t20",
+        "tprov2",
+        "mt12",
+        "pocket",
+        "f16",
+        "t12max",
+        "t14",
+        "t15",
+        "t20v2",
+        "tpros",
+        "bumblebee",
+        "gx12",
+        "nb4p",
+        "x10express",
+        "x7access"
       ]
     }
   },
@@ -108,29 +154,18 @@
     },
     "fai_mode": {
       "build_flag": "FAI",
-      "values": [
-        "YES",
-        "CHOICE"
-      ]
+      "values": ["YES", "CHOICE"]
     },
     "disable_mcucheck": {
       "build_flag": "DISABLE_MCUCHECK",
-      "values": [
-        "YES",
-        "NO"
-      ]
+      "values": ["YES", "NO"]
     }
   },
   "tags": {
     "colorlcd": {
       "flags": {
         "language": {
-          "values": [
-            "CN",
-            "HE",
-            "JP",
-            "TW"
-          ]
+          "values": ["CN", "HE", "JP", "TW"]
         }
       }
     },
@@ -138,21 +173,15 @@
       "flags": {
         "font": {
           "build_flag": "FONT",
-          "values": [
-            "SQT5"
-          ]
+          "values": ["SQT5"]
         },
         "heli": {
           "build_flag": "HELI",
-          "values": [
-            "NO"
-          ]
+          "values": ["NO"]
         },
         "ppm_unit": {
           "build_flag": "PPM_UNIT",
-          "values": [
-            "US"
-          ]
+          "values": ["US"]
         }
       }
     },
@@ -160,9 +189,7 @@
       "flags": {
         "bluetooth": {
           "build_flag": "BLUETOOTH",
-          "values": [
-            "YES"
-          ]
+          "values": ["YES"]
         }
       }
     },
@@ -170,9 +197,7 @@
       "flags": {
         "sticks": {
           "build_flag": "STICKS",
-          "values": [
-            "HORUS"
-          ]
+          "values": ["HORUS"]
         }
       }
     }
@@ -180,283 +205,183 @@
   "targets": {
     "lr3pro": {
       "description": "BETAFPV LiteRadio 3 Pro",
-      "tags": [
-        "stdlcd"
-      ]
+      "tags": ["stdlcd"]
     },
     "f16": {
       "description": "Fatfish F16",
-      "tags": [
-        "colorlcd",
-        "bluetooth"
-      ]
+      "tags": ["colorlcd", "bluetooth"]
     },
     "el18": {
       "description": "Flysky EL18",
-      "tags": [
-        "colorlcd"
-      ]
+      "tags": ["colorlcd"]
     },
     "pl18": {
       "description": "Flysky PL18",
-      "tags": [
-        "colorlcd"
-      ]
+      "tags": ["colorlcd"]
     },
     "pl18ev": {
       "description": "Flysky PL18EV",
-      "tags": [
-        "colorlcd"
-      ]
+      "tags": ["colorlcd"]
     },
     "nv14": {
       "description": "Flysky NV14",
-      "tags": [
-        "colorlcd"
-      ]
+      "tags": ["colorlcd"]
     },
     "nb4p": {
-        "description": "Flysky NB4+",
-        "tags": [
-          "colorlcd"
-        ]
+      "description": "Flysky NB4+",
+      "tags": ["colorlcd"]
     },
     "x10": {
       "description": "FrSky Horus X10",
-      "tags": [
-        "colorlcd"
-      ]
+      "tags": ["colorlcd"]
     },
     "x10-access": {
       "description": "FrSky Horus X10 Access",
-      "tags": [
-        "colorlcd"
-      ]
+      "tags": ["colorlcd"]
     },
     "x10express": {
       "description": "FrSky Horus X10 Express",
-      "tags": [
-        "colorlcd"
-      ]
+      "tags": ["colorlcd"]
     },
     "x12s": {
       "description": "FrSky Horus X12S",
-      "tags": [
-        "colorlcd"
-      ]
+      "tags": ["colorlcd"]
     },
     "x7": {
       "description": "FrSky QX7",
-      "tags": [
-        "stdlcd"
-      ]
+      "tags": ["stdlcd"]
     },
     "x7-access": {
       "description": "FrSky QX7 Access",
-      "tags": [
-        "stdlcd"
-      ]
+      "tags": ["stdlcd"]
     },
     "x7access": {
       "description": "FrSky QX7 Access",
-      "tags": [
-        "stdlcd"
-      ]
+      "tags": ["stdlcd"]
     },
     "x9d": {
       "description": "FrSky X9D",
-      "tags": [
-        "stdlcd"
-      ]
+      "tags": ["stdlcd"]
     },
     "x9dp": {
       "description": "FrSky X9D Plus",
-      "tags": [
-        "stdlcd"
-      ]
+      "tags": ["stdlcd"]
     },
     "x9dp2019": {
       "description": "FrSky X9D Plus 2019",
-      "tags": [
-        "stdlcd"
-      ]
+      "tags": ["stdlcd"]
     },
     "x9e": {
       "description": "FrSky X9E",
-      "tags": [
-        "stdlcd",
-        "x9e"
-      ]
+      "tags": ["stdlcd", "x9e"]
     },
     "x9lite": {
       "description": "FrSky X9 Lite",
-      "tags": [
-        "stdlcd"
-      ]
+      "tags": ["stdlcd"]
     },
     "x9lites": {
       "description": "FrSky X9 Lite S",
-      "tags": [
-        "stdlcd"
-      ]
+      "tags": ["stdlcd"]
     },
     "xlite": {
       "description": "FrSky X-Lite",
-      "tags": [
-        "stdlcd"
-      ]
+      "tags": ["stdlcd"]
     },
     "xlites": {
       "description": "FrSky X-Lite S",
-      "tags": [
-        "stdlcd"
-      ]
+      "tags": ["stdlcd"]
     },
     "commando8": {
       "description": "iFlight Commando 8",
-      "tags": [
-        "stdlcd"
-      ]
+      "tags": ["stdlcd"]
     },
     "bumblebee": {
       "description": "Jumper Bumblebee",
-      "tags": [
-        "stdlcd"
-      ]
+      "tags": ["stdlcd"]
     },
     "t12": {
       "description": "Jumper T12",
-      "tags": [
-        "stdlcd"
-      ]
+      "tags": ["stdlcd"]
     },
     "t12max": {
       "description": "Jumper T12 MAX",
-      "tags": [
-        "stdlcd"
-      ]
+      "tags": ["stdlcd"]
     },
     "t14": {
       "description": "Jumper T14",
-      "tags": [
-        "stdlcd"
-      ]
+      "tags": ["stdlcd"]
     },
     "t15": {
       "description": "Jumper T15",
-      "tags": [
-        "colorlcd",
-        "bluetooth"
-      ]
+      "tags": ["colorlcd", "bluetooth"]
     },
     "t16": {
       "description": "Jumper T16",
-      "tags": [
-        "colorlcd",
-        "bluetooth"
-      ]
+      "tags": ["colorlcd", "bluetooth"]
     },
     "t18": {
       "description": "Jumper T18",
-      "tags": [
-        "colorlcd",
-        "bluetooth"
-      ]
+      "tags": ["colorlcd", "bluetooth"]
     },
     "t20": {
       "description": "Jumper T20",
-      "tags": [
-        "stdlcd"
-      ]
+      "tags": ["stdlcd"]
     },
     "t20v2": {
       "description": "Jumper T20 V2",
-      "tags": [
-        "stdlcd"
-      ]
+      "tags": ["stdlcd"]
     },
     "tlite": {
       "description": "Jumper T-Lite",
-      "tags": [
-        "stdlcd"
-      ]
+      "tags": ["stdlcd"]
     },
     "tpro": {
       "description": "Jumper T-Pro",
-      "tags": [
-        "stdlcd"
-      ]
+      "tags": ["stdlcd"]
     },
     "tprov2": {
       "description": "Jumper T-Pro V2",
-      "tags": [
-        "stdlcd"
-      ]
+      "tags": ["stdlcd"]
     },
     "tpros": {
       "description": "Jumper T-Pro S",
-      "tags": [
-        "stdlcd"
-      ]
+      "tags": ["stdlcd"]
     },
     "boxer": {
-        "description": "RadioMaster Boxer",
-        "tags": [
-          "stdlcd",
-          "bluetooth"
-        ]
+      "description": "RadioMaster Boxer",
+      "tags": ["stdlcd", "bluetooth"]
     },
     "gx12": {
-        "description": "Radiomaster GX12",
-        "tags": [
-          "stdlcd",
-          "bluetooth"
-        ]
+      "description": "Radiomaster GX12",
+      "tags": ["stdlcd", "bluetooth"]
     },
     "mt12": {
       "description": "Radiomaster MT12",
-      "tags": [
-        "stdlcd"
-      ]
+      "tags": ["stdlcd"]
     },
     "pocket": {
-        "description": "RadioMaster Pocket",
-        "tags": [
-          "stdlcd",
-          "bluetooth"
-        ]
+      "description": "RadioMaster Pocket",
+      "tags": ["stdlcd", "bluetooth"]
     },
     "t8": {
       "description": "Radiomaster T8",
-      "tags": [
-        "stdlcd"
-      ]
+      "tags": ["stdlcd"]
     },
     "tx12": {
       "description": "Radiomaster TX12",
-      "tags": [
-        "stdlcd"
-      ]
+      "tags": ["stdlcd"]
     },
     "tx12mk2": {
       "description": "Radiomaster TX12MK2",
-      "tags": [
-        "stdlcd",
-        "bluetooth"
-      ]
+      "tags": ["stdlcd", "bluetooth"]
     },
     "tx16s": {
       "description": "RadioMaster TX16S",
-      "tags": [
-        "colorlcd",
-        "bluetooth"
-      ]
+      "tags": ["colorlcd", "bluetooth"]
     },
     "zorro": {
       "description": "RadioMaster Zorro",
-      "tags": [
-        "stdlcd"
-      ]
+      "tags": ["stdlcd"]
     }
   }
 }
