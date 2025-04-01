@@ -1,6 +1,6 @@
 module github.com/edgetx/cloudbuild
 
-go 1.20
+go 1.24.1
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.18.0

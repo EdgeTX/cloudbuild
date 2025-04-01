@@ -21,7 +21,7 @@ linters:
     - cyclop
     - dogsled
     - durationcheck
-    - exportloopref
+    - copyloopvar
     - exhaustive
     - errname
     - errcheck
