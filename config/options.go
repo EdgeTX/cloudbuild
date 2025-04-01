@@ -43,6 +43,10 @@ func (ll *LogLevel) Level() log.Level {
 	return (log.Level)(*ll)
 }
 
+var (
+    // Define a static error
+    ErrInvalidDataType = errors.New("invalid data type, expected string")
+)
 func LogLevelDecodeHookFunc() mapstructure.DecodeHookFunc {
 	return func(
 		f reflect.Type,
@@ -59,7 +63,7 @@ func LogLevelDecodeHookFunc() mapstructure.DecodeHookFunc {
 
 		str, ok := data.(string)
 		if !ok {
-			return InfoLevel, fmt.Errorf("expected string but got %T", data)
+			return InfoLevel, fmt.Errorf("%w: got %T", ErrInvalidDataType, data)
 		}
 
 		level, err := log.ParseLevel(str)
