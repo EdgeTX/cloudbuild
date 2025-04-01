@@ -16,7 +16,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Define a static error
+// Define a static error.
 var ErrInvalidDataType = errors.New("invalid data type, expected string")
 
 type LogLevel log.Level
