@@ -16,6 +16,9 @@ import (
 	"github.com/spf13/viper"
 )
 
+// Define a static error
+var ErrInvalidDataType = errors.New("invalid data type, expected string")
+
 type LogLevel log.Level
 
 const (
@@ -43,10 +46,6 @@ func (ll *LogLevel) Level() log.Level {
 	return (log.Level)(*ll)
 }
 
-var (
-    // Define a static error
-    ErrInvalidDataType = errors.New("invalid data type, expected string")
-)
 func LogLevelDecodeHookFunc() mapstructure.DecodeHookFunc {
 	return func(
 		f reflect.Type,
