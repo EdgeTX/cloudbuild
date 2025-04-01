@@ -57,7 +57,12 @@ func LogLevelDecodeHookFunc() mapstructure.DecodeHookFunc {
 			return data, nil
 		}
 
-		level, err := log.ParseLevel(data.(string))
+		str, ok := data.(string)
+		if !ok {
+			return InfoLevel, fmt.Errorf("expected string but got %T", data)
+		}
+
+		level, err := log.ParseLevel(str)
 		if err != nil {
 			return InfoLevel, err
 		}
