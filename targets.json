@@ -159,6 +159,10 @@
     "disable_mcucheck": {
       "build_flag": "DISABLE_MCUCHECK",
       "values": ["YES", "NO"]
+    },
+    "power_led_blue": {
+      "build_flag": "POWER_LED_BLUE",
+      "values": ["YES", "NO"]
     }
   },
   "tags": {
