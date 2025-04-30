@@ -6,45 +6,64 @@
         "path": "object.sha"
       }
     },
+    "v2.11.0": {
+      "sha": "8369a2e23a7253a9ea4c9a8cb7c80e5fcf23d235",
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
+      "exclude_targets": ["x10-access", "x7-access"]
+    },
     "v2.11.0-rc4": {
       "sha": "765ffd934c40ee033983b923fd9cb956ea7b2c21",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
-      "exclude_targets": ["x10-access", "x7-access"]
+      "exclude_targets": ["x10-access", "x7-access", "st16"]
     },
     "v2.11.0-rc3": {
       "sha": "59b96867da49f7a8ca05dd0664151815d01176bd",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
-      "exclude_targets": ["x10-access", "x7-access"]
+      "exclude_targets": ["x10-access", "x7-access", "st16"]
     },
     "v2.11.0-rc2": {
       "sha": "4827fb7fa0d76c06ae2c0d9f1c427be1ae467d6b",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
-      "exclude_targets": ["x10-access", "x7-access"]
+      "exclude_targets": ["x10-access", "x7-access", "st16"]
     },
     "v2.11.0-rc1": {
       "sha": "f51c67af4507941afad6bce4caf3a6f2fe4f9cde",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
-      "exclude_targets": ["x10-access", "x7-access"]
+      "exclude_targets": ["x10-access", "x7-access", "st16"]
     },
     "v2.10.6": {
       "sha": "14adf0474ccedbd935fac7d71958946680b5fdfc",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
-      "exclude_targets": ["gx12", "nb4p", "x10express", "x7access"]
+      "exclude_targets": ["gx12", "nb4p", "x10express", "x7access", "st16"]
     },
     "v2.10.5": {
       "sha": "6b539d03c66061e431d9090531ac192f7550a102",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
-      "exclude_targets": ["gx12", "nb4p", "x10express", "x7access"]
+      "exclude_targets": ["gx12", "nb4p", "x10express", "x7access", "st16"]
     },
     "v2.10.4": {
       "sha": "9b901689fbd84fb4027b4f898460314d76b1f69a",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
-      "exclude_targets": ["bumblebee", "gx12", "nb4p", "x10express", "x7access"]
+      "exclude_targets": [
+        "bumblebee",
+        "gx12",
+        "nb4p",
+        "x10express",
+        "x7access",
+        "st16"
+      ]
     },
     "v2.10.3": {
       "sha": "2fc5a9acab767b7b3f4861d85dffd359d6ad28f6",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
-      "exclude_targets": ["bumblebee", "gx12", "nb4p", "x10express", "x7access"]
+      "exclude_targets": [
+        "bumblebee",
+        "gx12",
+        "nb4p",
+        "x10express",
+        "x7access",
+        "st16"
+      ]
     },
     "v2.10.2": {
       "sha": "1de06000cdfe3398840a8d28f7bf5de7fbedc899",
@@ -56,7 +75,8 @@
         "gx12",
         "nb4p",
         "x10express",
-        "x7access"
+        "x7access",
+        "st16"
       ]
     },
     "v2.10.1": {
@@ -70,7 +90,8 @@
         "gx12",
         "nb4p",
         "x10express",
-        "x7access"
+        "x7access",
+        "st16"
       ]
     },
     "v2.10.0": {
@@ -85,7 +106,8 @@
         "gx12",
         "nb4p",
         "x10express",
-        "x7access"
+        "x7access",
+        "st16"
       ]
     },
     "v2.9.4": {
@@ -108,7 +130,8 @@
         "gx12",
         "nb4p",
         "x10express",
-        "x7access"
+        "x7access",
+        "st16"
       ]
     },
     "v2.8.5": {
@@ -224,6 +247,14 @@
       "description": "Flysky EL18",
       "tags": ["colorlcd"]
     },
+    "nv14": {
+      "description": "Flysky NV14",
+      "tags": ["colorlcd"]
+    },
+    "nb4p": {
+      "description": "Flysky NB4+",
+      "tags": ["colorlcd"]
+    },
     "pl18": {
       "description": "Flysky PL18",
       "tags": ["colorlcd"]
@@ -232,12 +263,8 @@
       "description": "Flysky PL18EV",
       "tags": ["colorlcd"]
     },
-    "nv14": {
-      "description": "Flysky NV14",
-      "tags": ["colorlcd"]
-    },
-    "nb4p": {
-      "description": "Flysky NB4+",
+    "st16": {
+      "description": "Flysky ST16",
       "tags": ["colorlcd"]
     },
     "x10": {
