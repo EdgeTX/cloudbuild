@@ -22,7 +22,7 @@ const (
 type BuildErrorType string
 
 const (
-	MaxBuildAttempts = 5
+	MaxBuildAttempts = 3
 	MaxBuildDuration = time.Minute * 15
 )
 
