@@ -128,7 +128,6 @@ func (artifactory *Artifactory) restartFailedJob(
 		To:        WaitingForBuild,
 	})
 	job.Status = WaitingForBuild
-	job.BuildAttempts = 0
 
 	err := artifactory.BuildJobsRepository.Save(job)
 	if err != nil {
@@ -147,8 +146,8 @@ func (artifactory *Artifactory) CreateBuildJob(
 	}
 
 	if job != nil {
-		// forcibly restart completely failed build
-		if job.Status == BuildError {
+		// restart failed build until MaxBuildAttemps
+		if job.Status == BuildError && job.BuildAttempts < MaxBuildAttempts {
 			return artifactory.restartFailedJob(requesterIP, job)
 		}
 		return BuildJobDtoFromModel(job, artifactory.PrefixURL)
@@ -213,15 +212,11 @@ func (artifactory *Artifactory) Build(
 	})
 	onBuildFailure := func(err error, build *BuildJobModel) (*BuildJobModel, error) {
 		build.BuildEndedAt = time.Now()
-		newStatus := WaitingForBuild
-		if build.BuildAttempts >= MaxBuildAttempts {
-			newStatus = BuildError
-		}
-		build.Status = newStatus
+		build.Status = BuildError
 
 		build.AuditLogs = append(build.AuditLogs, AuditLogModel{
 			From:      BuildInProgress,
-			To:        newStatus,
+			To:        BuildError,
 			CreatedAt: time.Now(),
 			StdOut:    recorder.Logs(),
 		})

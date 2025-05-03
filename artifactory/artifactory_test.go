@@ -190,7 +190,7 @@ func TestCreatesBuildJobWhenBuildExistsInErrorState(t *testing.T) {
 	assert.NotNil(t, model)
 
 	if model != nil {
-		assert.Equal(t, artifactory.WaitingForBuild, model.Status)
+		assert.Equal(t, artifactory.BuildError, model.Status)
 		assert.Equal(t, request.HashTargetAndFlags(), model.BuildFlagsHash)
 	}
 }
@@ -288,7 +288,7 @@ func TestBuildWhenFailingToDownload(t *testing.T) {
 	assert.Error(t, err, "failed to download")
 	downloader.AssertNumberOfCalls(t, "Download", 1)
 	assert.Equal(t, model1.ID.String(), model2.ID.String())
-	assert.Equal(t, artifactory.WaitingForBuild, model2.Status)
+	assert.Equal(t, artifactory.BuildError, model2.Status)
 	assert.Equal(t, int64(1), model2.BuildAttempts)
 }
 
@@ -313,7 +313,7 @@ func TestBuildWhenFailingToBuild(t *testing.T) {
 	downloader.AssertNumberOfCalls(t, "Download", 1)
 	builder.AssertNumberOfCalls(t, "Build", 1)
 	assert.Equal(t, model1.ID.String(), model2.ID.String())
-	assert.Equal(t, artifactory.WaitingForBuild, model2.Status)
+	assert.Equal(t, artifactory.BuildError, model2.Status)
 	assert.Equal(t, int64(1), model2.BuildAttempts)
 }
 
@@ -342,7 +342,7 @@ func TestBuildWhenFailingToUpload(t *testing.T) {
 	assert.Error(t, err, "failed to upload")
 
 	assert.Equal(t, model1.ID.String(), model2.ID.String())
-	assert.Equal(t, artifactory.WaitingForBuild, model2.Status)
+	assert.Equal(t, artifactory.BuildError, model2.Status)
 	assert.Equal(t, int64(1), model2.BuildAttempts)
 }
 
