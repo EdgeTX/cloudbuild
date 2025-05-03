@@ -251,7 +251,7 @@ func (artifactory *Artifactory) Build(
 		return onBuildFailure(err, build)
 	}
 
-	fileName := fmt.Sprintf("%s-%s.bin", build.CommitHash, build.BuildFlagsHash)
+	fileName := fmt.Sprintf("%s-%s", build.CommitHash, build.BuildFlagsHash)
 	err = artifactory.ArtifactStorage.Upload(ctx, firmwareBin, fileName)
 	if err != nil {
 		return onBuildFailure(err, build)
