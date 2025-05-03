@@ -88,6 +88,19 @@ func (builder *PodmanBuilder) buildCmdArgs(
 	return append(args, buildContainer, "./tools/build-gh.sh")
 }
 
+func (builder *PodmanBuilder) matchBuildArtefacts(patterns ...string) ([]string, error) {
+	var matches []string
+
+	for _, pattern := range patterns {
+		found, err := filepath.Glob(filepath.Join(builder.workingDir, pattern))
+		if err != nil {
+			return nil, fmt.Errorf("error with pattern %s: %w", pattern, err)
+		}
+		matches = append(matches, found...)
+	}
+	return matches, nil
+}
+
 func (builder *PodmanBuilder) Build(
 	ctx context.Context,
 	buildContainer string,
@@ -108,7 +121,7 @@ func (builder *PodmanBuilder) Build(
 		return nil, fmt.Errorf("failed to build: %w", err)
 	}
 
-	firmwarePaths, err := filepath.Glob(filepath.Join(builder.workingDir, "*.bin"))
+	firmwarePaths, err := builder.matchBuildArtefacts("*.uf2", "*.bin")
 	if err != nil || len(firmwarePaths) == 0 {
 		return nil, fmt.Errorf("cannot find build artifact: %w", err)
 	}
