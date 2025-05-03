@@ -139,7 +139,7 @@ func createBuildModel(
 	if status == artifactory.BuildSuccess {
 		build.Artifacts = append(build.Artifacts, artifactory.ArtifactModel{
 			Slug:     "firmware",
-			Filename: "firmware.bin",
+			Filename: "firmware",
 		})
 	}
 	buildModel, err := repository.Create(build)
@@ -369,7 +369,7 @@ func TestSuccessfulBuildJobFlow(t *testing.T) {
 	assert.Equal(t, artifactory.BuildSuccess, model2.Status)
 	assert.Equal(t, int64(1), model2.BuildAttempts)
 	assert.Equal(t,
-		fmt.Sprintf("%s-%s.bin", model2.CommitHash, model2.BuildFlagsHash),
+		fmt.Sprintf("%s-%s", model2.CommitHash, model2.BuildFlagsHash),
 		model2.Artifacts[0].Filename,
 	)
 }
