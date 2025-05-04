@@ -132,7 +132,7 @@ func (app *Application) getBuildJobLogs(c *gin.Context) {
 	if logs == nil {
 		c.AbortWithStatusJSON(
 			http.StatusNotFound,
-			NewErrorResponse("Failed to find job"),
+			NewErrorResponse("job not found"),
 		)
 		return
 	}
@@ -184,14 +184,14 @@ func (app *Application) buildJobStatus(c *gin.Context) {
 		return
 	}
 	job, err := app.artifactory.GetBuild(req)
-	if err != nil {
+	if err != nil && !errors.Is(err, artifactory.ErrBuildNotFound) {
 		ServiceUnavailableResponse(c, err)
 		return
 	}
 	if job == nil {
 		c.AbortWithStatusJSON(
 			http.StatusNotFound,
-			NewErrorResponse("Failed to find job with requested params"),
+			NewErrorResponse("no such job"),
 		)
 		return
 	}
