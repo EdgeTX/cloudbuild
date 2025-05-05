@@ -11,26 +11,6 @@
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
       "exclude_targets": ["x10-access", "x7-access"]
     },
-    "v2.11.0-rc4": {
-      "sha": "765ffd934c40ee033983b923fd9cb956ea7b2c21",
-      "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
-      "exclude_targets": ["x10-access", "x7-access", "st16"]
-    },
-    "v2.11.0-rc3": {
-      "sha": "59b96867da49f7a8ca05dd0664151815d01176bd",
-      "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
-      "exclude_targets": ["x10-access", "x7-access", "st16"]
-    },
-    "v2.11.0-rc2": {
-      "sha": "4827fb7fa0d76c06ae2c0d9f1c427be1ae467d6b",
-      "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
-      "exclude_targets": ["x10-access", "x7-access", "st16"]
-    },
-    "v2.11.0-rc1": {
-      "sha": "f51c67af4507941afad6bce4caf3a6f2fe4f9cde",
-      "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
-      "exclude_targets": ["x10-access", "x7-access", "st16"]
-    },
     "v2.10.6": {
       "sha": "14adf0474ccedbd935fac7d71958946680b5fdfc",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
