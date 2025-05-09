@@ -9,6 +9,7 @@ import (
 
 	"github.com/edgetx/cloudbuild/artifactory"
 	"github.com/edgetx/cloudbuild/auth"
+	"github.com/edgetx/cloudbuild/config"
 	"github.com/edgetx/cloudbuild/processor"
 	"github.com/edgetx/cloudbuild/targets"
 	"github.com/gin-contrib/static"
@@ -226,14 +227,17 @@ func debugRoutes(method, path, _ string, _ int) {
 	}).Debugf("endpoint")
 }
 
-func (app *Application) Start(listen string) error {
+func (app *Application) Start(listen string, opts *config.CloudbuildOpts) error {
 	gin.DebugPrintRouteFunc = debugRoutes
 	router := gin.New()
 	router.Use(ginlogrus.Logger(log.New()))
 	router.Use(gin.Recovery())
 
-	// this should be a config parameter (in case behind CF)
-	router.SetTrustedProxies(nil) //nolint:errcheck
+	if opts.TrustedPlatform == "cloudflare" {
+		router.TrustedPlatform = gin.PlatformCloudflare
+	} else {
+		router.SetTrustedProxies(nil) //nolint:errcheck
+	}
 
 	// later this should server static content (dashboard app?)
 	router.Use(static.ServeRoot("/", staticContentDir))

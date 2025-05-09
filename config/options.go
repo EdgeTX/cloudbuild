@@ -79,6 +79,7 @@ type CloudbuildOpts struct {
 	LogLevel        LogLevel `mapstructure:"log-level"`
 	HTTPBindAddress net.IP   `mapstructure:"listen-ip"`
 	HTTPBindPort    uint16   `mapstructure:"port"`
+	TrustedPlatform string   `mapstructure:"platform"`
 
 	// Database options:
 	DatabaseDSN  string `mapstructure:"database-dsn"`
