@@ -19,12 +19,30 @@
     "v2.10.6": {
       "sha": "14adf0474ccedbd935fac7d71958946680b5fdfc",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
-      "exclude_targets": ["gx12", "nb4p", "x10express", "x7access", "st16"]
+      "exclude_targets": [
+        "gx12",
+        "nb4p",
+        "x10express",
+        "x7access",
+        "st16",
+        "v12",
+        "v14",
+        "v16"
+      ]
     },
     "v2.10.5": {
       "sha": "6b539d03c66061e431d9090531ac192f7550a102",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
-      "exclude_targets": ["gx12", "nb4p", "x10express", "x7access", "st16"]
+      "exclude_targets": [
+        "gx12",
+        "nb4p",
+        "x10express",
+        "x7access",
+        "st16",
+        "v12",
+        "v14",
+        "v16"
+      ]
     },
     "v2.10.4": {
       "sha": "9b901689fbd84fb4027b4f898460314d76b1f69a",
@@ -35,7 +53,10 @@
         "nb4p",
         "x10express",
         "x7access",
-        "st16"
+        "st16",
+        "v12",
+        "v14",
+        "v16"
       ]
     },
     "v2.10.3": {
@@ -47,7 +68,10 @@
         "nb4p",
         "x10express",
         "x7access",
-        "st16"
+        "st16",
+        "v12",
+        "v14",
+        "v16"
       ]
     },
     "v2.10.2": {
@@ -61,7 +85,10 @@
         "nb4p",
         "x10express",
         "x7access",
-        "st16"
+        "st16",
+        "v12",
+        "v14",
+        "v16"
       ]
     },
     "v2.10.1": {
@@ -76,7 +103,10 @@
         "nb4p",
         "x10express",
         "x7access",
-        "st16"
+        "st16",
+        "v12",
+        "v14",
+        "v16"
       ]
     },
     "v2.10.0": {
@@ -92,7 +122,10 @@
         "nb4p",
         "x10express",
         "x7access",
-        "st16"
+        "st16",
+        "v12",
+        "v14",
+        "v16"
       ]
     },
     "v2.9.4": {
@@ -116,7 +149,10 @@
         "nb4p",
         "x10express",
         "x7access",
-        "st16"
+        "st16",
+        "v12",
+        "v14",
+        "v16"
       ]
     },
     "v2.8.5": {
@@ -139,7 +175,10 @@
         "gx12",
         "nb4p",
         "x10express",
-        "x7access"
+        "x7access",
+        "v12",
+        "v14",
+        "v16"
       ]
     }
   },
@@ -316,6 +355,18 @@
     "commando8": {
       "description": "iFlight Commando 8",
       "tags": ["stdlcd"]
+    },
+    "v12": {
+      "description": "HelloRadioSky V12",
+      "tags": ["stdlcd"]
+    },
+    "v14": {
+      "description": "HelloRadioSky V14",
+      "tags": ["stdlcd"]
+    },
+    "v16": {
+      "description": "HelloRadioSky V16",
+      "tags": ["colorlcd", "bluetooth"]
     },
     "bumblebee": {
       "description": "Jumper Bumblebee",
