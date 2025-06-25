@@ -286,12 +286,12 @@
       "description": "Flysky EL18",
       "tags": ["colorlcd"]
     },
-    "nv14": {
-      "description": "Flysky NV14",
-      "tags": ["colorlcd"]
-    },
     "nb4p": {
       "description": "Flysky NB4+",
+      "tags": ["colorlcd"]
+    },
+    "nv14": {
+      "description": "Flysky NV14",
       "tags": ["colorlcd"]
     },
     "pl18": {
@@ -308,22 +308,6 @@
     },
     "st16": {
       "description": "Flysky ST16",
-      "tags": ["colorlcd"]
-    },
-    "x10": {
-      "description": "FrSky Horus X10",
-      "tags": ["colorlcd"]
-    },
-    "x10-access": {
-      "description": "FrSky Horus X10 Access",
-      "tags": ["colorlcd"]
-    },
-    "x10express": {
-      "description": "FrSky Horus X10 Express",
-      "tags": ["colorlcd"]
-    },
-    "x12s": {
-      "description": "FrSky Horus X12S",
       "tags": ["colorlcd"]
     },
     "x7": {
@@ -362,16 +346,28 @@
       "description": "FrSky X9 Lite S",
       "tags": ["stdlcd"]
     },
+    "x10": {
+      "description": "FrSky Horus X10",
+      "tags": ["colorlcd"]
+    },
+    "x10-access": {
+      "description": "FrSky Horus X10 Access",
+      "tags": ["colorlcd"]
+    },
+    "x10express": {
+      "description": "FrSky Horus X10 Express",
+      "tags": ["colorlcd"]
+    },
+    "x12s": {
+      "description": "FrSky Horus X12S",
+      "tags": ["colorlcd"]
+    },
     "xlite": {
       "description": "FrSky X-Lite",
       "tags": ["stdlcd"]
     },
     "xlites": {
       "description": "FrSky X-Lite S",
-      "tags": ["stdlcd"]
-    },
-    "commando8": {
-      "description": "iFlight Commando 8",
       "tags": ["stdlcd"]
     },
     "v12": {
@@ -385,6 +381,10 @@
     "v16": {
       "description": "HelloRadioSky V16",
       "tags": ["colorlcd", "bluetooth"]
+    },
+    "commando8": {
+      "description": "iFlight Commando 8",
+      "tags": ["stdlcd"]
     },
     "bumblebee": {
       "description": "Jumper Bumblebee",
