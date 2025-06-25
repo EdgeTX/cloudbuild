@@ -6,15 +6,20 @@
         "path": "object.sha"
       }
     },
+    "v2.11.2": {
+      "sha": "84cde07404cc6ee664f8f59aea604fe02c708d5d",
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
+      "exclude_targets": ["x10-access", "x7-access"]
+    },
     "v2.11.1": {
       "sha": "dfc8aa545796d1d437d4ee1e57a6dbfb87f754fc",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
-      "exclude_targets": ["x10-access", "x7-access"]
+      "exclude_targets": ["x10-access", "x7-access", "pl18u"]
     },
     "v2.11.0": {
       "sha": "8369a2e23a7253a9ea4c9a8cb7c80e5fcf23d235",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
-      "exclude_targets": ["x10-access", "x7-access"]
+      "exclude_targets": ["x10-access", "x7-access", "pl18u"]
     },
     "v2.10.6": {
       "sha": "14adf0474ccedbd935fac7d71958946680b5fdfc",
@@ -27,7 +32,8 @@
         "st16",
         "v12",
         "v14",
-        "v16"
+        "v16",
+        "pl18u"
       ]
     },
     "v2.10.5": {
@@ -41,7 +47,8 @@
         "st16",
         "v12",
         "v14",
-        "v16"
+        "v16",
+        "pl18u"
       ]
     },
     "v2.10.4": {
@@ -56,7 +63,8 @@
         "st16",
         "v12",
         "v14",
-        "v16"
+        "v16",
+        "pl18u"
       ]
     },
     "v2.10.3": {
@@ -71,7 +79,8 @@
         "st16",
         "v12",
         "v14",
-        "v16"
+        "v16",
+        "pl18u"
       ]
     },
     "v2.10.2": {
@@ -88,7 +97,8 @@
         "st16",
         "v12",
         "v14",
-        "v16"
+        "v16",
+        "pl18u"
       ]
     },
     "v2.10.1": {
@@ -106,7 +116,8 @@
         "st16",
         "v12",
         "v14",
-        "v16"
+        "v16",
+        "pl18u"
       ]
     },
     "v2.10.0": {
@@ -125,7 +136,8 @@
         "st16",
         "v12",
         "v14",
-        "v16"
+        "v16",
+        "pl18u"
       ]
     },
     "v2.9.4": {
@@ -152,7 +164,8 @@
         "st16",
         "v12",
         "v14",
-        "v16"
+        "v16",
+        "pl18u"
       ]
     },
     "v2.8.5": {
@@ -178,7 +191,8 @@
         "x7access",
         "v12",
         "v14",
-        "v16"
+        "v16",
+        "pl18u"
       ]
     }
   },
@@ -286,6 +300,10 @@
     },
     "pl18ev": {
       "description": "Flysky PL18EV",
+      "tags": ["colorlcd"]
+    },
+    "pl18u": {
+      "description": "Flysky PL18U",
       "tags": ["colorlcd"]
     },
     "st16": {
