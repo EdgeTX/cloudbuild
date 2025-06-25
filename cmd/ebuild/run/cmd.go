@@ -63,6 +63,7 @@ func (s *serverRunner) runAPI(cmd *cobra.Command, args []string) {
 			s.opts.HTTPBindAddress,
 			s.opts.HTTPBindPort,
 		),
+		s.opts,
 	)
 	if err != nil {
 		fmt.Printf("failed to start API server: %s", err)
