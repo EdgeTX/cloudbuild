@@ -9,6 +9,8 @@ type JobQuery struct {
 	Status  string `form:"status"`
 	Release string `form:"release"`
 	Target  string `form:"target"`
+	Sha     string `form:"sha"`
+	NotSha  string `form:"not-sha"`
 }
 
 func (q *JobQuery) Validate() error {

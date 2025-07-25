@@ -118,6 +118,14 @@ func jobQueryClause(query *JobQuery) func(db *gorm.DB) *gorm.DB {
 			refs := strings.Split(query.Release, ",")
 			db = db.Where("commit_ref IN(?)", refs)
 		}
+		if query.Sha != "" {
+			shas := strings.Split(query.Sha, ",")
+			db = db.Where("commit_hash IN(?)", shas)
+		}
+		if query.NotSha != "" {
+			shas := strings.Split(query.NotSha, ",")
+			db = db.Where("commit_hash NOT IN(?)", shas)
+		}
 		return db
 	}
 }
