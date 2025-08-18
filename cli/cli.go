@@ -132,7 +132,7 @@ func Build(
 	defer os.RemoveAll(sourceDir)
 	recorder := buildlogs.NewRecorder()
 	gitDownloader := source.NewGitDownloader(sourceDir, recorder)
-	firmwareBuilder := firmware.NewPodmanBuilder(sourceDir, recorder, runtime.NumCPU()/2, 1024*1024*1024*2)
+	firmwareBuilder := firmware.NewPodmanBuilder(sourceDir, recorder, runtime.NumCPU(), 1024*1024*1024*2)
 
 	err = gitDownloader.Download(ctx, sourceRepository, commitHash)
 	if err != nil {

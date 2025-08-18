@@ -3,6 +3,7 @@ package firmware_test
 import (
 	"context"
 	"os"
+	"runtime"
 	"testing"
 	"time"
 
@@ -28,7 +29,7 @@ func TestFirmwareFirmwareBuild(t *testing.T) {
 	assert.Nil(t, err, "failed to download firmware")
 	t.Log("will start firmware build")
 
-	firmwareBuilder := firmware.NewPodmanBuilder(sourceDir, recorder, 2, 1024*1024*1024)
+	firmwareBuilder := firmware.NewPodmanBuilder(sourceDir, recorder, runtime.NumCPU(), 1024*1024*1024)
 	flags := []firmware.BuildFlag{
 		firmware.NewFlag("DISABLE_COMPANION", "YES"),
 		firmware.NewFlag("CMAKE_BUILD_TYPE", "Release"),
