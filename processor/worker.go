@@ -3,6 +3,7 @@ package processor
 import (
 	"context"
 	"os"
+	"runtime"
 	"time"
 
 	"github.com/edgetx/cloudbuild/artifactory"
@@ -39,7 +40,7 @@ func (worker *Worker) build(
 
 	recorder := buildlogs.NewRecorder()
 	gitDownloader := source.NewGitDownloader(sourceDir, recorder)
-	firmwareBuilder := firmware.NewPodmanBuilder(sourceDir, recorder, 4, 2*1024*1024*1024)
+	firmwareBuilder := firmware.NewPodmanBuilder(sourceDir, recorder, runtime.NumCPU(), 2*1024*1024*1024)
 
 	return worker.artifactory.Build(
 		ctx, job, recorder, gitDownloader, firmwareBuilder,
@@ -73,7 +74,7 @@ func (worker *Worker) PullImage(ctx context.Context, buildImage string) error {
 		We do this so actual build process is faster because of the cached build image
 	*/
 	recorder := buildlogs.NewRecorder()
-	firmwareBuilder := firmware.NewPodmanBuilder("/tmp", recorder, 4, 1024*1024*1024)
+	firmwareBuilder := firmware.NewPodmanBuilder("/tmp", recorder, runtime.NumCPU(), 1024*1024*1024)
 	ctx, cancel := context.WithTimeout(ctx, artifactory.MaxBuildDuration)
 	defer cancel()
 

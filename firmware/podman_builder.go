@@ -28,7 +28,6 @@ type PodmanBuilder struct {
 	workingDir     string
 	PodmanExecutor PodmanExecutor
 	CPULimit       int // logical cores
-	MemoryLimit    int // bytes
 	recorder       *buildlogs.Recorder
 }
 
@@ -37,7 +36,6 @@ func NewPodmanBuilder(workingDir string, recorder *buildlogs.Recorder, cpuLimit 
 		workingDir:     workingDir,
 		PodmanExecutor: DefaultPodmanExecutor(workingDir),
 		CPULimit:       cpuLimit,
-		MemoryLimit:    memoryLimit,
 		recorder:       recorder,
 	}
 }
@@ -71,6 +69,7 @@ func (builder *PodmanBuilder) buildCmdArgs(
 	env := []string{
 		fmt.Sprintf("FLAVOR=%s", target),
 		fmt.Sprintf("EXTRA_OPTIONS=%s", CmakeFlags(flags)),
+		fmt.Sprintf("MAX_JOBS=%d", builder.CPULimit),
 	}
 	if versionTag == "nightly" {
 		env = append(env, "EDGETX_VERSION_SUFFIX=nightly")
