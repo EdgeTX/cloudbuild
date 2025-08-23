@@ -470,11 +470,11 @@
       "tags": ["stdlcd", "bluetooth"]
     },
     "gx12": {
-      "description": "Radiomaster GX12",
+      "description": "RadioMaster GX12",
       "tags": ["stdlcd", "bluetooth"]
     },
     "mt12": {
-      "description": "Radiomaster MT12",
+      "description": "RadioMaster MT12",
       "tags": ["stdlcd"]
     },
     "pocket": {
@@ -482,15 +482,15 @@
       "tags": ["stdlcd", "bluetooth"]
     },
     "t8": {
-      "description": "Radiomaster T8",
+      "description": "RadioMaster T8",
       "tags": ["stdlcd"]
     },
     "tx12": {
-      "description": "Radiomaster TX12",
+      "description": "RadioMaster TX12",
       "tags": ["stdlcd"]
     },
     "tx12mk2": {
-      "description": "Radiomaster TX12MK2",
+      "description": "RadioMaster TX12MK2",
       "tags": ["stdlcd", "bluetooth"]
     },
     "tx15": {
