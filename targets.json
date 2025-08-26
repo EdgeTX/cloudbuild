@@ -6,6 +6,11 @@
         "path": "object.sha"
       }
     },
+    "v2.11.3": {
+      "sha": "a7a1f37f54ebfefbda6ff03399f6d052e11fe4de",
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
+      "exclude_targets": ["x10-access", "x7-access"]
+    },
     "v2.11.2": {
       "sha": "84cde07404cc6ee664f8f59aea604fe02c708d5d",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
@@ -465,11 +470,11 @@
       "tags": ["stdlcd", "bluetooth"]
     },
     "gx12": {
-      "description": "Radiomaster GX12",
+      "description": "RadioMaster GX12",
       "tags": ["stdlcd", "bluetooth"]
     },
     "mt12": {
-      "description": "Radiomaster MT12",
+      "description": "RadioMaster MT12",
       "tags": ["stdlcd"]
     },
     "pocket": {
@@ -477,15 +482,15 @@
       "tags": ["stdlcd", "bluetooth"]
     },
     "t8": {
-      "description": "Radiomaster T8",
+      "description": "RadioMaster T8",
       "tags": ["stdlcd"]
     },
     "tx12": {
-      "description": "Radiomaster TX12",
+      "description": "RadioMaster TX12",
       "tags": ["stdlcd"]
     },
     "tx12mk2": {
-      "description": "Radiomaster TX12MK2",
+      "description": "RadioMaster TX12MK2",
       "tags": ["stdlcd", "bluetooth"]
     },
     "tx15": {
