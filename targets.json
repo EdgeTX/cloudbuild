@@ -9,17 +9,17 @@
     "v2.11.2": {
       "sha": "84cde07404cc6ee664f8f59aea604fe02c708d5d",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
-      "exclude_targets": ["x10-access", "x7-access"]
+      "exclude_targets": ["x10-access", "x7-access", "tx15", "pa01"]
     },
     "v2.11.1": {
       "sha": "dfc8aa545796d1d437d4ee1e57a6dbfb87f754fc",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
-      "exclude_targets": ["x10-access", "x7-access", "pl18u"]
+      "exclude_targets": ["x10-access", "x7-access", "pl18u", "tx15", "pa01"]
     },
     "v2.11.0": {
       "sha": "8369a2e23a7253a9ea4c9a8cb7c80e5fcf23d235",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
-      "exclude_targets": ["x10-access", "x7-access", "pl18u"]
+      "exclude_targets": ["x10-access", "x7-access", "pl18u", "tx15", "pa01"]
     },
     "v2.10.6": {
       "sha": "14adf0474ccedbd935fac7d71958946680b5fdfc",
@@ -33,7 +33,9 @@
         "v12",
         "v14",
         "v16",
-        "pl18u"
+        "pl18u",
+        "tx15",
+        "pa01"
       ]
     },
     "v2.10.5": {
@@ -48,7 +50,9 @@
         "v12",
         "v14",
         "v16",
-        "pl18u"
+        "pl18u",
+        "tx15",
+        "pa01"
       ]
     },
     "v2.10.4": {
@@ -64,7 +68,9 @@
         "v12",
         "v14",
         "v16",
-        "pl18u"
+        "pl18u",
+        "tx15",
+        "pa01"
       ]
     },
     "v2.10.3": {
@@ -80,7 +86,9 @@
         "v12",
         "v14",
         "v16",
-        "pl18u"
+        "pl18u",
+        "tx15",
+        "pa01"
       ]
     },
     "v2.10.2": {
@@ -98,7 +106,9 @@
         "v12",
         "v14",
         "v16",
-        "pl18u"
+        "pl18u",
+        "tx15",
+        "pa01"
       ]
     },
     "v2.10.1": {
@@ -117,7 +127,9 @@
         "v12",
         "v14",
         "v16",
-        "pl18u"
+        "pl18u",
+        "tx15",
+        "pa01"
       ]
     },
     "v2.10.0": {
@@ -137,7 +149,9 @@
         "v12",
         "v14",
         "v16",
-        "pl18u"
+        "pl18u",
+        "tx15",
+        "pa01"
       ]
     },
     "v2.9.4": {
@@ -165,7 +179,9 @@
         "v12",
         "v14",
         "v16",
-        "pl18u"
+        "pl18u",
+        "tx15",
+        "pa01"
       ]
     },
     "v2.8.5": {
@@ -192,7 +208,9 @@
         "v12",
         "v14",
         "v16",
-        "pl18u"
+        "pl18u",
+        "tx15",
+        "pa01"
       ]
     }
   },
@@ -292,6 +310,10 @@
     },
     "nv14": {
       "description": "Flysky NV14",
+      "tags": ["colorlcd"]
+    },
+    "pa01": {
+      "description": "Flysky PA01",
       "tags": ["colorlcd"]
     },
     "pl18": {
@@ -465,6 +487,10 @@
     "tx12mk2": {
       "description": "Radiomaster TX12MK2",
       "tags": ["stdlcd", "bluetooth"]
+    },
+    "tx15": {
+      "description": "RadioMaster TX15",
+      "tags": ["colorlcd"]
     },
     "tx16s": {
       "description": "RadioMaster TX16S",
