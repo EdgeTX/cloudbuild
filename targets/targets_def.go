@@ -13,13 +13,14 @@ import (
 )
 
 var (
-	// global targets pointer
+	// global targets pointer.
 	targetsDef = atomic.Pointer[TargetsDef]{}
 
-	// absurdly high version
+	// absurdly high version.
 	NightlyVersion = semver.New(math.MaxUint64, 0, 0, "", "")
 
 	ErrMissingSHA = errors.New("missing SHA")
+	ErrMissingRef = errors.New("missing ref")
 )
 
 type RemoteAPI struct {
@@ -73,9 +74,7 @@ func ReadTargetsDefFromBytes(data []byte) (*TargetsDef, error) {
 	if err := defs.validateSHA(); err != nil {
 		return nil, err
 	}
-	if err := defs.fillExcludeTargets(); err != nil {
-		return nil, err
-	}
+	defs.fillExcludeTargets()
 	return &defs, nil
 }
 
@@ -140,7 +139,7 @@ func (def *TargetsDef) validateSHA() error {
 	return nil
 }
 
-func (def *TargetsDef) fillExcludeTargets() error {
+func (def *TargetsDef) fillExcludeTargets() {
 	for k := range def.Releases {
 		exclude := make([]string, 0)
 		for t := range def.Targets {
@@ -152,7 +151,6 @@ func (def *TargetsDef) fillExcludeTargets() error {
 		r.ExcludeTargets = exclude
 		def.Releases[k] = r
 	}
-	return nil
 }
 
 func (def *TargetsDef) IsRefSupported(ref string) bool {
@@ -254,7 +252,7 @@ func (def *TargetsDef) ExcludeTargetsFromRef(ref string) ([]string, error) {
 	}
 	r, ok := def.Releases[*v]
 	if !ok {
-		return nil, fmt.Errorf("ref does not exist")
+		return nil, ErrMissingRef
 	}
 
 	excl := make([]string, len(r.ExcludeTargets))

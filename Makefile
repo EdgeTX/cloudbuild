@@ -7,12 +7,12 @@ migrate:
 	go run cmd/db/main.go -migrate
 
 lint:
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.52.2
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64
 	golangci-lint run ./...
 
 lint-fix:
 	go mod tidy
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.52.2
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64
 	golangci-lint run --fix ./...
 
 build:
