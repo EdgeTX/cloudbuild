@@ -29,10 +29,12 @@ type RemoteAPI struct {
 }
 
 type Release struct {
-	SHA            string     `json:"sha"`
-	Remote         *RemoteSHA `json:"remote,omitempty"`
-	ExcludeTargets []string   `json:"exclude_targets,omitempty"`
-	BuildContainer string     `json:"build_container,omitempty"`
+	SHA            string          `json:"sha"`
+	Remote         *RemoteSHA      `json:"remote,omitempty"`
+	ExcludeTargets []string        `json:"exclude_targets,omitempty"`
+	BuildContainer string          `json:"build_container,omitempty"`
+	SemVer         string          `json:"sem_ver,omitempty"`
+	Version        *semver.Version `json:"-"`
 }
 
 type OptionFlag struct {
@@ -60,10 +62,10 @@ type VersionRef struct {
 }
 
 type TargetsDef struct {
-	Releases    map[VersionRef]Release `json:"releases"`
-	OptionFlags OptionFlags            `json:"flags"`
-	Tags        map[string]TagDef      `json:"tags"`
-	Targets     map[string]Target      `json:"targets"`
+	Releases    map[VersionRef]*Release `json:"releases"`
+	OptionFlags OptionFlags             `json:"flags"`
+	Tags        map[string]TagDef       `json:"tags"`
+	Targets     map[string]*Target      `json:"targets"`
 }
 
 func ReadTargetsDefFromBytes(data []byte) (*TargetsDef, error) {
@@ -72,6 +74,9 @@ func ReadTargetsDefFromBytes(data []byte) (*TargetsDef, error) {
 		return nil, err
 	}
 	if err := defs.validateSHA(); err != nil {
+		return nil, err
+	}
+	if err := defs.fillSemVer(); err != nil {
 		return nil, err
 	}
 	defs.fillExcludeTargets()
@@ -125,9 +130,9 @@ func (opts OptionFlags) HasOptionValue(name, value string) bool {
 	return false
 }
 
-func (target Target) SupportsVersion(r *VersionRef) bool {
+func (target *Target) SupportsRelease(r *Release) bool {
 	if len(target.VersionSupported.String()) > 0 {
-		return target.VersionSupported.Check(&r.v)
+		return target.VersionSupported.Check(r.Version)
 	}
 	return true
 }
@@ -144,7 +149,6 @@ func (def *TargetsDef) validateSHA() error {
 				return fmt.Errorf("%v: %w", k, err)
 			}
 			v.SHA = sha
-			def.Releases[k] = v
 		}
 	}
 	return nil
@@ -152,16 +156,31 @@ func (def *TargetsDef) validateSHA() error {
 
 func (def *TargetsDef) fillExcludeTargets() {
 	for k := range def.Releases {
-		exclude := make([]string, 0)
+		r := def.Releases[k]
+		r.ExcludeTargets = make([]string, 0)
 		for t := range def.Targets {
-			if !def.Targets[t].SupportsVersion(&k) {
-				exclude = append(exclude, t)
+			if !def.Targets[t].SupportsRelease(r) {
+				r.ExcludeTargets = append(r.ExcludeTargets, t)
 			}
 		}
-		r := def.Releases[k]
-		r.ExcludeTargets = exclude
-		def.Releases[k] = r
+		slices.Sort(r.ExcludeTargets)
 	}
+}
+
+func (def *TargetsDef) fillSemVer() error {
+	for k := range def.Releases {
+		r := def.Releases[k]
+		if r.SemVer != "" {
+			if v, err := semver.NewVersion(r.SemVer); err != nil {
+				return err
+			} else {
+				r.Version = v
+			}
+		} else {
+			r.Version = &k.v
+		}
+	}
+	return nil
 }
 
 func (def *TargetsDef) IsRefSupported(ref string) bool {
@@ -178,7 +197,7 @@ func (def *TargetsDef) IsTargetSupported(name, ref string) bool {
 	if err != nil {
 		return false
 	}
-	_, ok := def.Releases[*v]
+	r, ok := def.Releases[*v]
 	if !ok {
 		return false
 	}
@@ -186,7 +205,7 @@ func (def *TargetsDef) IsTargetSupported(name, ref string) bool {
 	if !ok {
 		return false
 	}
-	return target.SupportsVersion(v)
+	return target.SupportsRelease(r)
 }
 
 func (def *TargetsDef) IsOptionFlagSupported(target, name, value string) bool {
@@ -265,12 +284,7 @@ func (def *TargetsDef) ExcludeTargetsFromRef(ref string) ([]string, error) {
 	if !ok {
 		return nil, ErrMissingRef
 	}
-
-	excl := make([]string, len(r.ExcludeTargets))
-	copy(excl, r.ExcludeTargets)
-	slices.Sort(excl)
-
-	return excl, nil
+	return r.ExcludeTargets, nil
 }
 
 func SetTargets(defs *TargetsDef) {

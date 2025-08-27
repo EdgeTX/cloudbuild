@@ -9,27 +9,31 @@ import (
 )
 
 var targetsJSON = `{
-	  "releases": {
-	    "nightly": { "sha": "000" },
-	  	"v1.3.0": { "sha": "123" },
-	  	"v1.3.0-RC1": { "sha": "pre-123" },
-	  	"v1.2.3": { "sha": "345" },
-	  	"v1.1.2": { "sha": "456" }
-	  },
-	  "targets": {
-	    "t1": {
-	      "description": "Always been there"
-	    },
-	    "t123": {
-	      "description": "Acme Dream Radio",
-	      "version_supported": ">= 1.2.3"
-	    },
-	    "x123": {
-	      "description": "XYZ Radio",
-	      "version_supported": "1.2 - 2.0"
-	    }
-	  }
-	}`
+  "releases": {
+    "nightly": {
+      "sha": "000",
+      "semantic_version": "v2.0.0"
+    },
+    "v2.0.0-RC1": { "sha": "678" },
+    "v1.3.0": { "sha": "567" },
+    "v1.3.0-RC1": { "sha": "456" },
+    "v1.2.3": { "sha": "345" },
+    "v1.1.2": { "sha": "123" }
+  },
+  "targets": {
+    "t1": {
+      "description": "Always been there"
+    },
+    "t123": {
+      "description": "Acme Dream Radio",
+      "version_supported": ">= 1.2.3"
+    },
+    "x123": {
+      "description": "XYZ Radio",
+      "version_supported": ">= 1.2, < 2"
+    }
+  }
+}`
 
 func TestLoadTargetsJSON(t *testing.T) {
 	defs, err := targets.ReadTargetsDefFromBytes([]byte(targetsJSON))
@@ -52,8 +56,9 @@ func TestVersions(t *testing.T) {
 	//
 	assert.True(t, defs.IsRefSupported("v1.1.2"))
 	assert.True(t, defs.IsRefSupported("v1.2.3"))
-	assert.True(t, defs.IsRefSupported("v1.3.0"))
 	assert.True(t, defs.IsRefSupported("v1.3.0-RC1"))
+	assert.True(t, defs.IsRefSupported("v1.3.0"))
+	assert.True(t, defs.IsRefSupported("v2.0.0-RC1"))
 	assert.True(t, defs.IsRefSupported("nightly"))
 
 	//
@@ -94,12 +99,14 @@ func TestConstraints(t *testing.T) {
 	assert.True(t, defs.IsTargetSupported("t1", "v1.1.2"))
 	assert.True(t, defs.IsTargetSupported("t1", "v1.2.3"))
 	assert.True(t, defs.IsTargetSupported("t1", "v1.3.0"))
+	assert.True(t, defs.IsTargetSupported("t1", "v2.0.0-RC1"))
 
 	assert.False(t, defs.IsTargetSupported("t123", "v1.1.2"))
 	assert.True(t, defs.IsTargetSupported("t123", "v1.2.3"))
 	assert.True(t, defs.IsTargetSupported("t123", "v1.3.0"))
 
 	assert.False(t, defs.IsTargetSupported("x123", "nightly"))
+	assert.False(t, defs.IsTargetSupported("x123", "v2.0.0-RC1"))
 	assert.False(t, defs.IsTargetSupported("x123", "v1.1.2"))
 	assert.True(t, defs.IsTargetSupported("x123", "v1.2.3"))
 	assert.True(t, defs.IsTargetSupported("x123", "v1.3.0"))
