@@ -110,6 +110,10 @@ func (r *VersionRef) UnmarshalText(text []byte) error {
 	return nil
 }
 
+func (r VersionRef) MarshalText() ([]byte, error) {
+	return []byte(r.String()), nil
+}
+
 func (opts OptionFlags) HasOptionValue(name, value string) bool {
 	if opt, ok := opts[name]; ok {
 		return slices.Contains(opt.Values, value)
