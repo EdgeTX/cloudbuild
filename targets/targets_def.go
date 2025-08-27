@@ -45,7 +45,7 @@ type BuildFlags map[string]string
 type Target struct {
 	Description      string             `json:"description"`
 	Tags             []string           `json:"tags,omitempty"`
-	BuildFlags       BuildFlags         `json:"build_flags"`
+	BuildFlags       BuildFlags         `json:"build_flags,omitempty"`
 	VersionSupported semver.Constraints `json:"version_supported,omitempty"`
 }
 
