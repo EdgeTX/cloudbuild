@@ -14,7 +14,7 @@ func UpdateRefs(defs *TargetsDef) {
 		}
 		sha, err := v.Remote.Fetch()
 		if err != nil {
-			log.Errorf("failed to fetch ref '%s': %s", k, err.Error())
+			log.Errorf("failed to fetch ref '%v': %s", k, err.Error())
 			continue
 		}
 		v.SHA = sha

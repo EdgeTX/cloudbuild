@@ -4,14 +4,20 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"os"
 	"sync/atomic"
 
+	semver "github.com/Masterminds/semver/v3"
 	"golang.org/x/exp/slices"
 )
 
 var (
+	// global targets pointer
 	targetsDef = atomic.Pointer[TargetsDef]{}
+
+	// absurdly high version
+	NightlyVersion = semver.New(math.MaxUint64, 0, 0, "", "")
 
 	ErrMissingSHA = errors.New("missing SHA")
 )
@@ -36,9 +42,10 @@ type OptionFlag struct {
 type BuildFlags map[string]string
 
 type Target struct {
-	Description string     `json:"description"`
-	Tags        []string   `json:"tags,omitempty"`
-	BuildFlags  BuildFlags `json:"build_flags"`
+	Description      string             `json:"description"`
+	Tags             []string           `json:"tags,omitempty"`
+	BuildFlags       BuildFlags         `json:"build_flags"`
+	VersionSupported semver.Constraints `json:"version_supported,omitempty"`
 }
 
 type OptionFlags map[string]OptionFlag
@@ -47,31 +54,61 @@ type TagDef struct {
 	Flags OptionFlags `json:"flags"`
 }
 
-type TargetsDef struct {
-	Releases    map[string]Release `json:"releases"`
-	OptionFlags OptionFlags        `json:"flags"`
-	Tags        map[string]TagDef  `json:"tags"`
-	Targets     map[string]Target  `json:"targets"`
+type VersionRef struct {
+	v semver.Version
 }
 
-func ReadTargetsDefFromBytes(data []byte) error {
+type TargetsDef struct {
+	Releases    map[VersionRef]Release `json:"releases"`
+	OptionFlags OptionFlags            `json:"flags"`
+	Tags        map[string]TagDef      `json:"tags"`
+	Targets     map[string]Target      `json:"targets"`
+}
+
+func ReadTargetsDefFromBytes(data []byte) (*TargetsDef, error) {
 	defs := TargetsDef{}
 	if err := json.Unmarshal(data, &defs); err != nil {
-		return err
+		return nil, err
 	}
-	if err := defs.ValidateSHA(); err != nil {
-		return err
+	if err := defs.validateSHA(); err != nil {
+		return nil, err
 	}
-	targetsDef.Store(&defs)
-	return nil
+	if err := defs.fillExcludeTargets(); err != nil {
+		return nil, err
+	}
+	return &defs, nil
 }
 
-func ReadTargetsDef(path string) error {
+func ReadTargetsDef(path string) (*TargetsDef, error) {
 	bytes, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	return ReadTargetsDefFromBytes(bytes)
+}
+
+func NewVersionRef(v string) (*VersionRef, error) {
+	if v == "nightly" {
+		return &VersionRef{*NightlyVersion}, nil
+	}
+	if version, err := semver.NewVersion(v); err != nil {
+		return nil, err
+	} else {
+		return &VersionRef{*version}, nil
+	}
+}
+
+func (r *VersionRef) String() string {
+	return r.v.String()
+}
+
+func (r *VersionRef) UnmarshalText(text []byte) error {
+	v, err := NewVersionRef(string(text))
 	if err != nil {
 		return err
 	}
-	return ReadTargetsDefFromBytes(bytes)
+	*r = *v
+	return nil
 }
 
 func (opts OptionFlags) HasOptionValue(name, value string) bool {
@@ -81,16 +118,20 @@ func (opts OptionFlags) HasOptionValue(name, value string) bool {
 	return false
 }
 
-func (def *TargetsDef) ValidateSHA() error {
+func (target Target) SupportsVersion(r *VersionRef) bool {
+	return target.VersionSupported.Check(&r.v)
+}
+
+func (def *TargetsDef) validateSHA() error {
 	for k := range def.Releases {
 		v := def.Releases[k]
 		if v.SHA == "" {
 			if v.Remote == nil || v.Remote.URL == "" {
-				return fmt.Errorf("%s: %w", k, ErrMissingSHA)
+				return fmt.Errorf("%v: %w", k, ErrMissingSHA)
 			}
 			sha, err := v.Remote.Fetch()
 			if err != nil {
-				return fmt.Errorf("%s: %w", k, err)
+				return fmt.Errorf("%v: %w", k, err)
 			}
 			v.SHA = sha
 			def.Releases[k] = v
@@ -99,23 +140,44 @@ func (def *TargetsDef) ValidateSHA() error {
 	return nil
 }
 
+func (def *TargetsDef) fillExcludeTargets() error {
+	for k := range def.Releases {
+		exclude := make([]string, 0)
+		for t := range def.Targets {
+			if !def.Targets[t].SupportsVersion(&k) {
+				exclude = append(exclude, t)
+			}
+		}
+		r := def.Releases[k]
+		r.ExcludeTargets = exclude
+		def.Releases[k] = r
+	}
+	return nil
+}
+
 func (def *TargetsDef) IsRefSupported(ref string) bool {
-	_, ok := def.Releases[ref]
+	v, err := NewVersionRef(ref)
+	if err != nil {
+		return false
+	}
+	_, ok := def.Releases[*v]
 	return ok
 }
 
 func (def *TargetsDef) IsTargetSupported(name, ref string) bool {
-	release, ok := def.Releases[ref]
+	v, err := NewVersionRef(ref)
+	if err != nil {
+		return false
+	}
+	_, ok := def.Releases[*v]
 	if !ok {
 		return false
 	}
-
-	if slices.Contains(release.ExcludeTargets, name) {
+	target, ok := def.Targets[name]
+	if !ok {
 		return false
 	}
-
-	_, ok = def.Targets[name]
-	return ok
+	return target.SupportsVersion(v)
 }
 
 func (def *TargetsDef) IsOptionFlagSupported(target, name, value string) bool {
@@ -136,7 +198,11 @@ func (def *TargetsDef) IsOptionFlagSupported(target, name, value string) bool {
 }
 
 func (def *TargetsDef) GetCommitHashByRef(ref string) string {
-	release, ok := def.Releases[ref]
+	v, err := NewVersionRef(ref)
+	if err != nil {
+		return ""
+	}
+	release, ok := def.Releases[*v]
 	if !ok {
 		return ""
 	}
@@ -170,11 +236,32 @@ func (def *TargetsDef) GetOptionBuildFlag(target, name string) string {
 }
 
 func (def *TargetsDef) GetBuildContainer(ref string) string {
-	release, ok := def.Releases[ref]
+	v, err := NewVersionRef(ref)
+	if err != nil {
+		return ""
+	}
+	release, ok := def.Releases[*v]
 	if !ok {
 		return ""
 	}
 	return release.BuildContainer
+}
+
+func (def *TargetsDef) ExcludeTargetsFromRef(ref string) ([]string, error) {
+	v, err := NewVersionRef(ref)
+	if err != nil {
+		return nil, err
+	}
+	r, ok := def.Releases[*v]
+	if !ok {
+		return nil, fmt.Errorf("ref does not exist")
+	}
+
+	excl := make([]string, len(r.ExcludeTargets))
+	copy(excl, r.ExcludeTargets)
+	slices.Sort(excl)
+
+	return excl, nil
 }
 
 func SetTargets(defs *TargetsDef) {

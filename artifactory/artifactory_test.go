@@ -28,10 +28,11 @@ import (
 func init() {
 	log.SetOutput(os.Stdout)
 	log.SetLevel(log.DebugLevel)
-	err := targets.ReadTargetsDefFromBytes([]byte(targetsJSON))
+	defs, err := targets.ReadTargetsDefFromBytes([]byte(targetsJSON))
 	if err != nil {
 		panic(err)
 	}
+	targets.SetTargets(defs)
 	request = artifactory.NewBuildRequestWithParams(commitRef, target, flags)
 }
 
