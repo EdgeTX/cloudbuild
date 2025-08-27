@@ -17,6 +17,9 @@ var targetsJSON = `{
 	  	"v1.1.2": { "sha": "456" }
 	  },
 	  "targets": {
+	    "t1": {
+	      "description": "Always been there"
+	    },
 	    "t123": {
 	      "description": "Acme Dream Radio",
 	      "version_supported": ">= 1.2.3"
@@ -86,6 +89,11 @@ func TestVersions(t *testing.T) {
 func TestConstraints(t *testing.T) {
 	defs, err := targets.ReadTargetsDefFromBytes([]byte(targetsJSON))
 	assert.Nil(t, err)
+
+	assert.True(t, defs.IsTargetSupported("t1", "nightly"))
+	assert.True(t, defs.IsTargetSupported("t1", "v1.1.2"))
+	assert.True(t, defs.IsTargetSupported("t1", "v1.2.3"))
+	assert.True(t, defs.IsTargetSupported("t1", "v1.3.0"))
 
 	assert.False(t, defs.IsTargetSupported("t123", "v1.1.2"))
 	assert.True(t, defs.IsTargetSupported("t123", "v1.2.3"))

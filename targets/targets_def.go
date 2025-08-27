@@ -111,7 +111,11 @@ func (r *VersionRef) UnmarshalText(text []byte) error {
 }
 
 func (r VersionRef) MarshalText() ([]byte, error) {
-	return []byte(r.String()), nil
+	v := r.v
+	if v == *NightlyVersion {
+		return []byte("nightly"), nil
+	}
+	return []byte(v.Original()), nil
 }
 
 func (opts OptionFlags) HasOptionValue(name, value string) bool {
@@ -122,7 +126,10 @@ func (opts OptionFlags) HasOptionValue(name, value string) bool {
 }
 
 func (target Target) SupportsVersion(r *VersionRef) bool {
-	return target.VersionSupported.Check(&r.v)
+	if len(target.VersionSupported.String()) > 0 {
+		return target.VersionSupported.Check(&r.v)
+	}
+	return true
 }
 
 func (def *TargetsDef) validateSHA() error {
