@@ -73,13 +73,6 @@ func ReadTargetsDefFromBytes(data []byte) (*TargetsDef, error) {
 	if err := json.Unmarshal(data, &defs); err != nil {
 		return nil, err
 	}
-	if err := defs.validateSHA(); err != nil {
-		return nil, err
-	}
-	if err := defs.fillSemVer(); err != nil {
-		return nil, err
-	}
-	defs.fillExcludeTargets()
 	return &defs, nil
 }
 
@@ -135,6 +128,27 @@ func (target *Target) SupportsRelease(r *Release) bool {
 		return target.VersionSupported.Check(r.Version)
 	}
 	return true
+}
+
+func (def *TargetsDef) UnmarshalJSON(text []byte) error {
+	type targetsDef TargetsDef
+	var alias targetsDef
+
+	if err := json.Unmarshal(text, &alias); err != nil {
+		return err
+	}
+
+	tmp := TargetsDef(alias)
+	if err := tmp.validateSHA(); err != nil {
+		return err
+	}
+	if err := tmp.fillSemVer(); err != nil {
+		return err
+	}
+	tmp.fillExcludeTargets()
+
+	*def = tmp
+	return nil
 }
 
 func (def *TargetsDef) validateSHA() error {
