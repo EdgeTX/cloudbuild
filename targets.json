@@ -9,7 +9,7 @@
     "v2.11.3": {
       "sha": "a7a1f37f54ebfefbda6ff03399f6d052e11fe4de",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
-      "exclude_targets": ["x10-access", "x7-access"]
+      "exclude_targets": ["x10-access", "x7-access", "tx15"]
     },
     "v2.11.2": {
       "sha": "84cde07404cc6ee664f8f59aea604fe02c708d5d",
