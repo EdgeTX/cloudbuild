@@ -40,13 +40,13 @@ func (s *serverRunner) runAPI(cmd *cobra.Command, args []string) {
 		fmt.Printf("failed to migrate database: %s", err)
 		os.Exit(1)
 	}
-	if defs, err := targets.ReadTargetsDef("./targets.json"); err != nil {
+	if defs, err := targets.ReadTargetsDef("./targets.json", s.opts.SourceRepository); err != nil {
 		fmt.Printf("failed to read targets: %s", err)
 		os.Exit(1)
 	} else {
 		targets.SetTargets(defs)
 	}
-	go targets.Updater(time.Minute * 5)
+	go targets.Updater(time.Minute*5, s.opts.SourceRepository)
 	art, err := artifactory.NewFromConfig(s.ctx, s.opts)
 	if err != nil {
 		fmt.Printf("failed to create artifactory: %s", err)

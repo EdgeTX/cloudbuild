@@ -36,7 +36,7 @@ var targetsJSON = `{
 }`
 
 func TestLoadTargetsJSON(t *testing.T) {
-	defs, err := targets.ReadTargetsDefFromBytes([]byte(targetsJSON))
+	defs, err := targets.ReadTargetsDefFromBytes([]byte(targetsJSON), "")
 	assert.Nil(t, err)
 	assert.NotNil(t, defs)
 }
@@ -48,7 +48,7 @@ func TestNightly(t *testing.T) {
 }
 
 func TestVersions(t *testing.T) {
-	defs, err := targets.ReadTargetsDefFromBytes([]byte(targetsJSON))
+	defs, err := targets.ReadTargetsDefFromBytes([]byte(targetsJSON), "")
 	assert.Nil(t, err)
 
 	//
@@ -92,7 +92,7 @@ func TestVersions(t *testing.T) {
 }
 
 func TestConstraints(t *testing.T) {
-	defs, err := targets.ReadTargetsDefFromBytes([]byte(targetsJSON))
+	defs, err := targets.ReadTargetsDefFromBytes([]byte(targetsJSON), "")
 	assert.Nil(t, err)
 
 	assert.True(t, defs.IsTargetSupported("t1", "nightly"))
@@ -113,7 +113,7 @@ func TestConstraints(t *testing.T) {
 }
 
 func TestExcludeTargets(t *testing.T) {
-	defs, err := targets.ReadTargetsDefFromBytes([]byte(targetsJSON))
+	defs, err := targets.ReadTargetsDefFromBytes([]byte(targetsJSON), "")
 	assert.Nil(t, err)
 
 	excl, err := defs.ExcludeTargetsFromRef("nightly")

@@ -28,7 +28,7 @@ import (
 func init() {
 	log.SetOutput(os.Stdout)
 	log.SetLevel(log.DebugLevel)
-	defs, err := targets.ReadTargetsDefFromBytes([]byte(targetsJSON))
+	defs, err := targets.ReadTargetsDefFromBytes([]byte(targetsJSON), "")
 	if err != nil {
 		panic(err)
 	}

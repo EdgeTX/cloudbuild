@@ -169,6 +169,8 @@ func (o *CloudbuildOpts) BindAPIOpts(c *cobra.Command) {
 	c.Flags().IPVarP(&o.HTTPBindAddress, "listen-ip", "l", net.IPv4zero, "HTTP listen IP")
 	c.Flags().StringVarP(
 		&o.DownloadURL, "download-url", "u", o.DownloadURL, "Artifact download URL")
+	c.Flags().StringVar(
+		&o.SourceRepository, "src-repo", o.SourceRepository, "Source repository")
 }
 
 func (o *CloudbuildOpts) BindWorkerOpts(c *cobra.Command) {

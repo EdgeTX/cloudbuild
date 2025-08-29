@@ -1,62 +1,45 @@
 {
   "releases": {
     "nightly": {
-      "remote": {
-        "url": "https://api.github.com/repos/EdgeTX/edgetx/git/ref/tags/nightly",
-        "path": "object.sha"
-      },
       "sem_ver": "v3.0.0"
     },
     "v2.11.3": {
-      "sha": "a7a1f37f54ebfefbda6ff03399f6d052e11fe4de",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.11"
     },
     "v2.11.2": {
-      "sha": "84cde07404cc6ee664f8f59aea604fe02c708d5d",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.11"
     },
     "v2.11.1": {
-      "sha": "dfc8aa545796d1d437d4ee1e57a6dbfb87f754fc",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.11"
     },
     "v2.11.0": {
-      "sha": "8369a2e23a7253a9ea4c9a8cb7c80e5fcf23d235",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.11"
     },
     "v2.10.6": {
-      "sha": "14adf0474ccedbd935fac7d71958946680b5fdfc",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.10"
     },
     "v2.10.5": {
-      "sha": "6b539d03c66061e431d9090531ac192f7550a102",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.10"
     },
     "v2.10.4": {
-      "sha": "9b901689fbd84fb4027b4f898460314d76b1f69a",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.10"
     },
     "v2.10.3": {
-      "sha": "2fc5a9acab767b7b3f4861d85dffd359d6ad28f6",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.10"
     },
     "v2.10.2": {
-      "sha": "1de06000cdfe3398840a8d28f7bf5de7fbedc899",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.10"
     },
     "v2.10.1": {
-      "sha": "839b60f6cc88d22383a6f686862b3fba4108884e",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.10"
     },
     "v2.10.0": {
-      "sha": "22ce06d3423fdb265c6c7bce6031f1003027bf0c",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.10"
     },
     "v2.9.4": {
-      "sha": "77884b6a22e20ad91ba6c6656b96bcb2adc86768",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.9.0"
     },
     "v2.8.5": {
-      "sha": "cbac1063eb8637457d2a63c367863c6bfd6f0c31",
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.8"
     }
   },
