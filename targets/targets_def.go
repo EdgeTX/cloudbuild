@@ -167,7 +167,7 @@ func (def *TargetsDef) validateSHA(repoURL string) error {
 		log.Debugf("Listing tags...")
 		tags, err = ListTags(repoURL)
 		if err != nil {
-			return fmt.Errorf("Could not list tags from %s: %w", repoURL, err)
+			return fmt.Errorf("could not list tags from %s: %w", repoURL, err)
 		}
 	} else {
 		tags = make(map[string]string)
