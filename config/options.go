@@ -50,8 +50,8 @@ func LogLevelDecodeHookFunc() mapstructure.DecodeHookFunc {
 	return func(
 		f reflect.Type,
 		t reflect.Type,
-		data interface{},
-	) (interface{}, error) {
+		data any,
+	) (any, error) {
 		if f.Kind() != reflect.String {
 			return data, nil
 		}
@@ -85,6 +85,10 @@ type CloudbuildOpts struct {
 	DatabaseDSN  string `mapstructure:"database-dsn"`
 	DatabaseHost string `mapstructure:"database-host"`
 
+	// Targets options:
+	TargetsDef             string `mapstructure:"targets"`
+	TargetsRefreshInterval uint32 `mapstructure:"targets-refresh-interval"`
+
 	// Build options:
 	BuildImage       string `mapstructure:"build-img"`
 	SourceRepository string `mapstructure:"src-repo"`
@@ -104,14 +108,16 @@ type CloudbuildOpts struct {
 
 func NewOpts(v *viper.Viper) *CloudbuildOpts {
 	return &CloudbuildOpts{
-		Viper:            v,
-		LogLevel:         InfoLevel,
-		HTTPBindPort:     3000,
-		BuildImage:       "ghcr.io/edgetx/edgetx-builder",
-		SourceRepository: "https://github.com/EdgeTX/edgetx.git",
-		DownloadURL:      "http://localhost:3000",
-		StorageType:      "FILE_SYSTEM_STORAGE",
-		StoragePath:      "/tmp",
+		Viper:                  v,
+		LogLevel:               InfoLevel,
+		HTTPBindPort:           3000,
+		TargetsDef:             "file:///targets.json",
+		TargetsRefreshInterval: 300,
+		BuildImage:             "ghcr.io/edgetx/edgetx-builder",
+		SourceRepository:       "https://github.com/EdgeTX/edgetx.git",
+		DownloadURL:            "http://localhost:3000",
+		StorageType:            "FILE_SYSTEM_STORAGE",
+		StoragePath:            "/tmp",
 	}
 }
 
@@ -162,20 +168,28 @@ func (o *CloudbuildOpts) BindBuildOpts(c *cobra.Command) {
 	c.PersistentFlags().StringVar(
 		&o.BuildImage, "build-img", o.BuildImage, "Build docker image",
 	)
+	c.Flags().StringVar(
+		&o.SourceRepository, "src-repo", o.SourceRepository, "Source repository",
+	)
 }
 
 func (o *CloudbuildOpts) BindAPIOpts(c *cobra.Command) {
-	c.Flags().Uint16VarP(&o.HTTPBindPort, "port", "p", o.HTTPBindPort, "HTTP listen port")
-	c.Flags().IPVarP(&o.HTTPBindAddress, "listen-ip", "l", net.IPv4zero, "HTTP listen IP")
+	c.Flags().Uint16VarP(
+		&o.HTTPBindPort, "port", "p", o.HTTPBindPort, "HTTP listen port",
+	)
+	c.Flags().IPVarP(
+		&o.HTTPBindAddress, "listen-ip", "l", net.IPv4zero, "HTTP listen IP",
+	)
+	c.Flags().StringVar(
+		&o.TargetsDef, "targets", o.TargetsDef, "Targets definition",
+	)
+	c.Flags().Uint32Var(
+		&o.TargetsRefreshInterval, "targets-refresh-interval",
+		o.TargetsRefreshInterval, "Targets refresh interval",
+	)
 	c.Flags().StringVarP(
-		&o.DownloadURL, "download-url", "u", o.DownloadURL, "Artifact download URL")
-	c.Flags().StringVar(
-		&o.SourceRepository, "src-repo", o.SourceRepository, "Source repository")
-}
-
-func (o *CloudbuildOpts) BindWorkerOpts(c *cobra.Command) {
-	c.Flags().StringVar(
-		&o.SourceRepository, "src-repo", o.SourceRepository, "Source repository")
+		&o.DownloadURL, "download-url", "u", o.DownloadURL, "Artifact download URL",
+	)
 }
 
 func (o *CloudbuildOpts) Unmarshal() error {

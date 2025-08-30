@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"math"
+	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"sync/atomic"
@@ -24,8 +27,9 @@ var (
 	// absurdly high version.
 	NightlyVersion = semver.New(math.MaxUint64, 0, 0, "", "")
 
-	ErrMissingSHA = errors.New("missing SHA")
-	ErrMissingRef = errors.New("missing ref")
+	ErrMissingSHA    = errors.New("missing SHA")
+	ErrMissingRef    = errors.New("missing ref")
+	ErrInvalidSchema = errors.New("invalid URL schema")
 )
 
 type RemoteAPI struct {
@@ -71,6 +75,8 @@ type TargetsDef struct {
 	OptionFlags OptionFlags             `json:"flags"`
 	Tags        map[string]TagDef       `json:"tags"`
 	Targets     map[string]*Target      `json:"targets"`
+	sourceURL   string
+	update      bool
 }
 
 func ReadTargetsDefFromBytes(data []byte, repoURL string) (*TargetsDef, error) {
@@ -84,12 +90,42 @@ func ReadTargetsDefFromBytes(data []byte, repoURL string) (*TargetsDef, error) {
 	return &defs, nil
 }
 
-func ReadTargetsDef(path, repoURL string) (*TargetsDef, error) {
-	bytes, err := os.ReadFile(path)
+func ReadTargetsDef(targetsURL, repoURL string) (*TargetsDef, error) {
+	src, err := url.Parse(targetsURL)
 	if err != nil {
 		return nil, err
 	}
-	return ReadTargetsDefFromBytes(bytes, repoURL)
+	var (
+		bytes  []byte
+		update bool
+	)
+	switch src.Scheme {
+	case "", "file":
+		log.Debugf("Reading target definitions from file: %s", src.Path)
+		bytes, err = os.ReadFile(src.Path)
+		if err != nil {
+			return nil, err
+		}
+	case "http", "https":
+		log.Debugf("Reading target definitions from URL: %s", src.String())
+		if resp, err := http.Get(src.String()); err != nil {
+			return nil, err
+		} else {
+			defer resp.Body.Close()
+			if bytes, err = io.ReadAll(resp.Body); err != nil {
+				return nil, err
+			}
+			update = true
+		}
+	default:
+		return nil, ErrInvalidSchema
+	}
+	defs, err := ReadTargetsDefFromBytes(bytes, repoURL)
+	if defs != nil {
+		defs.sourceURL = targetsURL
+		defs.update = update
+	}
+	return defs, err
 }
 
 func NewVersionRef(v string) (*VersionRef, error) {
@@ -157,14 +193,17 @@ func (def *TargetsDef) UnmarshalJSON(text []byte) error {
 }
 
 func (def *TargetsDef) validateSHA(repoURL string) error {
+	return def.updateRefs(repoURL, true)
+}
+
+func (def *TargetsDef) updateRefs(repoURL string, failEarly bool) error {
 	var (
 		tags map[string]string
 		err  error
 	)
 
-	log.Debugf("Repository URL: %s", repoURL)
 	if repoURL != "" {
-		log.Debugf("Listing tags...")
+		log.Debugf("Listing tags from %s", repoURL)
 		tags, err = ListTags(repoURL)
 		if err != nil {
 			return fmt.Errorf("could not list tags from %s: %w", repoURL, err)
@@ -175,15 +214,17 @@ func (def *TargetsDef) validateSHA(repoURL string) error {
 
 	for k := range def.Releases {
 		v := def.Releases[k]
-		if v.SHA == "" {
+		if v.SHA == "" || v.update {
 			tag := k.String()
-			sha, ok := tags[tag]
-			if !ok || (sha == "") {
+			if sha, ok := tags[tag]; ok {
+				v.SHA = sha
+				v.update = true
+				log.Debugf("%s -> %s", tag, v.SHA)
+			} else if failEarly {
 				return fmt.Errorf("%s: %w", tag, ErrMissingSHA)
+			} else {
+				log.Errorf("could not update %s from %s", tag, repoURL)
 			}
-			v.SHA = sha
-			v.update = true
-			log.Debugf("%s -> %s", tag, v.SHA)
 		}
 	}
 

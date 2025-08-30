@@ -6,40 +6,22 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func UpdateRefs(defs *TargetsDef, repoURL string) {
-	var (
-		tags map[string]string
-		err  error
-	)
-
-	if repoURL != "" {
-		log.Debugf("Listing tags...")
-		tags, err = ListTags(repoURL)
+func updateDefsSingleton(repoURL string) {
+	defs := targetsDef.Load()
+	if defs.update {
+		newDefs, err := ReadTargetsDef(defs.sourceURL, repoURL)
 		if err != nil {
-			log.Errorf("could not list tags from %s: %s", repoURL, err)
+			log.Errorf("could not update targets: %s", err)
+		} else {
+			targetsDef.Store(newDefs)
 		}
 	} else {
-		tags = make(map[string]string)
-	}
-
-	for k := range defs.Releases {
-		v := defs.Releases[k]
-		if v.update {
-			tag := k.String()
-			if sha, ok := tags[tag]; ok {
-				v.SHA = sha
-				log.Debugf("%s -> %s", tag, v.SHA)
-			} else {
-				log.Errorf("could not update %s from %s", tag, repoURL)
-			}
+		newDefs := *defs
+		if err := newDefs.updateRefs(repoURL, false); err != nil {
+			log.Errorf("could not update targets: %s", err)
 		}
+		targetsDef.Store(&newDefs)
 	}
-}
-
-func updateDefsSingleton(repoURL string) {
-	newDefs := *targetsDef.Load()
-	UpdateRefs(&newDefs, repoURL)
-	targetsDef.Store(&newDefs)
 }
 
 func Updater(interval time.Duration, repoURL string) {
