@@ -40,11 +40,19 @@ func (s *serverRunner) runAPI(cmd *cobra.Command, args []string) {
 		fmt.Printf("failed to migrate database: %s", err)
 		os.Exit(1)
 	}
-	if err := targets.ReadTargetsDef("./targets.json"); err != nil {
+	if defs, err := targets.ReadTargetsDef(
+		s.opts.TargetsDef,
+		s.opts.SourceRepository,
+	); err != nil {
 		fmt.Printf("failed to read targets: %s", err)
 		os.Exit(1)
+	} else {
+		targets.SetTargets(defs)
 	}
-	go targets.Updater(time.Minute * 5)
+	go targets.Updater(
+		time.Second*time.Duration(s.opts.TargetsRefreshInterval),
+		s.opts.SourceRepository,
+	)
 	art, err := artifactory.NewFromConfig(s.ctx, s.opts)
 	if err != nil {
 		fmt.Printf("failed to create artifactory: %s", err)
@@ -131,7 +139,6 @@ func NewAPICommand(s *serverRunner) *cobra.Command {
 
 func NewWorkerCommand(s *serverRunner) *cobra.Command {
 	cmd := s.makeCmd("worker", "Run a cloudbuild worker", s.runWorker)
-	s.opts.BindWorkerOpts(cmd)
 	return cmd
 }
 

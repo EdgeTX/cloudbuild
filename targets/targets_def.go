@@ -4,16 +4,32 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"math"
+	"net/http"
+	"net/url"
 	"os"
+	"strings"
 	"sync/atomic"
 
+	semver "github.com/Masterminds/semver/v3"
+	"github.com/go-git/go-git/v6"
+	"github.com/go-git/go-git/v6/config"
+	"github.com/go-git/go-git/v6/storage/memory"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/exp/slices"
 )
 
 var (
+	// global targets pointer.
 	targetsDef = atomic.Pointer[TargetsDef]{}
 
-	ErrMissingSHA = errors.New("missing SHA")
+	// absurdly high version.
+	NightlyVersion = semver.New(math.MaxUint64, 0, 0, "", "")
+
+	ErrMissingSHA    = errors.New("missing SHA")
+	ErrMissingRef    = errors.New("missing ref")
+	ErrInvalidSchema = errors.New("invalid URL schema")
 )
 
 type RemoteAPI struct {
@@ -22,10 +38,12 @@ type RemoteAPI struct {
 }
 
 type Release struct {
-	SHA            string     `json:"sha"`
-	Remote         *RemoteSHA `json:"remote,omitempty"`
-	ExcludeTargets []string   `json:"exclude_targets,omitempty"`
-	BuildContainer string     `json:"build_container,omitempty"`
+	SHA            string   `json:"sha"`
+	ExcludeTargets []string `json:"exclude_targets,omitempty"`
+	BuildContainer string   `json:"build_container,omitempty"`
+	SemVer         string   `json:"sem_ver,omitempty"`
+	update         bool
+	version        *semver.Version
 }
 
 type OptionFlag struct {
@@ -36,9 +54,10 @@ type OptionFlag struct {
 type BuildFlags map[string]string
 
 type Target struct {
-	Description string     `json:"description"`
-	Tags        []string   `json:"tags,omitempty"`
-	BuildFlags  BuildFlags `json:"build_flags"`
+	Description      string             `json:"description"`
+	Tags             []string           `json:"tags,omitempty"`
+	BuildFlags       BuildFlags         `json:"build_flags,omitempty"`
+	VersionSupported semver.Constraints `json:"version_supported,omitempty"`
 }
 
 type OptionFlags map[string]OptionFlag
@@ -47,31 +66,98 @@ type TagDef struct {
 	Flags OptionFlags `json:"flags"`
 }
 
-type TargetsDef struct {
-	Releases    map[string]Release `json:"releases"`
-	OptionFlags OptionFlags        `json:"flags"`
-	Tags        map[string]TagDef  `json:"tags"`
-	Targets     map[string]Target  `json:"targets"`
+type VersionRef struct {
+	v semver.Version
 }
 
-func ReadTargetsDefFromBytes(data []byte) error {
+type TargetsDef struct {
+	Releases    map[VersionRef]*Release `json:"releases"`
+	OptionFlags OptionFlags             `json:"flags"`
+	Tags        map[string]TagDef       `json:"tags"`
+	Targets     map[string]*Target      `json:"targets"`
+	sourceURL   string
+	update      bool
+}
+
+func ReadTargetsDefFromBytes(data []byte, repoURL string) (*TargetsDef, error) {
 	defs := TargetsDef{}
 	if err := json.Unmarshal(data, &defs); err != nil {
-		return err
+		return nil, err
 	}
-	if err := defs.ValidateSHA(); err != nil {
-		return err
+	if err := defs.validateSHA(repoURL); err != nil {
+		return nil, err
 	}
-	targetsDef.Store(&defs)
-	return nil
+	return &defs, nil
 }
 
-func ReadTargetsDef(path string) error {
-	bytes, err := os.ReadFile(path)
+func ReadTargetsDef(targetsURL, repoURL string) (*TargetsDef, error) {
+	src, err := url.Parse(targetsURL)
+	if err != nil {
+		return nil, err
+	}
+	var (
+		bytes  []byte
+		update bool
+	)
+	switch src.Scheme {
+	case "", "file":
+		log.Debugf("Reading target definitions from file: %s", src.Path)
+		bytes, err = os.ReadFile(src.Path)
+		if err != nil {
+			return nil, err
+		}
+	case "http", "https":
+		log.Debugf("Reading target definitions from URL: %s", src.String())
+		if resp, err := http.Get(src.String()); err != nil {
+			return nil, err
+		} else {
+			defer resp.Body.Close()
+			if bytes, err = io.ReadAll(resp.Body); err != nil {
+				return nil, err
+			}
+			update = true
+		}
+	default:
+		return nil, ErrInvalidSchema
+	}
+	defs, err := ReadTargetsDefFromBytes(bytes, repoURL)
+	if defs != nil {
+		defs.sourceURL = targetsURL
+		defs.update = update
+	}
+	return defs, err
+}
+
+func NewVersionRef(v string) (*VersionRef, error) {
+	if v == "nightly" {
+		return &VersionRef{*NightlyVersion}, nil
+	}
+	if version, err := semver.NewVersion(v); err != nil {
+		return nil, err
+	} else {
+		return &VersionRef{*version}, nil
+	}
+}
+
+func (r *VersionRef) String() string {
+	v := r.v
+	if v == *NightlyVersion {
+		return "nightly"
+	}
+	return v.Original()
+}
+
+func (r *VersionRef) UnmarshalText(text []byte) error {
+	v, err := NewVersionRef(string(text))
 	if err != nil {
 		return err
 	}
-	return ReadTargetsDefFromBytes(bytes)
+	*r = *v
+	return nil
+}
+
+func (r VersionRef) MarshalText() ([]byte, error) {
+	return []byte(r.String()), nil
 }
 
 func (opts OptionFlags) HasOptionValue(name, value string) bool {
@@ -81,41 +167,122 @@ func (opts OptionFlags) HasOptionValue(name, value string) bool {
 	return false
 }
 
-func (def *TargetsDef) ValidateSHA() error {
+func (target *Target) SupportsRelease(r *Release) bool {
+	if len(target.VersionSupported.String()) > 0 {
+		return target.VersionSupported.Check(r.version)
+	}
+	return true
+}
+
+func (def *TargetsDef) UnmarshalJSON(text []byte) error {
+	type targetsDef TargetsDef
+	var alias targetsDef
+
+	if err := json.Unmarshal(text, &alias); err != nil {
+		return err
+	}
+
+	tmp := TargetsDef(alias)
+	if err := tmp.fillSemVer(); err != nil {
+		return err
+	}
+	tmp.fillExcludeTargets()
+
+	*def = tmp
+	return nil
+}
+
+func (def *TargetsDef) validateSHA(repoURL string) error {
+	return def.updateRefs(repoURL, true)
+}
+
+func (def *TargetsDef) updateRefs(repoURL string, failEarly bool) error {
+	var (
+		tags map[string]string
+		err  error
+	)
+
+	if repoURL != "" {
+		log.Debugf("Listing tags from %s", repoURL)
+		tags, err = ListTags(repoURL)
+		if err != nil {
+			return fmt.Errorf("could not list tags from %s: %w", repoURL, err)
+		}
+	} else {
+		tags = make(map[string]string)
+	}
+
 	for k := range def.Releases {
 		v := def.Releases[k]
-		if v.SHA == "" {
-			if v.Remote == nil || v.Remote.URL == "" {
-				return fmt.Errorf("%s: %w", k, ErrMissingSHA)
+		if v.SHA == "" || v.update {
+			tag := k.String()
+			if sha, ok := tags[tag]; ok {
+				v.SHA = sha
+				v.update = true
+				log.Debugf("%s -> %s", tag, v.SHA)
+			} else if failEarly {
+				return fmt.Errorf("%s: %w", tag, ErrMissingSHA)
+			} else {
+				log.Errorf("could not update %s from %s", tag, repoURL)
 			}
-			sha, err := v.Remote.Fetch()
-			if err != nil {
-				return fmt.Errorf("%s: %w", k, err)
+		}
+	}
+
+	return nil
+}
+
+func (def *TargetsDef) fillExcludeTargets() {
+	for k := range def.Releases {
+		r := def.Releases[k]
+		r.ExcludeTargets = make([]string, 0)
+		for t := range def.Targets {
+			if !def.Targets[t].SupportsRelease(r) {
+				r.ExcludeTargets = append(r.ExcludeTargets, t)
 			}
-			v.SHA = sha
-			def.Releases[k] = v
+		}
+		slices.Sort(r.ExcludeTargets)
+	}
+}
+
+func (def *TargetsDef) fillSemVer() error {
+	for k := range def.Releases {
+		r := def.Releases[k]
+		if r.SemVer != "" {
+			if v, err := semver.NewVersion(r.SemVer); err != nil {
+				return err
+			} else {
+				r.version = v
+			}
+		} else {
+			r.version = &k.v
 		}
 	}
 	return nil
 }
 
 func (def *TargetsDef) IsRefSupported(ref string) bool {
-	_, ok := def.Releases[ref]
+	v, err := NewVersionRef(ref)
+	if err != nil {
+		return false
+	}
+	_, ok := def.Releases[*v]
 	return ok
 }
 
 func (def *TargetsDef) IsTargetSupported(name, ref string) bool {
-	release, ok := def.Releases[ref]
+	v, err := NewVersionRef(ref)
+	if err != nil {
+		return false
+	}
+	r, ok := def.Releases[*v]
 	if !ok {
 		return false
 	}
-
-	if slices.Contains(release.ExcludeTargets, name) {
+	target, ok := def.Targets[name]
+	if !ok {
 		return false
 	}
-
-	_, ok = def.Targets[name]
-	return ok
+	return target.SupportsRelease(r)
 }
 
 func (def *TargetsDef) IsOptionFlagSupported(target, name, value string) bool {
@@ -136,7 +303,11 @@ func (def *TargetsDef) IsOptionFlagSupported(target, name, value string) bool {
 }
 
 func (def *TargetsDef) GetCommitHashByRef(ref string) string {
-	release, ok := def.Releases[ref]
+	v, err := NewVersionRef(ref)
+	if err != nil {
+		return ""
+	}
+	release, ok := def.Releases[*v]
 	if !ok {
 		return ""
 	}
@@ -170,11 +341,27 @@ func (def *TargetsDef) GetOptionBuildFlag(target, name string) string {
 }
 
 func (def *TargetsDef) GetBuildContainer(ref string) string {
-	release, ok := def.Releases[ref]
+	v, err := NewVersionRef(ref)
+	if err != nil {
+		return ""
+	}
+	release, ok := def.Releases[*v]
 	if !ok {
 		return ""
 	}
 	return release.BuildContainer
+}
+
+func (def *TargetsDef) ExcludeTargetsFromRef(ref string) ([]string, error) {
+	v, err := NewVersionRef(ref)
+	if err != nil {
+		return nil, err
+	}
+	r, ok := def.Releases[*v]
+	if !ok {
+		return nil, ErrMissingRef
+	}
+	return r.ExcludeTargets, nil
 }
 
 func SetTargets(defs *TargetsDef) {
@@ -183,4 +370,31 @@ func SetTargets(defs *TargetsDef) {
 
 func GetTargets() *TargetsDef {
 	return targetsDef.Load()
+}
+
+func ListTags(repoURL string) (tags map[string]string, err error) {
+	remote := git.NewRemote(memory.NewStorage(), &config.RemoteConfig{
+		Name: "origin",
+		URLs: []string{repoURL},
+	})
+
+	refs, err := remote.List(&git.ListOptions{
+		PeelingOption: git.AppendPeeled,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list remote references: %w", err)
+	}
+
+	tags = make(map[string]string)
+	for _, ref := range refs {
+		if ref.Name().IsTag() {
+			shortRef, isPeeled := strings.CutSuffix(ref.Name().Short(), "^{}")
+			_, ok := tags[shortRef]
+			if !ok || isPeeled {
+				tags[shortRef] = ref.Hash().String()
+			}
+		}
+	}
+
+	return tags, nil
 }

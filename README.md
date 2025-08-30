@@ -32,13 +32,13 @@ Linux operating system with:
 
 First clone this repository:
 
-``` shell
+```shell
 git clone https://github.com/EdgeTX/cloudbuild.git
 ```
 
 Then you will need to configure some things:
 
-``` shell
+```shell
 # Create config from template
 cp api.env.example api.env
 ```
@@ -47,7 +47,7 @@ For a quick test, all you need to edit is external URL (as it will be seen by we
 and the directory in which the firmwares are stored (which should be shared among all 
 containers as a volume).
 
-```
+```env
 EBUILD_STORAGE_PATH=/home/rootless/src/static/firmwares
 EBUILD_DOWNLOAD_URL=http://localhost:3000/firmwares
 ```
@@ -56,7 +56,7 @@ EBUILD_DOWNLOAD_URL=http://localhost:3000/firmwares
 
 The runtime container image can be built with:
 
-``` shell
+```shell
 docker compose build api
 ```
 
@@ -66,19 +66,19 @@ docker compose build api
 
 Start the database first:
 
-``` shell
+```shell
 docker compose up -d db
 ```
 
 Then start the API:
 
-``` shell
+```shell
 docker compose up -d api
 ```
 
 And setup the database schema with:
 
-``` shell
+```shell
 docker exec -it cloudbuild-api-1 ./ebuild db migrate
 ```
 
@@ -88,7 +88,7 @@ Once the database is setup, proceed to the next step to start the workers as wel
 
 Then the rest of the stack can be run all together:
 
-``` shell
+```shell
 docker compose up -d --scale worker=2
 ```
 
@@ -100,7 +100,7 @@ You can increase the number of workers if you want to build more firmwares in pa
 To offload serving the firmware files to a S3 compatible storage, a few configuration
 parameters need to be set additionally in the environment file (`api.env`):
 
-```
+```env
 # Common settings for all provider
 EBUILD_STORAGE_TYPE: S3
 EBUILD_S3_ACCESS_KEY: myAccessKey
@@ -118,7 +118,7 @@ EBUILD_DOWNLOAD_URL: https://bucket.s3.super-provider.com
 
 To be able to use the administrative UI, a token must be generated for every user:
 
-``` shell
+```shell
 docker exec -it cloudbuild-api-1 ./ebuild auth create [some name]
 AccessKey: [some access key]
 SecretKey: [very secret key]
@@ -126,7 +126,41 @@ SecretKey: [very secret key]
 
 The token can be later removed:
 
-``` shell
+```shell
 docker exec -it cloudbuild-api-1 ./ebuild auth remove [Access Key]
 token [Access Key] removed
+```
+
+## Using a local Git mirror
+
+To speed up builds, it is possible to use a local mirror by changing
+the repository URL:
+```env
+EBUILD_SRC_REPO=http://local-mirror:8080/EdgeTX/edgetx
+```
+
+[cloudbuild-mirror](https://github.com/EdgeTX/cloudbuild-mirror) can be
+used as a local mirror. It also supports automatic refreshing of the
+targets (see next section).
+
+With this configuration only, the submodules will still be fetched from `http://github.com`,
+as the full URL is encoded into the respective `.gitmodules` files. Fortunately, Git offers
+a simple to override this with [insteadOf](https://git-scm.com/docs/git-config#Documentation/git-config.txt-urlbaseinsteadOf).
+
+Just mount this file into the workers at `/etc/gitconfig`:
+```
+[url "http://local-mirror:8080"]
+  insteadOf = https://github.com
+```
+
+## Refresh targets automatically from URL
+
+It is also possible to fetch `targets.json` from a URL instead of a local
+file. In that case, the targets are refreshed automatically (defaults to 5 minutes interval).
+
+```env
+# Use cloudbuild mirrored repository as the source for targets.json
+EBUILD_TARGETS=http://local-mirror:8080/gitweb.cgi?p=EdgeTX/cloudbuild.git;a=blob_plain;f=targets.json;hb=HEAD
+# This is the default refresh interval in seconds
+EBUILD_TARGETS_REFRESH_INTERVAL=300
 ```
