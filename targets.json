@@ -123,6 +123,7 @@
   "targets": {
     "lr3pro": {
       "description": "BETAFPV LiteRadio 3 Pro",
+      "version_supported": ">= v2.8.0",
       "tags": ["stdlcd"]
     },
     "f16": {
@@ -132,6 +133,7 @@
     },
     "el18": {
       "description": "Flysky EL18",
+      "version_supported": ">= v2.8.0",
       "tags": ["colorlcd"]
     },
     "nb4p": {
@@ -141,6 +143,7 @@
     },
     "nv14": {
       "description": "Flysky NV14",
+      "version_supported": ">= v2.5.0",
       "tags": ["colorlcd"]
     },
     "pa01": {
@@ -249,6 +252,7 @@
     },
     "commando8": {
       "description": "iFlight Commando 8",
+      "version_supported": ">= v2.8.0",
       "tags": ["stdlcd"]
     },
     "bumblebee": {
@@ -313,6 +317,7 @@
     },
     "boxer": {
       "description": "RadioMaster Boxer",
+      "version_supported": ">= v2.8.1",
       "tags": ["stdlcd", "bluetooth"]
     },
     "gx12": {
@@ -340,6 +345,7 @@
     },
     "tx12mk2": {
       "description": "RadioMaster TX12MK2",
+      "version_supported": ">= v2.8.0",
       "tags": ["stdlcd", "bluetooth"]
     },
     "tx15": {
@@ -353,6 +359,7 @@
     },
     "zorro": {
       "description": "RadioMaster Zorro",
+      "version_supported": ">= v2.6.0",
       "tags": ["stdlcd"]
     }
   }
