@@ -1,222 +1,46 @@
 {
   "releases": {
     "nightly": {
-      "remote": {
-        "url": "https://api.github.com/repos/EdgeTX/edgetx/git/ref/tags/nightly",
-        "path": "object.sha"
-      }
+      "sem_ver": "v3.0.0"
     },
     "v2.11.3": {
-      "sha": "a7a1f37f54ebfefbda6ff03399f6d052e11fe4de",
-      "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
-      "exclude_targets": ["x10-access", "x7-access", "tx15"]
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.11"
     },
     "v2.11.2": {
-      "sha": "84cde07404cc6ee664f8f59aea604fe02c708d5d",
-      "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
-      "exclude_targets": ["x10-access", "x7-access", "tx15", "pa01"]
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.11"
     },
     "v2.11.1": {
-      "sha": "dfc8aa545796d1d437d4ee1e57a6dbfb87f754fc",
-      "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
-      "exclude_targets": ["x10-access", "x7-access", "pl18u", "tx15", "pa01"]
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.11"
     },
     "v2.11.0": {
-      "sha": "8369a2e23a7253a9ea4c9a8cb7c80e5fcf23d235",
-      "build_container": "ghcr.io/edgetx/edgetx-builder:2.11",
-      "exclude_targets": ["x10-access", "x7-access", "pl18u", "tx15", "pa01"]
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.11"
     },
     "v2.10.6": {
-      "sha": "14adf0474ccedbd935fac7d71958946680b5fdfc",
-      "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
-      "exclude_targets": [
-        "gx12",
-        "nb4p",
-        "x10express",
-        "x7access",
-        "st16",
-        "v12",
-        "v14",
-        "v16",
-        "pl18u",
-        "tx15",
-        "pa01"
-      ]
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.10"
     },
     "v2.10.5": {
-      "sha": "6b539d03c66061e431d9090531ac192f7550a102",
-      "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
-      "exclude_targets": [
-        "gx12",
-        "nb4p",
-        "x10express",
-        "x7access",
-        "st16",
-        "v12",
-        "v14",
-        "v16",
-        "pl18u",
-        "tx15",
-        "pa01"
-      ]
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.10"
     },
     "v2.10.4": {
-      "sha": "9b901689fbd84fb4027b4f898460314d76b1f69a",
-      "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
-      "exclude_targets": [
-        "bumblebee",
-        "gx12",
-        "nb4p",
-        "x10express",
-        "x7access",
-        "st16",
-        "v12",
-        "v14",
-        "v16",
-        "pl18u",
-        "tx15",
-        "pa01"
-      ]
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.10"
     },
     "v2.10.3": {
-      "sha": "2fc5a9acab767b7b3f4861d85dffd359d6ad28f6",
-      "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
-      "exclude_targets": [
-        "bumblebee",
-        "gx12",
-        "nb4p",
-        "x10express",
-        "x7access",
-        "st16",
-        "v12",
-        "v14",
-        "v16",
-        "pl18u",
-        "tx15",
-        "pa01"
-      ]
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.10"
     },
     "v2.10.2": {
-      "sha": "1de06000cdfe3398840a8d28f7bf5de7fbedc899",
-      "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
-      "exclude_targets": [
-        "t12max",
-        "tpros",
-        "bumblebee",
-        "gx12",
-        "nb4p",
-        "x10express",
-        "x7access",
-        "st16",
-        "v12",
-        "v14",
-        "v16",
-        "pl18u",
-        "tx15",
-        "pa01"
-      ]
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.10"
     },
     "v2.10.1": {
-      "sha": "839b60f6cc88d22383a6f686862b3fba4108884e",
-      "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
-      "exclude_targets": [
-        "f16",
-        "t12max",
-        "tpros",
-        "bumblebee",
-        "gx12",
-        "nb4p",
-        "x10express",
-        "x7access",
-        "st16",
-        "v12",
-        "v14",
-        "v16",
-        "pl18u",
-        "tx15",
-        "pa01"
-      ]
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.10"
     },
     "v2.10.0": {
-      "sha": "22ce06d3423fdb265c6c7bce6031f1003027bf0c",
-      "build_container": "ghcr.io/edgetx/edgetx-builder:2.10",
-      "exclude_targets": [
-        "f16",
-        "t12max",
-        "t15",
-        "tpros",
-        "bumblebee",
-        "gx12",
-        "nb4p",
-        "x10express",
-        "x7access",
-        "st16",
-        "v12",
-        "v14",
-        "v16",
-        "pl18u",
-        "tx15",
-        "pa01"
-      ]
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.10"
     },
     "v2.9.4": {
-      "sha": "77884b6a22e20ad91ba6c6656b96bcb2adc86768",
-      "build_container": "ghcr.io/edgetx/edgetx-builder:2.9.0",
-      "exclude_targets": [
-        "pl18",
-        "pl18ev",
-        "t20",
-        "tprov2",
-        "mt12",
-        "pocket",
-        "f16",
-        "t12max",
-        "t14",
-        "t15",
-        "t20v2",
-        "tpros",
-        "bumblebee",
-        "gx12",
-        "nb4p",
-        "x10express",
-        "x7access",
-        "st16",
-        "v12",
-        "v14",
-        "v16",
-        "pl18u",
-        "tx15",
-        "pa01"
-      ]
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.9.0"
     },
     "v2.8.5": {
-      "sha": "cbac1063eb8637457d2a63c367863c6bfd6f0c31",
-      "build_container": "ghcr.io/edgetx/edgetx-builder:2.8",
-      "exclude_targets": [
-        "pl18",
-        "pl18ev",
-        "t20",
-        "tprov2",
-        "mt12",
-        "pocket",
-        "f16",
-        "t12max",
-        "t14",
-        "t15",
-        "t20v2",
-        "tpros",
-        "bumblebee",
-        "gx12",
-        "nb4p",
-        "x10express",
-        "x7access",
-        "v12",
-        "v14",
-        "v16",
-        "pl18u",
-        "tx15",
-        "pa01"
-      ]
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.8"
     }
   },
   "flags": {
@@ -299,42 +123,52 @@
   "targets": {
     "lr3pro": {
       "description": "BETAFPV LiteRadio 3 Pro",
+      "version_supported": ">= v2.8.0",
       "tags": ["stdlcd"]
     },
     "f16": {
       "description": "Fatfish F16",
+      "version_supported": ">= v2.10.2",
       "tags": ["colorlcd", "bluetooth"]
     },
     "el18": {
       "description": "Flysky EL18",
+      "version_supported": ">= v2.8.0",
       "tags": ["colorlcd"]
     },
     "nb4p": {
       "description": "Flysky NB4+",
+      "version_supported": ">= v2.11.0",
       "tags": ["colorlcd"]
     },
     "nv14": {
       "description": "Flysky NV14",
+      "version_supported": ">= v2.5.0",
       "tags": ["colorlcd"]
     },
     "pa01": {
       "description": "Flysky PA01",
+      "version_supported": ">= v2.11.3",
       "tags": ["colorlcd"]
     },
     "pl18": {
       "description": "Flysky PL18",
+      "version_supported": ">= v2.10.0",
       "tags": ["colorlcd"]
     },
     "pl18ev": {
       "description": "Flysky PL18EV",
+      "version_supported": ">= v2.10.0",
       "tags": ["colorlcd"]
     },
     "pl18u": {
       "description": "Flysky PL18U",
+      "version_supported": ">= v2.11.2",
       "tags": ["colorlcd"]
     },
     "st16": {
       "description": "Flysky ST16",
+      "version_supported": ">= v2.11.0",
       "tags": ["colorlcd"]
     },
     "x7": {
@@ -343,10 +177,12 @@
     },
     "x7-access": {
       "description": "FrSky QX7 Access",
+      "version_supported": "< v2.11.0",
       "tags": ["stdlcd"]
     },
     "x7access": {
       "description": "FrSky QX7 Access",
+      "version_supported": ">= v2.11.0",
       "tags": ["stdlcd"]
     },
     "x9d": {
@@ -379,10 +215,12 @@
     },
     "x10-access": {
       "description": "FrSky Horus X10 Access",
+      "version_supported": "< v2.11.0",
       "tags": ["colorlcd"]
     },
     "x10express": {
       "description": "FrSky Horus X10 Express",
+      "version_supported": ">= v2.11.0",
       "tags": ["colorlcd"]
     },
     "x12s": {
@@ -399,22 +237,27 @@
     },
     "v12": {
       "description": "HelloRadioSky V12",
+      "version_supported": ">= v2.11.0",
       "tags": ["stdlcd"]
     },
     "v14": {
       "description": "HelloRadioSky V14",
+      "version_supported": ">= v2.11.0",
       "tags": ["stdlcd"]
     },
     "v16": {
       "description": "HelloRadioSky V16",
+      "version_supported": ">= v2.11.0",
       "tags": ["colorlcd", "bluetooth"]
     },
     "commando8": {
       "description": "iFlight Commando 8",
+      "version_supported": ">= v2.8.0",
       "tags": ["stdlcd"]
     },
     "bumblebee": {
       "description": "Jumper Bumblebee",
+      "version_supported": ">= v2.10.5",
       "tags": ["stdlcd"]
     },
     "t12": {
@@ -423,14 +266,17 @@
     },
     "t12max": {
       "description": "Jumper T12 MAX",
+      "version_supported": ">= v2.10.3",
       "tags": ["stdlcd"]
     },
     "t14": {
       "description": "Jumper T14",
+      "version_supported": ">= v2.10.0",
       "tags": ["stdlcd"]
     },
     "t15": {
       "description": "Jumper T15",
+      "version_supported": ">= v2.10.1",
       "tags": ["colorlcd", "bluetooth"]
     },
     "t16": {
@@ -443,10 +289,12 @@
     },
     "t20": {
       "description": "Jumper T20",
+      "version_supported": ">= v2.10.0",
       "tags": ["stdlcd"]
     },
     "t20v2": {
       "description": "Jumper T20 V2",
+      "version_supported": ">= v2.10.0",
       "tags": ["stdlcd"]
     },
     "tlite": {
@@ -459,26 +307,32 @@
     },
     "tprov2": {
       "description": "Jumper T-Pro V2",
+      "version_supported": ">= v2.10.0",
       "tags": ["stdlcd"]
     },
     "tpros": {
       "description": "Jumper T-Pro S",
+      "version_supported": ">= v2.10.3",
       "tags": ["stdlcd"]
     },
     "boxer": {
       "description": "RadioMaster Boxer",
+      "version_supported": ">= v2.8.1",
       "tags": ["stdlcd", "bluetooth"]
     },
     "gx12": {
       "description": "RadioMaster GX12",
+      "version_supported": ">= v2.11.0",
       "tags": ["stdlcd", "bluetooth"]
     },
     "mt12": {
       "description": "RadioMaster MT12",
+      "version_supported": ">= v2.10.0",
       "tags": ["stdlcd"]
     },
     "pocket": {
       "description": "RadioMaster Pocket",
+      "version_supported": ">= v2.10.0",
       "tags": ["stdlcd", "bluetooth"]
     },
     "t8": {
@@ -491,10 +345,12 @@
     },
     "tx12mk2": {
       "description": "RadioMaster TX12MK2",
+      "version_supported": ">= v2.8.0",
       "tags": ["stdlcd", "bluetooth"]
     },
     "tx15": {
       "description": "RadioMaster TX15",
+      "version_supported": ">= v3.0.0",
       "tags": ["colorlcd"]
     },
     "tx16s": {
@@ -503,6 +359,7 @@
     },
     "zorro": {
       "description": "RadioMaster Zorro",
+      "version_supported": ">= v2.6.0",
       "tags": ["stdlcd"]
     }
   }
