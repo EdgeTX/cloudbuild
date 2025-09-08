@@ -111,7 +111,7 @@ func NewOpts(v *viper.Viper) *CloudbuildOpts {
 		Viper:                  v,
 		LogLevel:               InfoLevel,
 		HTTPBindPort:           3000,
-		TargetsDef:             "file:///targets.json",
+		TargetsDef:             "./targets.json",
 		TargetsRefreshInterval: 300,
 		BuildImage:             "ghcr.io/edgetx/edgetx-builder",
 		SourceRepository:       "https://github.com/EdgeTX/edgetx.git",
