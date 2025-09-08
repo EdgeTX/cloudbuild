@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"net"
 	"net/http"
 	"strings"
 
@@ -263,5 +264,22 @@ func (app *Application) Start(listen string, opts *config.CloudbuildOpts) error 
 		}
 	})
 
-	return router.Run(listen)
+	var network string
+
+	switch {
+	case strings.HasPrefix(listen, "0.0.0.0"):
+		network = "tcp4" // IPv4 only
+	case listen == "" || strings.HasPrefix(listen, ":"):
+		network = "tcp" // Dual-stack (default Go behavior)
+	default:
+		network = "tcp" // Let Go decide based on the address
+	}
+
+	listener, err := net.Listen(network, listen)
+	if err != nil {
+		return err
+	}
+	defer listener.Close()
+
+	return router.RunListener(listener)
 }

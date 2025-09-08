@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net"
 	"os"
 	"path"
 	"reflect"
@@ -77,7 +76,7 @@ type CloudbuildOpts struct {
 	// General options:
 	ConfigPath      string   `mapstructure:"config-path"`
 	LogLevel        LogLevel `mapstructure:"log-level"`
-	HTTPBindAddress net.IP   `mapstructure:"listen-ip"`
+	HTTPBindAddress string   `mapstructure:"listen-ip"`
 	HTTPBindPort    uint16   `mapstructure:"port"`
 	TrustedPlatform string   `mapstructure:"platform"`
 
@@ -177,8 +176,8 @@ func (o *CloudbuildOpts) BindAPIOpts(c *cobra.Command) {
 	c.Flags().Uint16VarP(
 		&o.HTTPBindPort, "port", "p", o.HTTPBindPort, "HTTP listen port",
 	)
-	c.Flags().IPVarP(
-		&o.HTTPBindAddress, "listen-ip", "l", net.IPv4zero, "HTTP listen IP",
+	c.Flags().StringVarP(
+		&o.HTTPBindAddress, "listen-ip", "l", o.HTTPBindAddress, "HTTP listen IP",
 	)
 	c.Flags().StringVar(
 		&o.TargetsDef, "targets", o.TargetsDef, "Targets definition",
