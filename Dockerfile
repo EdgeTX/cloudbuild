@@ -6,7 +6,7 @@ WORKDIR /build
 
 RUN make build
 
-FROM node:slim AS ui-builder
+FROM node:24-slim AS ui-builder
 
 RUN mkdir /build
 WORKDIR /build
