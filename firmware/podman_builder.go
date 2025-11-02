@@ -70,6 +70,7 @@ func (builder *PodmanBuilder) buildCmdArgs(
 		fmt.Sprintf("FLAVOR=%s", target),
 		fmt.Sprintf("EXTRA_OPTIONS=%s", CmakeFlags(flags)),
 		fmt.Sprintf("MAX_JOBS=%d", builder.CPULimit),
+		fmt.Sprintf("CMAKE_BUILD_PARALLEL_LEVEL=%d", builder.CPULimit),
 	}
 	if versionTag == "nightly" {
 		env = append(env, "EDGETX_VERSION_SUFFIX=nightly")
