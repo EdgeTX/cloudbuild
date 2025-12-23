@@ -3,6 +3,9 @@
     "nightly": {
       "sem_ver": "v3.0.0"
     },
+    "v2.12.0-rc1": {
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.12"
+    },
     "v2.11.4": {
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.11"
     },
@@ -282,6 +285,11 @@
       "version_supported": ">= v2.10.1",
       "tags": ["colorlcd", "bluetooth"]
     },
+    "t15pro": {
+      "description": "Jumper T15 Pro",
+      "version_supported": ">= v2.12.0",
+      "tags": ["colorlcd", "bluetooth"]
+    },
     "t16": {
       "description": "Jumper T16",
       "tags": ["colorlcd", "bluetooth"]
@@ -353,7 +361,7 @@
     },
     "tx15": {
       "description": "RadioMaster TX15",
-      "version_supported": ">= v3.0.0",
+      "version_supported": ">= v2.12.0",
       "tags": ["colorlcd"]
     },
     "tx16s": {
