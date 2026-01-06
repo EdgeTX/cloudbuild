@@ -361,7 +361,7 @@
     },
     "tx15": {
       "description": "RadioMaster TX15",
-      "version_supported": ">= v2.12-RC1",
+      "version_supported": ">= v2.12.0-RC1",
       "tags": ["colorlcd"]
     },
     "tx16s": {
