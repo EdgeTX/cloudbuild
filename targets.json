@@ -3,6 +3,9 @@
     "nightly": {
       "sem_ver": "v3.0.0"
     },
+    "v2.12.0-rc3": {
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.12"
+    },
     "v2.12.0-rc2": {
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.12"
     },
@@ -369,6 +372,11 @@
     },
     "tx16s": {
       "description": "RadioMaster TX16S",
+      "tags": ["colorlcd", "bluetooth"]
+    },
+    "tx16smk3": {
+      "description": "RadioMaster TX16S MK3",
+      "version_supported": ">= v2.12.0-rc3",
       "tags": ["colorlcd", "bluetooth"]
     },
     "zorro": {
