@@ -3,6 +3,9 @@
     "nightly": {
       "sem_ver": "v3.0.0"
     },
+    "v2.12.0-rc4": {
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.12"
+    },
     "v2.12.0-rc3": {
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.12"
     },
@@ -11,6 +14,9 @@
     },
     "v2.12.0-rc1": {
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.12"
+    },
+    "v2.11.5": {
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.11"
     },
     "v2.11.4": {
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.11"
