@@ -315,6 +315,11 @@
       "version_supported": ">= v2.10.0",
       "tags": ["stdlcd"]
     },
+    "t22": {
+      "description": "Jumper T22",
+      "version_supported": ">= v2.12.2",
+      "tags": ["colorlcd"]
+    },      
     "tlite": {
       "description": "Jumper T-Lite",
       "tags": ["stdlcd"]
