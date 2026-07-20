@@ -268,6 +268,11 @@
       "version_supported": ">= v2.8.0",
       "tags": ["stdlcd"]
     },
+    "c14": {
+      "description": "iFlight Commando 14",
+      "version_supported": ">= v2.12.3",
+      "tags": ["colorlcd"]
+    },
     "bumblebee": {
       "description": "Jumper Bumblebee",
       "version_supported": ">= v2.10.5",
@@ -319,7 +324,7 @@
       "description": "Jumper T22",
       "version_supported": ">= v2.12.2",
       "tags": ["colorlcd"]
-    },      
+    },
     "tlite": {
       "description": "Jumper T-Lite",
       "tags": ["stdlcd"]
