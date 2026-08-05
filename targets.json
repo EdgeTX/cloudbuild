@@ -253,6 +253,11 @@
       "description": "FrSky X-Lite S",
       "tags": ["stdlcd"]
     },
+    "v12": {
+      "description": "HelloRadioSky V12",
+      "version_supported": ">= v2.12.3",
+      "tags": ["colorlcd"]
+    },
     "v14": {
       "description": "HelloRadioSky V14",
       "version_supported": ">= v2.11.0",
