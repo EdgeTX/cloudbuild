@@ -3,6 +3,9 @@
     "nightly": {
       "sem_ver": "v3.0.0"
     },
+    "v2.12.3": {
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.12"
+    },
     "v2.12.2": {
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.12"
     },
@@ -266,6 +269,11 @@
       "version_supported": ">= v2.11.0",
       "tags": ["stdlcd"]
     },
+    "v14lcd": {
+      "description": "HelloRadioSky V14LCD",
+      "version_supported": ">= v2.12.3",
+      "tags": ["stdlcd"]
+    },
     "v16": {
       "description": "HelloRadioSky V16",
       "version_supported": ">= v2.11.0",
@@ -360,6 +368,11 @@
       "description": "RadioMaster GX12",
       "version_supported": ">= v2.11.0",
       "tags": ["stdlcd", "bluetooth"]
+    },
+    "gx15": {
+      "description": "RadioMaster GX15",
+      "version_supported": ">= v2.12.3",
+      "tags": ["colorlcd"]
     },
     "mt12": {
       "description": "RadioMaster MT12",
