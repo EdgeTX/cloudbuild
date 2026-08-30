@@ -371,7 +371,7 @@
     },
     "gx15": {
       "description": "RadioMaster GX15",
-      "version_supported": ">= v2.12.3",
+      "version_supported": ">= v2.12.4",
       "tags": ["colorlcd"]
     },
     "mt12": {
