@@ -128,6 +128,14 @@
     "afhds3": {
       "build_flag": "AFHDS3",
       "values": ["YES", "NO"]
+    },
+    "module_size_std": {
+      "build_flag": "MODULE_SIZE_STD",
+      "values": ["YES", "NO"]
+    },
+    "module_size_sml": {
+      "build_flag": "MODULE_SIZE_SML",
+      "values": ["YES", "NO"]
     }
   },
   "tags": {
