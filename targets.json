@@ -104,6 +104,30 @@
     "power_led_blue": {
       "build_flag": "POWER_LED_BLUE",
       "values": ["YES", "NO"]
+    },
+    "pxx1": {
+      "build_flag": "PXX1",
+      "values": ["YES", "NO"]
+    },
+    "pxx2": {
+      "build_flag": "PXX2",
+      "values": ["YES", "NO"]
+    },
+    "ghost": {
+      "build_flag": "GHOST",
+      "values": ["YES", "NO"]
+    },
+    "multi": {
+      "build_flag": "MULTIMODULE",
+      "values": ["YES", "NO"]
+    },
+    "dsmp": {
+      "build_flag": "DSMP",
+      "values": ["YES", "NO"]
+    },
+    "afhds3": {
+      "build_flag": "AFHDS3",
+      "values": ["YES", "NO"]
     }
   },
   "tags": {
@@ -143,6 +167,14 @@
         "sticks": {
           "build_flag": "STICKS",
           "values": ["HORUS"]
+        }
+      }
+    },
+    "kcx_btaudio": {
+      "flags": {
+        "kcx_btaudio": {
+          "build_flag": "KCX_BTAUDIO",
+          "values": ["YES"]
         }
       }
     }
@@ -403,7 +435,7 @@
     "tx15": {
       "description": "RadioMaster TX15",
       "version_supported": ">= v2.12.0",
-      "tags": ["colorlcd", "bluetooth"]
+      "tags": ["colorlcd", "bluetooth", "kcx_btaudio"]
     },
     "tx16s": {
       "description": "RadioMaster TX16S",
@@ -412,7 +444,7 @@
     "tx16smk3": {
       "description": "RadioMaster TX16S MK3",
       "version_supported": ">= v2.12.0",
-      "tags": ["colorlcd", "bluetooth"]
+      "tags": ["colorlcd", "bluetooth", "kcx_btaudio"]
     },
     "zorro": {
       "description": "RadioMaster Zorro",
