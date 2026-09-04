@@ -438,7 +438,7 @@
       "tags": ["colorlcd", "bluetooth", "kcx_btaudio"]
     },
     "tx16s": {
-      "description": "RadioMaster TX16S",
+      "description": "RadioMaster TX16S / TX16S Mark II",
       "tags": ["colorlcd", "bluetooth"]
     },
     "tx16smk3": {
