@@ -3,6 +3,9 @@
     "nightly": {
       "sem_ver": "v3.0.0"
     },
+    "v2.12.5": {
+      "build_container": "ghcr.io/edgetx/edgetx-builder:2.12"
+    },
     "v2.12.4": {
       "build_container": "ghcr.io/edgetx/edgetx-builder:2.12"
     },
@@ -312,6 +315,11 @@
       "version_supported": ">= v2.12.3",
       "tags": ["stdlcd"]
     },
+    "v15": {
+      "description": "HelloRadioSky V15",
+      "version_supported": ">= v2.12.5",
+      "tags": ["colorlcd"]
+    },
     "v16": {
       "description": "HelloRadioSky V16",
       "version_supported": ">= v2.11.0",
@@ -356,6 +364,11 @@
       "version_supported": ">= v2.12.0",
       "tags": ["colorlcd", "bluetooth"]
     },
+    "t15h7": {
+      "description": "Jumper T15-H7",
+      "version_supported": ">= v2.12.5",
+      "tags": ["colorlcd"]
+    },
     "t16": {
       "description": "Jumper T16",
       "tags": ["colorlcd", "bluetooth"]
@@ -363,6 +376,11 @@
     "t18": {
       "description": "Jumper T18",
       "tags": ["colorlcd", "bluetooth"]
+    },
+    "t18h7": {
+      "description": "Jumper T18H7",
+      "version_supported": ">= v2.12.5",
+      "tags": ["colorlcd"]
     },
     "t20": {
       "description": "Jumper T20",
@@ -453,6 +471,11 @@
       "description": "RadioMaster Zorro",
       "version_supported": ">= v2.6.0",
       "tags": ["stdlcd"]
+    },
+    "h17": {
+      "description": "Senduwing H17",
+      "version_supported": ">= v2.12.5",
+      "tags": ["colorlcd"]
     }
   }
 }
