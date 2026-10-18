@@ -475,7 +475,7 @@
     "h17": {
       "description": "Senduwing H17",
       "version_supported": ">= v2.12.5",
-      "tags": ["colorlcd", "bluetooth"]
+      "tags": ["colorlcd"]
     }
   }
 }
