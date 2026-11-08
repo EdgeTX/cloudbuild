@@ -87,6 +87,8 @@ func (s *serverRunner) runWorker(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
+	processor.CleanupStaleBuilds(s.ctx)
+
 	worker := processor.New(art)
 	err = worker.PullImage(s.ctx, s.opts.BuildImage)
 	if err != nil {

@@ -3,6 +3,8 @@ package processor
 import (
 	"context"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"runtime"
 	"time"
 
@@ -28,15 +30,59 @@ func New(artifactory *artifactory.Artifactory) *Worker {
 	}
 }
 
+const (
+	sourceDirParent  = "/tmp"
+	sourceDirPattern = "source*"
+
+	// jobCleanupGracePeriod is how long to wait, after a job timed out,
+	// for the build to stop and clean up before moving on.
+	jobCleanupGracePeriod = 2 * time.Minute
+)
+
+// removeSourceDir deletes a build working directory. If a plain removal
+// fails (e.g. files owned by a sub-UID created inside the build container),
+// it retries from within podman's user namespace.
+func removeSourceDir(dir string) {
+	err := os.RemoveAll(dir)
+	if err == nil {
+		return
+	}
+	log.Warnf("failed to remove source dir %s: %s, retrying with podman unshare", dir, err)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	output, err := exec.CommandContext(ctx, "podman", "unshare", "rm", "-rf", dir).CombinedOutput()
+	if err != nil {
+		log.Errorf("failed to remove source dir %s: %s: %s", dir, err, output)
+	}
+}
+
+// CleanupStaleBuilds removes everything previous worker runs may have left
+// behind: build containers, their volumes and source directories.
+// It must be called before the worker starts processing jobs.
+func CleanupStaleBuilds(ctx context.Context) {
+	firmware.CleanupStaleContainers(ctx)
+
+	dirs, err := filepath.Glob(filepath.Join(sourceDirParent, sourceDirPattern))
+	if err != nil {
+		log.Errorf("failed to list stale source dirs: %s", err)
+		return
+	}
+	for _, dir := range dirs {
+		log.Infof("removing stale source dir %s", dir)
+		removeSourceDir(dir)
+	}
+}
+
 func (worker *Worker) build(
 	ctx context.Context,
 	job *artifactory.BuildJobModel,
 ) (*artifactory.BuildJobModel, error) {
-	sourceDir, err := os.MkdirTemp("/tmp", "source")
+	sourceDir, err := os.MkdirTemp(sourceDirParent, sourceDirPattern)
 	if err != nil {
 		log.Fatalf("failed to create tmp dir: %s", err)
 	}
-	defer os.RemoveAll(sourceDir)
+	defer removeSourceDir(sourceDir)
 
 	recorder := buildlogs.NewRecorder()
 	gitDownloader := source.NewGitDownloader(sourceDir, recorder)
@@ -49,7 +95,7 @@ func (worker *Worker) build(
 
 func (worker *Worker) executeJob(job *artifactory.BuildJobModel) {
 	log.Debugf("starting %s job, result: %s", job.ID, job.Status)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*15)
+	ctx, cancel := context.WithTimeout(context.Background(), artifactory.MaxBuildDuration)
 	defer cancel()
 
 	waitCh := make(chan struct{})
@@ -61,11 +107,21 @@ func (worker *Worker) executeJob(job *artifactory.BuildJobModel) {
 	}()
 
 	select {
-	case <-ctx.Done(): // timeout
-		log.Errorf("job %s timed out! (status: %s)", job.ID, job.Status)
-
 	case <-waitCh: // finished normally
 		log.Infof("processed %s job, result: %s", job.ID, job.Status)
+		return
+
+	case <-ctx.Done(): // timeout
+		log.Errorf("job %s timed out!", job.ID)
+	}
+
+	// Wait for the build to stop its container and remove its source dir,
+	// so that it neither leaks disk space nor competes with the next job.
+	select {
+	case <-waitCh:
+		log.Infof("cleaned up timed out job %s", job.ID)
+	case <-time.After(jobCleanupGracePeriod):
+		log.Errorf("job %s still running %s after timeout, giving up", job.ID, jobCleanupGracePeriod)
 	}
 }
 
