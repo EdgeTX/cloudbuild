@@ -98,6 +98,7 @@ func (s *serverRunner) runWorker(cmd *cobra.Command, args []string) {
 		log.Infof("Image downloaded successfully")
 	}
 
+	go processor.RunDiagnostics(s.ctx)
 	go processor.Heartbeat(s.opts)
 	go worker.Run()
 

@@ -97,6 +97,7 @@ func (worker *Worker) executeJob(job *artifactory.BuildJobModel) {
 	log.Debugf("starting %s job, result: %s", job.ID, job.Status)
 	ctx, cancel := context.WithTimeout(context.Background(), artifactory.MaxBuildDuration)
 	defer cancel()
+	defer countJobProcessed()
 
 	waitCh := make(chan struct{})
 	go func() {

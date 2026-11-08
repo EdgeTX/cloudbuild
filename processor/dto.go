@@ -2,6 +2,8 @@ package processor
 
 import (
 	"time"
+
+	"gorm.io/datatypes"
 )
 
 type WorkerDto struct {
@@ -9,6 +11,8 @@ type WorkerDto struct {
 	Hostname  string    `json:"hostname"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+	// Diagnostics is the raw Diagnostics JSON, null if not reported yet.
+	Diagnostics datatypes.JSON `json:"diagnostics"`
 }
 
 func WorkerDtoFromModel(model *WorkerModel) WorkerDto {
@@ -17,6 +21,8 @@ func WorkerDtoFromModel(model *WorkerModel) WorkerDto {
 		Hostname:  model.Hostname,
 		CreatedAt: model.CreatedAt,
 		UpdatedAt: model.UpdatedAt,
+
+		Diagnostics: model.Diagnostics,
 	}
 }
 

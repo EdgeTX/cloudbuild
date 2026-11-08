@@ -4,11 +4,29 @@ import { AuthContext, AuthContextType } from "@hooks/useAuthenticated";
 
 const REFRESH_INTERVAL = 10000;
 
+// Mirrors processor.Diagnostics on the server side.
+interface WorkerDiagnostics {
+  collected_at: string;
+  started_at: string;
+  jobs_processed: number;
+  disk_total_bytes: number;
+  disk_free_bytes: number;
+  tmp_bytes: number;
+  source_dirs: number;
+  podman_storage_bytes: number;
+  podman_images: number;
+  podman_dangling_images: number;
+  podman_containers: number;
+  podman_volumes: number;
+  errors?: string[];
+}
+
 interface Worker {
   id: string;
   hostname: string;
   created_at: string;
   updated_at: string;
+  diagnostics: WorkerDiagnostics | null;
 }
 
 function useWorkersData() {
@@ -48,5 +66,5 @@ function useWorkersData() {
   return { isLoading, error, data };
 }
 
-export type { Worker };
+export type { Worker, WorkerDiagnostics };
 export { useWorkersData };

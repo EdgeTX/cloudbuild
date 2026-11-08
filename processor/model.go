@@ -9,6 +9,7 @@ import (
 	"github.com/edgetx/cloudbuild/config"
 	"github.com/edgetx/cloudbuild/database"
 	uuid "github.com/satori/go.uuid"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -18,10 +19,12 @@ const (
 )
 
 type WorkerModel struct {
-	ID        uuid.UUID `gorm:"type:uuid;primary_key;"`
-	Hostname  string    `gorm:"index:worker_hostname_idx"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID       uuid.UUID `gorm:"type:uuid;primary_key;"`
+	Hostname string    `gorm:"index:worker_hostname_idx"`
+	// Diagnostics holds the last Diagnostics snapshot reported by the worker.
+	Diagnostics datatypes.JSON
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 func (WorkerModel) TableName() string {
@@ -75,6 +78,9 @@ func Heartbeat(c *config.CloudbuildOpts) {
 	}
 
 	for {
+		if diag := LatestDiagnostics(); diag != nil {
+			workerModel.Diagnostics = diag
+		}
 		db.Save(&workerModel)
 		time.Sleep(HeartbeatInterval)
 	}
