@@ -111,8 +111,9 @@ func CollectDiagnostics(ctx context.Context) *Diagnostics {
 	if err := syscall.Statfs("/", &st); err != nil {
 		fail("statfs", err)
 	} else {
-		d.DiskTotalBytes = st.Blocks * uint64(st.Bsize)
-		d.DiskFreeBytes = st.Bavail * uint64(st.Bsize)
+		blockSize := uint64(st.Bsize) //nolint:gosec // statfs block size is never negative
+		d.DiskTotalBytes = st.Blocks * blockSize
+		d.DiskFreeBytes = st.Bavail * blockSize
 	}
 
 	if dirs, err := filepath.Glob(filepath.Join(sourceDirParent, sourceDirPattern)); err != nil {
@@ -147,7 +148,9 @@ func CollectDiagnostics(ctx context.Context) *Diagnostics {
 		args []string
 	}{
 		{"images", &d.PodmanImages, []string{"images", "--quiet", "--no-trunc"}},
-		{"dangling images", &d.PodmanDanglingImages, []string{"images", "--quiet", "--no-trunc", "--filter", "dangling=true"}},
+		{"dangling images", &d.PodmanDanglingImages, []string{
+			"images", "--quiet", "--no-trunc", "--filter", "dangling=true",
+		}},
 		{"containers", &d.PodmanContainers, []string{"ps", "--all", "--quiet"}},
 		{"volumes", &d.PodmanVolumes, []string{"volume", "ls", "--quiet"}},
 	}
