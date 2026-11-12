@@ -365,7 +365,7 @@
       "tags": ["colorlcd", "bluetooth"]
     },
     "t15h7": {
-      "description": "Jumper T15-H7",
+      "description": "Jumper T15 H7",
       "version_supported": ">= v2.12.5",
       "tags": ["colorlcd"]
     },
@@ -378,7 +378,7 @@
       "tags": ["colorlcd", "bluetooth"]
     },
     "t18h7": {
-      "description": "Jumper T18H7",
+      "description": "Jumper T18 H7",
       "version_supported": ">= v2.12.5",
       "tags": ["colorlcd"]
     },
@@ -419,6 +419,11 @@
       "description": "RadioMaster Boxer",
       "version_supported": ">= v2.8.1",
       "tags": ["stdlcd", "bluetooth"]
+    },
+    "gx10": {
+      "description": "RadioMaster GX10",
+      "version_supported": ">= v2.12.6",
+      "tags": ["colorlcd"]
     },
     "gx12": {
       "description": "RadioMaster GX12",
