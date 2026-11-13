@@ -87,14 +87,12 @@
         "ES",
         "FI",
         "FR",
-        "HU",
         "IT",
         "KO",
         "NL",
         "PL",
         "PT",
         "RU",
-        "SK",
         "SE",
         "UA"
       ]
@@ -140,7 +138,7 @@
     "colorlcd": {
       "flags": {
         "language": {
-          "values": ["CN", "HE", "JP", "TW"]
+          "values": ["CN", "HE", "JP", "SK", "TW"]
         }
       }
     },
