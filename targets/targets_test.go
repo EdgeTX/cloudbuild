@@ -302,6 +302,17 @@ func TestShippedTargetsJSON(t *testing.T) {
 		}
 	}
 
+	// languages without B&W (stdlcd) fonts must only be offered to colour
+	// targets, e.g. KO only has LVGL fonts (EdgeTX/edgetx#6118)
+	colorOnly := []string{"AR", "CN", "HE", "JP", "KO", "SK", "TW"}
+	for name, target := range defs.Targets {
+		isColor := slices.Contains(target.Tags, "colorlcd")
+		for _, lang := range colorOnly {
+			assert.Equal(t, isColor, defs.IsOptionFlagSupported(name, "language", lang),
+				"%s on %s", lang, name)
+		}
+	}
+
 	// older releases are still offered, so the limits above are exercised
 	oldest, err := targets.NewVersionRef("v2.8.5")
 	assert.Nil(t, err)

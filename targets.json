@@ -88,7 +88,6 @@
         "FI",
         "FR",
         "IT",
-        "KO",
         "NL",
         "PL",
         "PT",
@@ -97,7 +96,6 @@
         "UA"
       ],
       "value_constraints": {
-        "KO": ">= 2.11.0-0",
         "RU": ">= 2.10.0-0",
         "UA": ">= 2.10.0-0"
       }
@@ -143,10 +141,11 @@
     "colorlcd": {
       "flags": {
         "language": {
-          "values": ["AR", "CN", "HE", "JP", "SK", "TW"],
+          "values": ["AR", "CN", "HE", "JP", "KO", "SK", "TW"],
           "value_constraints": {
             "AR": ">= 3.0.0-0",
-            "HE": ">= 2.9.0-0"
+            "HE": ">= 2.9.0-0",
+            "KO": ">= 2.11.0-0"
           }
         }
       }
