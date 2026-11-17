@@ -95,7 +95,12 @@
         "RU",
         "SE",
         "UA"
-      ]
+      ],
+      "value_constraints": {
+        "KO": ">= 2.11.0-0",
+        "RU": ">= 2.10.0-0",
+        "UA": ">= 2.10.0-0"
+      }
     },
     "fai_mode": {
       "build_flag": "FAI",
@@ -140,7 +145,8 @@
         "language": {
           "values": ["AR", "CN", "HE", "JP", "SK", "TW"],
           "value_constraints": {
-            "AR": ">= 3.0.0-0"
+            "AR": ">= 3.0.0-0",
+            "HE": ">= 2.9.0-0"
           }
         }
       }

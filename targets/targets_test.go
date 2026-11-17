@@ -261,7 +261,9 @@ func TestInvalidValueConstraints(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-// The shipped targets.json must load, and AR must be limited to >= 3.0.0.
+// The shipped targets.json must load, and languages must only be offered
+// from the release where they appear in EdgeTX's RADIO_LANGUAGES
+// (radio/src/CMakeLists.txt).
 func TestShippedTargetsJSON(t *testing.T) {
 	data, err := os.ReadFile("../targets.json")
 	assert.Nil(t, err)
@@ -280,13 +282,30 @@ func TestShippedTargetsJSON(t *testing.T) {
 	}
 	assert.NotEmpty(t, color)
 
-	for k, r := range defs.Releases {
-		ok, _ := defs.IsOptionFlagSupportedByRelease(color, "language", "AR", k.String())
-		v, err := semver.NewVersion(k.String())
-		want := k.String() == "nightly" || (err == nil && v.Major() >= 3)
-		assert.Equal(t, want, ok, "AR @ %s", k.String())
-		assert.Equal(t, want, !slices.Contains(r.ExcludeFlags["language"], "AR"), "exclude_flags @ %s", k.String())
+	// language -> first EdgeTX release that has it
+	firstRelease := map[string]string{
+		"HE": "2.9.0",
+		"RU": "2.10.0",
+		"UA": "2.10.0",
+		"KO": "2.11.0",
+		"AR": "3.0.0",
 	}
+	for lang, first := range firstRelease {
+		minVersion := semver.MustParse(first)
+		for k, r := range defs.Releases {
+			v, err := semver.NewVersion(k.String())
+			want := k.String() == "nightly" || (err == nil && !v.LessThan(minVersion))
+			ok, _ := defs.IsOptionFlagSupportedByRelease(color, "language", lang, k.String())
+			assert.Equal(t, want, ok, "%s @ %s", lang, k.String())
+			assert.Equal(t, want, !slices.Contains(r.ExcludeFlags["language"], lang),
+				"exclude_flags %s @ %s", lang, k.String())
+		}
+	}
+
+	// older releases are still offered, so the limits above are exercised
+	oldest, err := targets.NewVersionRef("v2.8.5")
+	assert.Nil(t, err)
+	assert.Contains(t, defs.Releases, *oldest)
 }
 
 func ref(t *testing.T, s string) targets.VersionRef {
