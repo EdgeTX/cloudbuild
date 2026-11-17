@@ -138,7 +138,7 @@
     "colorlcd": {
       "flags": {
         "language": {
-          "values": ["CN", "HE", "JP", "SK", "TW"]
+          "values": ["AR", "CN", "HE", "JP", "SK", "TW"]
         }
       }
     },
