@@ -1,6 +1,9 @@
 package targets_test
 
 import (
+	"encoding/json"
+	"os"
+	"slices"
 	"testing"
 
 	semver "github.com/Masterminds/semver/v3"
@@ -123,4 +126,172 @@ func TestExcludeTargets(t *testing.T) {
 	excl, err = defs.ExcludeTargetsFromRef("v1.1.2")
 	assert.Nil(t, err)
 	assert.Equal(t, []string{"t123", "x123"}, excl)
+}
+
+var flagConstraintsJSON = `{
+  "releases": {
+    "nightly": { "sha": "000", "sem_ver": "v3.0.0" },
+    "v3.0.0": { "sha": "300" },
+    "v3.0.0-rc1": { "sha": "301" },
+    "v2.12.6-rc1": { "sha": "212" },
+    "v2.12.5": { "sha": "211" }
+  },
+  "flags": {
+    "language": {
+      "build_flag": "TRANSLATIONS",
+      "values": ["EN", "FR"],
+      "value_constraints": { "FR": "< 2.12.5" }
+    }
+  },
+  "tags": {
+    "colorlcd": {
+      "flags": {
+        "language": {
+          "values": ["AR", "CN"],
+          "value_constraints": { "AR": ">= 3.0.0-0" }
+        }
+      }
+    }
+  },
+  "targets": {
+    "color": { "description": "Color radio", "tags": ["colorlcd"] },
+    "bw": { "description": "B&W radio" }
+  }
+}`
+
+func TestOptionFlagValueConstraints(t *testing.T) {
+	defs, err := targets.ReadTargetsDefFromBytes([]byte(flagConstraintsJSON), "")
+	assert.Nil(t, err)
+
+	tests := []struct {
+		target, value, ref string
+		supported          bool
+		constraint         string
+	}{
+		// unconstrained values work everywhere
+		{"color", "CN", "v2.12.5", true, ""},
+		{"color", "EN", "v2.12.5", true, ""},
+		// AR only from 3.0.0, including its pre-releases and nightly
+		{"color", "AR", "v2.12.5", false, ">=3.0.0-0"},
+		{"color", "AR", "v2.12.6-rc1", false, ">=3.0.0-0"},
+		{"color", "AR", "v3.0.0-rc1", true, ""},
+		{"color", "AR", "v3.0.0", true, ""},
+		{"color", "AR", "nightly", true, ""},
+		// global value constraints apply to every target
+		{"bw", "FR", "v2.12.5", false, "<2.12.5"},
+		{"color", "FR", "nightly", false, "<2.12.5"},
+		// unknown release
+		{"color", "CN", "v9.9.9", false, ""},
+	}
+	for _, tt := range tests {
+		ok, c := defs.IsOptionFlagSupportedByRelease(tt.target, "language", tt.value, tt.ref)
+		assert.Equal(t, tt.supported, ok, "%s %s@%s", tt.target, tt.value, tt.ref)
+		assert.Equal(t, tt.constraint, c, "%s %s@%s", tt.target, tt.value, tt.ref)
+	}
+
+	// release-independent check is unchanged
+	assert.True(t, defs.IsOptionFlagSupported("color", "language", "AR"))
+	assert.False(t, defs.IsOptionFlagSupported("bw", "language", "AR"))
+}
+
+func TestExcludeFlags(t *testing.T) {
+	defs, err := targets.ReadTargetsDefFromBytes([]byte(flagConstraintsJSON), "")
+	assert.Nil(t, err)
+
+	assert.Equal(t, map[string][]string{"language": {"AR", "FR"}}, defs.Releases[ref(t, "v2.12.5")].ExcludeFlags)
+	assert.Equal(t, map[string][]string{"language": {"AR", "FR"}}, defs.Releases[ref(t, "v2.12.6-rc1")].ExcludeFlags)
+	assert.Equal(t, map[string][]string{"language": {"FR"}}, defs.Releases[ref(t, "v3.0.0-rc1")].ExcludeFlags)
+	assert.Equal(t, map[string][]string{"language": {"FR"}}, defs.Releases[ref(t, "nightly")].ExcludeFlags)
+
+	// no constraints: no exclude_flags at all
+	defs, err = targets.ReadTargetsDefFromBytes([]byte(targetsJSON), "")
+	assert.Nil(t, err)
+	for _, r := range defs.Releases {
+		assert.Nil(t, r.ExcludeFlags)
+	}
+}
+
+func TestValueConstraintsJSON(t *testing.T) {
+	defs, err := targets.ReadTargetsDefFromBytes([]byte(flagConstraintsJSON), "")
+	assert.Nil(t, err)
+
+	data, err := json.Marshal(defs)
+	assert.Nil(t, err)
+
+	var out struct {
+		Releases map[string]struct {
+			ExcludeFlags map[string][]string `json:"exclude_flags"`
+		} `json:"releases"`
+		Tags map[string]struct {
+			Flags map[string]map[string]any `json:"flags"`
+		} `json:"tags"`
+	}
+	assert.Nil(t, json.Unmarshal(data, &out))
+	assert.Equal(t, []string{"AR", "FR"}, out.Releases["v2.12.5"].ExcludeFlags["language"])
+	assert.Equal(t,
+		map[string]any{"AR": ">=3.0.0-0"},
+		out.Tags["colorlcd"].Flags["language"]["value_constraints"])
+
+	// flags without constraints don't grow a new field
+	defs, err = targets.ReadTargetsDefFromBytes([]byte(targetsJSON), "")
+	assert.Nil(t, err)
+	data, err = json.Marshal(defs)
+	assert.Nil(t, err)
+	assert.NotContains(t, string(data), "value_constraints")
+	assert.NotContains(t, string(data), "exclude_flags")
+}
+
+func TestInvalidValueConstraints(t *testing.T) {
+	undefinedValue := `{
+	  "releases": { "v1.0.0": { "sha": "1" } },
+	  "tags": { "colorlcd": { "flags": { "language": {
+	    "values": ["CN"], "value_constraints": { "AR": ">= 3.0.0-0" }
+	  }}}}
+	}`
+	_, err := targets.ReadTargetsDefFromBytes([]byte(undefinedValue), "")
+	assert.ErrorIs(t, err, targets.ErrInvalidValueConstraint)
+
+	badConstraint := `{
+	  "releases": { "v1.0.0": { "sha": "1" } },
+	  "flags": { "language": {
+	    "values": ["AR"], "value_constraints": { "AR": "not a constraint" }
+	  }}
+	}`
+	_, err = targets.ReadTargetsDefFromBytes([]byte(badConstraint), "")
+	assert.NotNil(t, err)
+}
+
+// The shipped targets.json must load, and AR must be limited to >= 3.0.0.
+func TestShippedTargetsJSON(t *testing.T) {
+	data, err := os.ReadFile("../targets.json")
+	assert.Nil(t, err)
+
+	// json.Unmarshal rather than ReadTargetsDefFromBytes: releases have no
+	// SHA in the file, they are resolved from the git repo at runtime.
+	var defs targets.TargetsDef
+	assert.Nil(t, json.Unmarshal(data, &defs))
+
+	var color string
+	for name, target := range defs.Targets {
+		if slices.Contains(target.Tags, "colorlcd") {
+			color = name
+			break
+		}
+	}
+	assert.NotEmpty(t, color)
+
+	for k, r := range defs.Releases {
+		ok, _ := defs.IsOptionFlagSupportedByRelease(color, "language", "AR", k.String())
+		v, err := semver.NewVersion(k.String())
+		want := k.String() == "nightly" || (err == nil && v.Major() >= 3)
+		assert.Equal(t, want, ok, "AR @ %s", k.String())
+		assert.Equal(t, want, !slices.Contains(r.ExcludeFlags["language"], "AR"), "exclude_flags @ %s", k.String())
+	}
+}
+
+func ref(t *testing.T, s string) targets.VersionRef {
+	t.Helper()
+	r, err := targets.NewVersionRef(s)
+	assert.Nil(t, err)
+	return *r
 }

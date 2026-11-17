@@ -138,7 +138,10 @@
     "colorlcd": {
       "flags": {
         "language": {
-          "values": ["AR", "CN", "HE", "JP", "SK", "TW"]
+          "values": ["AR", "CN", "HE", "JP", "SK", "TW"],
+          "value_constraints": {
+            "AR": ">= 3.0.0-0"
+          }
         }
       }
     },

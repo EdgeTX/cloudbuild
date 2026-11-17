@@ -178,9 +178,21 @@ function JobCreateForm({ messageApi, onFinish }: Props) {
           flags[key].values = Array.from(valueSet.values());
         }
       }
+
+      // remove values not supported by the selected release
+      const excludeFlags = targets?.releases[currentRelease]?.exclude_flags ?? {};
+      for (const [key, excluded] of Object.entries(excludeFlags)) {
+        if (!Object.hasOwn(flags, key)) continue;
+        const values = flags[key].values.filter((v) => !excluded.includes(v));
+        if (values.length > 0) {
+          flags[key] = { ...flags[key], values };
+        } else {
+          delete flags[key];
+        }
+      }
       return flags;
     },
-    [targets, currentTarget]
+    [targets, currentTarget, currentRelease]
   );
 
   const [selectedFlags, setSelectedFlags] = useState<Flag[]>([]);

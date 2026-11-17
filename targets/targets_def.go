@@ -27,9 +27,10 @@ var (
 	// absurdly high version.
 	NightlyVersion = semver.New(math.MaxUint64, 0, 0, "", "")
 
-	ErrMissingSHA    = errors.New("missing SHA")
-	ErrMissingRef    = errors.New("missing ref")
-	ErrInvalidSchema = errors.New("invalid URL schema")
+	ErrMissingSHA             = errors.New("missing SHA")
+	ErrMissingRef             = errors.New("missing ref")
+	ErrInvalidSchema          = errors.New("invalid URL schema")
+	ErrInvalidValueConstraint = errors.New("value constraint for undefined value")
 )
 
 type RemoteAPI struct {
@@ -40,8 +41,11 @@ type RemoteAPI struct {
 type Release struct {
 	SHA            string   `json:"sha"`
 	ExcludeTargets []string `json:"exclude_targets,omitempty"`
-	BuildContainer string   `json:"build_container,omitempty"`
-	SemVer         string   `json:"sem_ver,omitempty"`
+	// ExcludeFlags maps an option flag name to the values that this release
+	// does not support (computed from OptionFlag.ValueConstraints).
+	ExcludeFlags   map[string][]string `json:"exclude_flags,omitempty"`
+	BuildContainer string              `json:"build_container,omitempty"`
+	SemVer         string              `json:"sem_ver,omitempty"`
 	update         bool
 	version        *semver.Version
 }
@@ -49,6 +53,10 @@ type Release struct {
 type OptionFlag struct {
 	BuildFlag string   `json:"build_flag,omitempty"`
 	Values    []string `json:"values"`
+	// ValueConstraints optionally limits individual values to the releases
+	// matching a semver constraint (e.g. {"AR": ">= 3.0.0-0"}). Values
+	// without an entry are supported by every release.
+	ValueConstraints map[string]semver.Constraints `json:"value_constraints,omitempty"`
 }
 
 type BuildFlags map[string]string
@@ -167,6 +175,26 @@ func (opts OptionFlags) HasOptionValue(name, value string) bool {
 	return false
 }
 
+// supportsRelease reports whether value may be used with release r.
+func (opt *OptionFlag) supportsRelease(value string, r *Release) bool {
+	if c, ok := opt.ValueConstraints[value]; ok {
+		return c.Check(r.version)
+	}
+	return true
+}
+
+func (opts OptionFlags) validateValueConstraints(scope string) error {
+	for name, opt := range opts {
+		for value := range opt.ValueConstraints {
+			if !slices.Contains(opt.Values, value) {
+				return fmt.Errorf("%s: flag %q, value %q: %w",
+					scope, name, value, ErrInvalidValueConstraint)
+			}
+		}
+	}
+	return nil
+}
+
 func (target *Target) SupportsRelease(r *Release) bool {
 	if len(target.VersionSupported.String()) > 0 {
 		return target.VersionSupported.Check(r.version)
@@ -186,7 +214,11 @@ func (def *TargetsDef) UnmarshalJSON(text []byte) error {
 	if err := tmp.fillSemVer(); err != nil {
 		return err
 	}
+	if err := tmp.validateValueConstraints(); err != nil {
+		return err
+	}
 	tmp.fillExcludeTargets()
+	tmp.fillExcludeFlags()
 
 	*def = tmp
 	return nil
@@ -244,6 +276,47 @@ func (def *TargetsDef) fillExcludeTargets() {
 	}
 }
 
+func (def *TargetsDef) validateValueConstraints() error {
+	if err := def.OptionFlags.validateValueConstraints("flags"); err != nil {
+		return err
+	}
+	for name, tag := range def.Tags {
+		if err := tag.Flags.validateValueConstraints("tags." + name); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// fillExcludeFlags computes Release.ExcludeFlags: for each release, the flag
+// values (global or from any tag) whose value constraint excludes it.
+func (def *TargetsDef) fillExcludeFlags() {
+	for k := range def.Releases {
+		r := def.Releases[k]
+		r.ExcludeFlags = nil
+		exclude := func(opts OptionFlags) {
+			for name, opt := range opts {
+				for value := range opt.ValueConstraints {
+					if !opt.supportsRelease(value, r) {
+						if r.ExcludeFlags == nil {
+							r.ExcludeFlags = make(map[string][]string)
+						}
+						r.ExcludeFlags[name] = append(r.ExcludeFlags[name], value)
+					}
+				}
+			}
+		}
+		exclude(def.OptionFlags)
+		for _, tag := range def.Tags {
+			exclude(tag.Flags)
+		}
+		for name, values := range r.ExcludeFlags {
+			slices.Sort(values)
+			r.ExcludeFlags[name] = slices.Compact(values)
+		}
+	}
+}
+
 func (def *TargetsDef) fillSemVer() error {
 	for k := range def.Releases {
 		r := def.Releases[k]
@@ -285,21 +358,56 @@ func (def *TargetsDef) IsTargetSupported(name, ref string) bool {
 	return target.SupportsRelease(r)
 }
 
-func (def *TargetsDef) IsOptionFlagSupported(target, name, value string) bool {
-	if def.OptionFlags.HasOptionValue(name, value) {
-		return true
+// optionFlagDefs returns the definitions of flag name that apply to target:
+// the global one first (if any), followed by those of the target's tags.
+func (def *TargetsDef) optionFlagDefs(target, name string) []OptionFlag {
+	defs := make([]OptionFlag, 0, 1)
+	if opt, ok := def.OptionFlags[name]; ok {
+		defs = append(defs, opt)
 	}
-
 	if t, ok := def.Targets[target]; ok {
 		for _, tag := range t.Tags {
-			tagDef, ok := def.Tags[tag]
-			if ok && tagDef.Flags.HasOptionValue(name, value) {
-				return true
+			if tagDef, ok := def.Tags[tag]; ok {
+				if opt, ok := tagDef.Flags[name]; ok {
+					defs = append(defs, opt)
+				}
 			}
 		}
 	}
+	return defs
+}
 
+// IsOptionFlagSupported reports whether value is a known value of flag name
+// for target, regardless of the release.
+func (def *TargetsDef) IsOptionFlagSupported(target, name, value string) bool {
+	for _, opt := range def.optionFlagDefs(target, name) {
+		if slices.Contains(opt.Values, value) {
+			return true
+		}
+	}
 	return false
+}
+
+// IsOptionFlagSupportedByRelease reports whether value of flag name may be
+// used for target at release ref, i.e. no applicable definition listing that
+// value has a constraint excluding the release. When it may not, the
+// offending constraint is returned (empty if ref is unknown).
+func (def *TargetsDef) IsOptionFlagSupportedByRelease(target, name, value, ref string) (bool, string) {
+	v, err := NewVersionRef(ref)
+	if err != nil {
+		return false, ""
+	}
+	r, ok := def.Releases[*v]
+	if !ok {
+		return false, ""
+	}
+	for _, opt := range def.optionFlagDefs(target, name) {
+		if slices.Contains(opt.Values, value) && !opt.supportsRelease(value, r) {
+			c := opt.ValueConstraints[value]
+			return false, c.String()
+		}
+	}
+	return true, ""
 }
 
 func (def *TargetsDef) GetCommitHashByRef(ref string) string {
