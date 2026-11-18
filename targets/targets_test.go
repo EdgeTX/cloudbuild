@@ -428,18 +428,32 @@ func TestShippedTargetsColorOnlyLanguages(t *testing.T) {
 	}
 }
 
-// POWER_LED_BLUE was removed in EdgeTX 3.0.
-func TestShippedTargetsPowerLedBlue(t *testing.T) {
+// Whole flags that only exist in some EdgeTX releases.
+func TestShippedTargetsFlagReleases(t *testing.T) {
 	defs := loadShippedTargets(t)
 	v3 := semver.MustParse("3.0.0-0")
-	for k, r := range defs.Releases {
-		want := !isAtLeast(k.String(), v3)
-		for _, value := range []string{"YES", "NO"} {
-			ok, _ := defs.IsOptionFlagSupportedByRelease("x9d", "power_led_blue", value, k.String())
-			assert.Equal(t, want, ok, "power_led_blue=%s @ %s", value, k.String())
+	tests := []struct {
+		flag, target string
+		values       []string
+		supported    func(ref string) bool
+	}{
+		// POWER_LED_BLUE was removed in EdgeTX 3.0
+		{"power_led_blue", "x9d", []string{"YES", "NO"},
+			func(ref string) bool { return !isAtLeast(ref, v3) }},
+		// KCX BT audio is main-only (EdgeTX/edgetx#6777, #7056), not in 2.12
+		{"kcx_btaudio", "tx15", []string{"YES"},
+			func(ref string) bool { return isAtLeast(ref, v3) }},
+	}
+	for _, tt := range tests {
+		for k, r := range defs.Releases {
+			want := tt.supported(k.String())
+			for _, value := range tt.values {
+				ok, _ := defs.IsOptionFlagSupportedByRelease(tt.target, tt.flag, value, k.String())
+				assert.Equal(t, want, ok, "%s=%s @ %s", tt.flag, value, k.String())
+			}
+			assert.Equal(t, want, len(r.ExcludeFlags[tt.flag]) == 0,
+				"exclude_flags %s @ %s", tt.flag, k.String())
 		}
-		assert.Equal(t, want, len(r.ExcludeFlags["power_led_blue"]) == 0,
-			"exclude_flags power_led_blue @ %s", k.String())
 	}
 }
 func ref(t *testing.T, s string) targets.VersionRef {

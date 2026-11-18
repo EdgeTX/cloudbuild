@@ -187,7 +187,8 @@
       "flags": {
         "kcx_btaudio": {
           "build_flag": "KCX_BTAUDIO",
-          "values": ["YES"]
+          "values": ["YES"],
+          "version_supported": ">= 3.0.0-0"
         }
       }
     }
