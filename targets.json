@@ -88,14 +88,17 @@
         "FI",
         "FR",
         "IT",
-        "KO",
         "NL",
         "PL",
         "PT",
         "RU",
         "SE",
         "UA"
-      ]
+      ],
+      "values_version_supported": {
+        "RU": ">= 2.10.0-0",
+        "UA": ">= 2.10.0-0"
+      }
     },
     "fai_mode": {
       "build_flag": "FAI",
@@ -107,7 +110,8 @@
     },
     "power_led_blue": {
       "build_flag": "POWER_LED_BLUE",
-      "values": ["YES", "NO"]
+      "values": ["YES", "NO"],
+      "version_supported": "< 3.0.0-0"
     },
     "pxx1": {
       "build_flag": "PXX1",
@@ -146,7 +150,12 @@
     "colorlcd": {
       "flags": {
         "language": {
-          "values": ["AR", "CN", "HE", "JP", "SK", "TW"]
+          "values": ["AR", "CN", "HE", "JP", "KO", "SK", "TW"],
+          "values_version_supported": {
+            "AR": ">= 3.0.0-0",
+            "HE": ">= 2.9.0-0",
+            "KO": ">= 2.11.0-0"
+          }
         }
       }
     },
@@ -186,7 +195,8 @@
       "flags": {
         "kcx_btaudio": {
           "build_flag": "KCX_BTAUDIO",
-          "values": ["YES"]
+          "values": ["YES"],
+          "version_supported": ">= 3.0.0-0"
         }
       }
     }

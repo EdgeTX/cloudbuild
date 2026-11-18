@@ -5,6 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 interface Release {
   sha: string;
   exclude_targets?: string[];
+  // flag name -> values not supported by this release
+  exclude_flags?: Record<string, string[]>;
 }
 
 interface Tag {

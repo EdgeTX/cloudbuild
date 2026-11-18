@@ -16,6 +16,8 @@ var (
 	ErrReleaseNotSupported    = errors.New("release not supported")
 	ErrTargetNotSupported     = errors.New("target not supported")
 	ErrOptionFlagNotSupported = errors.New("option flag not supported")
+
+	ErrOptionFlagNotSupportedByRelease = errors.New("option flag not supported by release")
 )
 
 type OptionFlag struct {
@@ -41,6 +43,10 @@ func (opt *OptionFlag) String() string {
 
 func (e *BuildRequestError) Error() string {
 	return fmt.Sprintf("%s: %s", e.Err.Error(), e.What)
+}
+
+func (e *BuildRequestError) Unwrap() error {
+	return e.Err
 }
 
 func NewBuildRequest() *BuildRequest {
@@ -76,6 +82,16 @@ func (req *BuildRequest) Validate() error {
 			return &BuildRequestError{
 				Err:  ErrOptionFlagNotSupported,
 				What: flag.String(),
+			}
+		}
+		ok, constraint := req.defs.IsOptionFlagSupportedByRelease(
+			req.Target, flag.Name, flag.Value, req.Release,
+		)
+		if !ok {
+			return &BuildRequestError{
+				Err: ErrOptionFlagNotSupportedByRelease,
+				What: fmt.Sprintf("%s requires release %s, got %s",
+					flag.String(), constraint, req.Release),
 			}
 		}
 	}
