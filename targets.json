@@ -95,7 +95,7 @@
         "SE",
         "UA"
       ],
-      "value_constraints": {
+      "version_supported": {
         "RU": ">= 2.10.0-0",
         "UA": ">= 2.10.0-0"
       }
@@ -142,7 +142,7 @@
       "flags": {
         "language": {
           "values": ["AR", "CN", "HE", "JP", "KO", "SK", "TW"],
-          "value_constraints": {
+          "version_supported": {
             "AR": ">= 3.0.0-0",
             "HE": ">= 2.9.0-0",
             "KO": ">= 2.11.0-0"

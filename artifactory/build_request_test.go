@@ -49,7 +49,7 @@ func TestValidateOptionFlagRelease(t *testing.T) {
 	  },
 	  "tags": {
 	    "colorlcd": { "flags": { "language": {
-	      "values": ["AR"], "value_constraints": { "AR": ">= 3.0.0-0" }
+	      "values": ["AR"], "version_supported": { "AR": ">= 3.0.0-0" }
 	    }}}
 	  },
 	  "targets": {

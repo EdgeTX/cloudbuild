@@ -140,7 +140,7 @@ var flagConstraintsJSON = `{
     "language": {
       "build_flag": "TRANSLATIONS",
       "values": ["EN", "FR"],
-      "value_constraints": { "FR": "< 2.12.5" }
+      "version_supported": { "FR": "< 2.12.5" }
     }
   },
   "tags": {
@@ -148,7 +148,7 @@ var flagConstraintsJSON = `{
       "flags": {
         "language": {
           "values": ["AR", "CN"],
-          "value_constraints": { "AR": ">= 3.0.0-0" }
+          "version_supported": { "AR": ">= 3.0.0-0" }
         }
       }
     }
@@ -159,7 +159,7 @@ var flagConstraintsJSON = `{
   }
 }`
 
-func TestOptionFlagValueConstraints(t *testing.T) {
+func TestOptionFlagVersionSupported(t *testing.T) {
 	defs, err := targets.ReadTargetsDefFromBytes([]byte(flagConstraintsJSON), "")
 	assert.Nil(t, err)
 
@@ -177,7 +177,7 @@ func TestOptionFlagValueConstraints(t *testing.T) {
 		{"color", "AR", "v3.0.0-rc1", true, ""},
 		{"color", "AR", "v3.0.0", true, ""},
 		{"color", "AR", "nightly", true, ""},
-		// global value constraints apply to every target
+		// global version_supported constraints apply to every target
 		{"bw", "FR", "v2.12.5", false, "<2.12.5"},
 		{"color", "FR", "nightly", false, "<2.12.5"},
 		// unknown release
@@ -211,7 +211,7 @@ func TestExcludeFlags(t *testing.T) {
 	}
 }
 
-func TestValueConstraintsJSON(t *testing.T) {
+func TestFlagVersionSupportedJSON(t *testing.T) {
 	defs, err := targets.ReadTargetsDefFromBytes([]byte(flagConstraintsJSON), "")
 	assert.Nil(t, err)
 
@@ -230,31 +230,45 @@ func TestValueConstraintsJSON(t *testing.T) {
 	assert.Equal(t, []string{"AR", "FR"}, out.Releases["v2.12.5"].ExcludeFlags["language"])
 	assert.Equal(t,
 		map[string]any{"AR": ">=3.0.0-0"},
-		out.Tags["colorlcd"].Flags["language"]["value_constraints"])
+		out.Tags["colorlcd"].Flags["language"]["version_supported"])
 
-	// flags without constraints don't grow a new field
-	defs, err = targets.ReadTargetsDefFromBytes([]byte(targetsJSON), "")
+	// flags without constraints don't grow a new field, and releases don't
+	// get exclude_flags (targets have their own, unrelated version_supported)
+	defs, err = targets.ReadTargetsDefFromBytes([]byte(`{
+	  "releases": { "v1.0.0": { "sha": "1" } },
+	  "flags": { "language": { "build_flag": "TRANSLATIONS", "values": ["EN"] } },
+	  "tags": { "colorlcd": { "flags": { "language": { "values": ["CN"] } } } },
+	  "targets": { "t1": { "description": "T1", "tags": ["colorlcd"] } }
+	}`), "")
 	assert.Nil(t, err)
 	data, err = json.Marshal(defs)
 	assert.Nil(t, err)
-	assert.NotContains(t, string(data), "value_constraints")
+	var plain struct {
+		Flags map[string]map[string]any `json:"flags"`
+		Tags  map[string]struct {
+			Flags map[string]map[string]any `json:"flags"`
+		} `json:"tags"`
+	}
+	assert.Nil(t, json.Unmarshal(data, &plain))
+	assert.NotContains(t, plain.Flags["language"], "version_supported")
+	assert.NotContains(t, plain.Tags["colorlcd"].Flags["language"], "version_supported")
 	assert.NotContains(t, string(data), "exclude_flags")
 }
 
-func TestInvalidValueConstraints(t *testing.T) {
+func TestInvalidFlagVersionSupported(t *testing.T) {
 	undefinedValue := `{
 	  "releases": { "v1.0.0": { "sha": "1" } },
 	  "tags": { "colorlcd": { "flags": { "language": {
-	    "values": ["CN"], "value_constraints": { "AR": ">= 3.0.0-0" }
+	    "values": ["CN"], "version_supported": { "AR": ">= 3.0.0-0" }
 	  }}}}
 	}`
 	_, err := targets.ReadTargetsDefFromBytes([]byte(undefinedValue), "")
-	assert.ErrorIs(t, err, targets.ErrInvalidValueConstraint)
+	assert.ErrorIs(t, err, targets.ErrInvalidVersionSupported)
 
 	badConstraint := `{
 	  "releases": { "v1.0.0": { "sha": "1" } },
 	  "flags": { "language": {
-	    "values": ["AR"], "value_constraints": { "AR": "not a constraint" }
+	    "values": ["AR"], "version_supported": { "AR": "not a constraint" }
 	  }}
 	}`
 	_, err = targets.ReadTargetsDefFromBytes([]byte(badConstraint), "")

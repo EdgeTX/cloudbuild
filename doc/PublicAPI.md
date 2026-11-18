@@ -7,6 +7,17 @@
 This endpoint allows for retrieving the supported targets and build options.
 It returns the configured `targets.json` (see [here](../targets.json)).
 
+Each release also includes what it can't build, computed from the
+`version_supported` constraints (see the
+[README](../README.md#limiting-targets-and-flag-values-to-releases)):
+
+- `exclude_targets`: targets not supported by this release.
+- `exclude_flags`: option flag values not supported by this release, as a map
+  from flag name to values, e.g. `{"language": ["AR"]}`.
+
+Both are omitted when empty. Clients should hide these for the selected
+release; build requests using them are rejected.
+
 #### CURL
 
 ```sh

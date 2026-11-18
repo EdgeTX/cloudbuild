@@ -164,3 +164,46 @@ EBUILD_TARGETS=http://local-mirror:8080/gitweb.cgi?p=EdgeTX/cloudbuild.git;a=blo
 # This is the default refresh interval in seconds
 EBUILD_TARGETS_REFRESH_INTERVAL=300
 ```
+
+## Limiting targets and flag values to releases
+
+Some radios and option values only exist in some EdgeTX releases. In
+`targets.json`, `version_supported` limits them with a
+[semver constraint](https://github.com/Masterminds/semver#checking-version-constraints),
+checked against each release's version (`sem_ver` if set, e.g. `nightly`):
+
+```json
+"targets": {
+  "newradio": { "description": "Example New Radio", "version_supported": ">= 3.0.0-0" }
+},
+"tags": {
+  "colorlcd": {
+    "flags": {
+      "language": {
+        "values": ["AR", "CN"],
+        "version_supported": { "AR": ">= 3.0.0-0" }
+      }
+    }
+  }
+}
+```
+
+- On a target it's a single constraint. On a flag (global or under a tag)
+  it's a map from value to constraint, and values without an entry are
+  supported by every release. Each key must be listed in `values`.
+- To remove a whole flag from some releases, constrain every one of its
+  values (e.g. `{"YES": "< 3.0.0-0", "NO": "< 3.0.0-0"}`). Clients drop a
+  flag with no values left. Remember to constrain any value added later too.
+- Build requests that use an unsupported target or value for the requested
+  release are rejected.
+- The API exposes the result per release as `exclude_targets` and
+  `exclude_flags`, so clients can hide what a release can't build.
+
+**Add `-0` to the version in minimum constraints** (`>= 3.0.0-0`, not
+`>= 3.0.0`) when pre-releases should be included. A constraint without a
+pre-release part never matches pre-releases, so if `v3.0.0-rc1` is listed
+in `releases`, `>= 3.0.0` excludes it (and every other pre-release).
+`-0` is the lowest possible pre-release, so `>= 3.0.0-0` matches all 3.0
+pre-releases as well as `v3.0.0` and later. This only matters for releases
+with a pre-release version: `nightly` uses `sem_ver` (e.g. `v3.0.0`), which
+isn't one.
