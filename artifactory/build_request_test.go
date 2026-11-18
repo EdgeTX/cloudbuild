@@ -45,11 +45,15 @@ func TestValidateOptionFlagRelease(t *testing.T) {
 	    "v2.12.5": { "sha": "211" }
 	  },
 	  "flags": {
-	    "language": { "build_flag": "TRANSLATIONS", "values": ["EN"] }
+	    "language": { "build_flag": "TRANSLATIONS", "values": ["EN"] },
+	    "power_led_blue": {
+	      "build_flag": "POWER_LED_BLUE", "values": ["YES", "NO"],
+	      "version_supported": "< 3.0.0-0"
+	    }
 	  },
 	  "tags": {
 	    "colorlcd": { "flags": { "language": {
-	      "values": ["AR"], "version_supported": { "AR": ">= 3.0.0-0" }
+	      "values": ["AR"], "values_version_supported": { "AR": ">= 3.0.0-0" }
 	    }}}
 	  },
 	  "targets": {
@@ -75,4 +79,11 @@ func TestValidateOptionFlagRelease(t *testing.T) {
 	// value unknown for the target: unchanged error
 	err = artifactory.NewBuildRequestWithParams("nightly", "x7", ar).Validate()
 	assert.ErrorIs(t, err, artifactory.ErrOptionFlagNotSupported)
+
+	// whole flag limited to releases before 3.0
+	blue := []artifactory.OptionFlag{{Name: "power_led_blue", Value: "NO"}}
+	assert.Nil(t, artifactory.NewBuildRequestWithParams("v2.12.5", "x7", blue).Validate())
+	err = artifactory.NewBuildRequestWithParams("nightly", "x7", blue).Validate()
+	assert.EqualError(t, err,
+		"option flag not supported by release: power_led_blue=NO requires release <3.0.0-0, got nightly")
 }

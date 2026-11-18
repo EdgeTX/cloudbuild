@@ -27,10 +27,10 @@ var (
 	// absurdly high version.
 	NightlyVersion = semver.New(math.MaxUint64, 0, 0, "", "")
 
-	ErrMissingSHA              = errors.New("missing SHA")
-	ErrMissingRef              = errors.New("missing ref")
-	ErrInvalidSchema           = errors.New("invalid URL schema")
-	ErrInvalidVersionSupported = errors.New("version_supported for undefined value")
+	ErrMissingSHA                    = errors.New("missing SHA")
+	ErrMissingRef                    = errors.New("missing ref")
+	ErrInvalidSchema                 = errors.New("invalid URL schema")
+	ErrInvalidValuesVersionSupported = errors.New("values_version_supported for undefined value")
 )
 
 type RemoteAPI struct {
@@ -42,7 +42,7 @@ type Release struct {
 	SHA            string   `json:"sha"`
 	ExcludeTargets []string `json:"exclude_targets,omitempty"`
 	// ExcludeFlags maps an option flag name to the values that this release
-	// does not support (computed from OptionFlag.VersionSupported).
+	// does not support (computed from the OptionFlag version constraints).
 	ExcludeFlags   map[string][]string `json:"exclude_flags,omitempty"`
 	BuildContainer string              `json:"build_container,omitempty"`
 	SemVer         string              `json:"sem_ver,omitempty"`
@@ -53,10 +53,14 @@ type Release struct {
 type OptionFlag struct {
 	BuildFlag string   `json:"build_flag,omitempty"`
 	Values    []string `json:"values"`
-	// VersionSupported optionally limits individual values to the releases
-	// matching a semver constraint (e.g. {"AR": ">= 3.0.0-0"}). Values
-	// without an entry are supported by every release.
-	VersionSupported map[string]semver.Constraints `json:"version_supported,omitempty"`
+	// VersionSupported optionally limits the whole flag (every value in this
+	// definition) to the releases matching a semver constraint, like
+	// Target.VersionSupported (e.g. "< 3.0.0-0").
+	VersionSupported *semver.Constraints `json:"version_supported,omitempty"`
+	// ValuesVersionSupported optionally limits individual values, as a map
+	// from value to constraint (e.g. {"AR": ">= 3.0.0-0"}). Values without an
+	// entry are only limited by VersionSupported.
+	ValuesVersionSupported map[string]semver.Constraints `json:"values_version_supported,omitempty"`
 }
 
 type BuildFlags map[string]string
@@ -175,20 +179,25 @@ func (opts OptionFlags) HasOptionValue(name, value string) bool {
 	return false
 }
 
-// supportsRelease reports whether value may be used with release r.
-func (opt *OptionFlag) supportsRelease(value string, r *Release) bool {
-	if c, ok := opt.VersionSupported[value]; ok {
-		return c.Check(r.version)
+// releaseConstraint reports whether value may be used with release r. When
+// it may not, the constraint that excludes it is returned: the whole-flag
+// one first, then the value's own.
+func (opt *OptionFlag) releaseConstraint(value string, r *Release) (bool, string) {
+	if opt.VersionSupported != nil && !opt.VersionSupported.Check(r.version) {
+		return false, opt.VersionSupported.String()
 	}
-	return true
+	if c, ok := opt.ValuesVersionSupported[value]; ok && !c.Check(r.version) {
+		return false, c.String()
+	}
+	return true, ""
 }
 
-func (opts OptionFlags) validateVersionSupported(scope string) error {
+func (opts OptionFlags) validateValuesVersionSupported(scope string) error {
 	for name, opt := range opts {
-		for value := range opt.VersionSupported {
+		for value := range opt.ValuesVersionSupported {
 			if !slices.Contains(opt.Values, value) {
 				return fmt.Errorf("%s: flag %q, value %q: %w",
-					scope, name, value, ErrInvalidVersionSupported)
+					scope, name, value, ErrInvalidValuesVersionSupported)
 			}
 		}
 	}
@@ -214,7 +223,7 @@ func (def *TargetsDef) UnmarshalJSON(text []byte) error {
 	if err := tmp.fillSemVer(); err != nil {
 		return err
 	}
-	if err := tmp.validateVersionSupported(); err != nil {
+	if err := tmp.validateValuesVersionSupported(); err != nil {
 		return err
 	}
 	tmp.fillExcludeTargets()
@@ -276,12 +285,12 @@ func (def *TargetsDef) fillExcludeTargets() {
 	}
 }
 
-func (def *TargetsDef) validateVersionSupported() error {
-	if err := def.OptionFlags.validateVersionSupported("flags"); err != nil {
+func (def *TargetsDef) validateValuesVersionSupported() error {
+	if err := def.OptionFlags.validateValuesVersionSupported("flags"); err != nil {
 		return err
 	}
 	for name, tag := range def.Tags {
-		if err := tag.Flags.validateVersionSupported("tags." + name); err != nil {
+		if err := tag.Flags.validateValuesVersionSupported("tags." + name); err != nil {
 			return err
 		}
 	}
@@ -289,15 +298,16 @@ func (def *TargetsDef) validateVersionSupported() error {
 }
 
 // fillExcludeFlags computes Release.ExcludeFlags: for each release, the flag
-// values (global or from any tag) whose version_supported constraint excludes it.
+// values (global or from any tag) excluded by their flag's version_supported
+// or their own values_version_supported constraint.
 func (def *TargetsDef) fillExcludeFlags() {
 	for k := range def.Releases {
 		r := def.Releases[k]
 		r.ExcludeFlags = nil
 		exclude := func(opts OptionFlags) {
 			for name, opt := range opts {
-				for value := range opt.VersionSupported {
-					if !opt.supportsRelease(value, r) {
+				for _, value := range opt.Values {
+					if ok, _ := opt.releaseConstraint(value, r); !ok {
 						if r.ExcludeFlags == nil {
 							r.ExcludeFlags = make(map[string][]string)
 						}
@@ -402,9 +412,11 @@ func (def *TargetsDef) IsOptionFlagSupportedByRelease(target, name, value, ref s
 		return false, ""
 	}
 	for _, opt := range def.optionFlagDefs(target, name) {
-		if slices.Contains(opt.Values, value) && !opt.supportsRelease(value, r) {
-			c := opt.VersionSupported[value]
-			return false, c.String()
+		if !slices.Contains(opt.Values, value) {
+			continue
+		}
+		if ok, c := opt.releaseConstraint(value, r); !ok {
+			return false, c
 		}
 	}
 	return true, ""

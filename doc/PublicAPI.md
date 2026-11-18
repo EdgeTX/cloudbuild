@@ -8,7 +8,7 @@ This endpoint allows for retrieving the supported targets and build options.
 It returns the configured `targets.json` (see [here](../targets.json)).
 
 Each release also includes what it can't build, computed from the
-`version_supported` constraints (see the
+`version_supported` and `values_version_supported` constraints (see the
 [README](../README.md#limiting-targets-and-flag-values-to-releases)):
 
 - `exclude_targets`: targets not supported by this release.

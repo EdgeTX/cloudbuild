@@ -95,7 +95,7 @@
         "SE",
         "UA"
       ],
-      "version_supported": {
+      "values_version_supported": {
         "RU": ">= 2.10.0-0",
         "UA": ">= 2.10.0-0"
       }
@@ -110,7 +110,8 @@
     },
     "power_led_blue": {
       "build_flag": "POWER_LED_BLUE",
-      "values": ["YES", "NO"]
+      "values": ["YES", "NO"],
+      "version_supported": "< 3.0.0-0"
     },
     "pxx1": {
       "build_flag": "PXX1",
@@ -142,7 +143,7 @@
       "flags": {
         "language": {
           "values": ["AR", "CN", "HE", "JP", "KO", "SK", "TW"],
-          "version_supported": {
+          "values_version_supported": {
             "AR": ">= 3.0.0-0",
             "HE": ">= 2.9.0-0",
             "KO": ">= 2.11.0-0"
