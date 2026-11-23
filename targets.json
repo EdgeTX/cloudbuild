@@ -491,7 +491,7 @@
     "zorro": {
       "description": "RadioMaster Zorro",
       "version_supported": ">= v2.6.0",
-      "tags": ["stdlcd"]
+      "tags": ["stdlcd", "bluetooth"]
     },
     "h17": {
       "description": "Senduwing H17",
